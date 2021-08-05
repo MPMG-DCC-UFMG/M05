@@ -13,6 +13,10 @@ class Processo(ElasticModel):
             'conteudo',
             'fonte',
             'tipo_documento',
+            'entidade_pessoa',
+            'entidade_organizacao',
+            'entidade_municipio',
+            'entidade_local',
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)

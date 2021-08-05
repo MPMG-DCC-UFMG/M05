@@ -1,7 +1,9 @@
+from collections import defaultdict
 import time
 import hashlib
 
 from django.conf import settings
+from elasticsearch_dsl import field
 from .elastic import Elastic
 from .ner import NER
 from mpmg.services.models import LogSearch, Document
@@ -10,7 +12,7 @@ from mpmg.services.models import WeightedSearchFieldsConfigs, SearchableIndicesC
 #Classe funciona como uma especie de interface para usar o Models/Document
 class Query: #TODO: Refatorar essa classe
     def __init__(self, raw_query, page, qid, sid, user_id, instances=[], 
-                 doc_types=[], start_date=None, end_date=None, group='regular', use_entities = True):
+                 doc_types=[], start_date=None, end_date=None, group='regular', use_entities = True, entity_filter=[]):
 
         self.start_time = time.time()
         self.raw_query = raw_query
@@ -46,6 +48,7 @@ class Query: #TODO: Refatorar essa classe
         # print(self.query_entities)
         self.weighted_fields =  self._get_weighted_fields(entities_fields)
         self.indices = self._get_search_indices()
+        self.entity_filter = entity_filter
     
     def _get_entities_in_query(self): #TODO: Qual a melhor forma de incluir esse serviço
         if self.use_entities:
@@ -108,6 +111,13 @@ class Query: #TODO: Refatorar essa classe
             filters_queries.append(
                 Elastic().dsl.Q({'range': {'data': {'lte': self.end_date }}})
             )
+        for entity_field_name in self.entity_filter.keys():
+            for entity_name in self.entity_filter[entity_field_name]:
+                filters_queries.append(
+                    Elastic().dsl.Q({'match_phrase': {entity_field_name: entity_name}})
+                    # Elastic().dsl.Q('bool', must=[Elastic().dsl.Q('match', entidade_pessoa = entity_name)])
+                )
+
         return filters_queries
 
     def execute(self):
@@ -119,9 +129,11 @@ class Query: #TODO: Refatorar essa classe
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().custum_search( self.indices,
             must_queries, should_queries, filter_queries, self.page, self.results_per_page)
 
+        entities_filter_list = self._bulid_dynamic_entity_filter()
+
         self._log()
 
-        return self.total_docs, self.total_pages, self.documents, self.response_time 
+        return self.total_docs, self.total_pages, self.documents, self.response_time, entities_filter_list
 
     def _get_search_indices(self):
         # print('len de doc_types: ', len(self.doc_types))
@@ -131,6 +143,31 @@ class Query: #TODO: Refatorar essa classe
         else:
             indices = SearchableIndicesConfigs.get_searchable_indices(groups=[self.group])
             return indices
+    
+    def _bulid_dynamic_entity_filter(self):
+        tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
+        entities = {}
+        for t in tipos_entidades:
+            entities[t] = defaultdict(int)
+        
+        for doc in self.documents:
+            for campo_entidade in tipos_entidades:
+                entities_list = eval(doc[campo_entidade])
+                for ent in entities_list:
+                    entities[campo_entidade][ent.lower()] += 1
+        
+        # pegas as 10 entidades que mais aparecem
+        selected_entities = {}
+        for campo_entidade in tipos_entidades:
+            entities[campo_entidade] = sorted(entities[campo_entidade].items(), key=lambda x: x[1], reverse=True)
+            selected_entities[campo_entidade] = []
+            for i in range(10):
+                try:
+                    selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
+                except:
+                    break
+        return selected_entities
+
 
     def _log(self): #TODO: Adicionar parametros de entidades nos logs
         data = dict(

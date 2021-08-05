@@ -34,9 +34,10 @@ class SearchableIndicesConfigs(models.Model):
     )
 
     MODELS = (
-        ('Diario',         'Diario'),
-        ('Processo',       'Processo'),
-        ('Licitacao',      'Licitacao')
+        ('Diario',           'Diario'),
+        ('DiarioSegmentado', 'DiarioSegmentado'),
+        ('Processo',         'Processo'),
+        ('Licitacao',        'Licitacao')
     )
 
     entity_to_field_map = { #TODO: Colocar isso em um banco de dados

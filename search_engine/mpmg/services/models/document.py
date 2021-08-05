@@ -1,6 +1,7 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.processo import Processo
 from mpmg.services.models.diario import Diario
+from mpmg.services.models.diario_segmentado import DiarioSegmentado
 from mpmg.services.models.licitacao import Licitacao
 from mpmg.services.models.search_configs import SearchableIndicesConfigs
 from django.conf import settings
@@ -67,7 +68,7 @@ class Document:
         end = start + results_per_page
         # print('indices: ', indices)
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
-                        .source(['fonte', 'titulo', 'conteudo']) \
+                        .source(['fonte', 'titulo', 'conteudo', 'entidade_pessoa', 'entidade_organizacao', 'entidade_municipio', 'entidade_local']) \
                         .query("bool", must = must_queries, should = should_queries, filter = filter_queries)[start:end] \
                         .highlight('conteudo', fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")                        
         
@@ -79,7 +80,10 @@ class Document:
         for i, item in enumerate(response):
             dict_data = item.to_dict()
             dict_data['id'] = item.meta.id
-            dict_data['description'] = item.meta.highlight.conteudo[0]
+            if hasattr(item.meta, 'highlight'):
+                dict_data['description'] = item.meta.highlight.conteudo[0]
+            else:
+                dict_data['description'] = 'Sem descrição.'
             dict_data['rank_number'] = results_per_page * (page_number-1) + (i+1)
             dict_data['type'] = item.meta.index
             

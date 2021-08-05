@@ -84,7 +84,8 @@ class Indexer:
                     doc[field_name] = line[field]
 
             sentences = get_sentences(line['conteudo'])
-            doc["sentences_vectors"] = [{"vector": get_dense_vector(sent)} for sent in sentences]
+            # doc["sentences_vectors"] = [{"vector": get_dense_vector(sent)} for sent in sentences]
+            doc["sentences_vectors"] = []
 
             yield {
                 "_index": index,

@@ -86,6 +86,16 @@ $(function(){
         buttonWidth: '100%',
     });
 
+    $('#entidade_pessoa_filter, #entidade_municipio_filter, #entidade_organizacao_filter, #entidade_local_filter').multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        selectAllText: 'Selecionar todos',
+        nonSelectedText: 'Nada selecionado',
+        filterPlaceholder: 'Procurar',
+        buttonClass: 'btn btn-outline-secondary',
+        buttonWidth: '100%',
+    });
+
     $("#start_date_filter_display").datepicker({
         changeMonth: true,
         changeYear: true,

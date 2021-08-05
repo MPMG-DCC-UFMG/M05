@@ -107,7 +107,7 @@ class SearchView(APIView):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
             
         # Busca os documentos no elastic
-        total_docs, total_pages, documents, response_time = self.query.execute()
+        total_docs, total_pages, documents, response_time, entities_filter_list = self.query.execute()
 
         end = time.time()
         wall_time = end - start
@@ -126,6 +126,7 @@ class SearchView(APIView):
             'instances': self.query.instances,
             'doc_types': self.query.doc_types,
             'documents': documents,
+            'entities_filter_list': entities_filter_list,
         }               
         return Response(data)
         
@@ -148,9 +149,23 @@ class SearchView(APIView):
         start_date = request.GET.get('start_date', None)
         end_date = request.GET.get('end_date', None)
         user_id = request.user.id
+        
+        entidade_pessoa_filter = request.GET.getlist('entidade_pessoa_filter', [])
+        entidade_municipio_filter = request.GET.getlist('entidade_municipio_filter', [])
+        entidade_organizacao_filter = request.GET.getlist('entidade_organizacao_filter', [])
+        entidade_local_filter = request.GET.getlist('entidade_local_filter', [])
+        entity_filter = {}
+        if len(entidade_pessoa_filter) > 0:
+          entity_filter['entidade_pessoa'] = entidade_pessoa_filter
+        if len(entidade_municipio_filter) > 0:
+          entity_filter['entidade_municipio'] = entidade_municipio_filter
+        if len(entidade_organizacao_filter) > 0:
+          entity_filter['entidade_organizacao'] = entidade_organizacao_filter
+        if len(entidade_local_filter) > 0:
+          entity_filter['entidade_local'] = entidade_local_filter
 
         self.query = Query(raw_query, page, qid, sid, user_id, instances, 
-                doc_types, start_date, end_date, use_entities=SearchConfigs.get_use_entities_in_search())
+                doc_types, start_date, end_date, use_entities=SearchConfigs.get_use_entities_in_search(), entity_filter=entity_filter)
 
 
 

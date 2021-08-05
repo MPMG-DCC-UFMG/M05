@@ -41,6 +41,10 @@ def search(request):
     end_date = request.GET.get('end_date', None)
     if end_date == "":
         end_date = None
+    entidade_pessoa_filter = request.GET.getlist('entidade_pessoa_filter', [])
+    entidade_municipio_filter = request.GET.getlist('entidade_municipio_filter', [])
+    entidade_organizacao_filter = request.GET.getlist('entidade_organizacao_filter', [])
+    entidade_local_filter = request.GET.getlist('entidade_local_filter', [])
     
     params = {
         'query': query, 
@@ -50,7 +54,11 @@ def search(request):
         'instances': instances, 
         'doc_types': doc_types,
         'start_date': start_date,
-        'end_date': end_date
+        'end_date': end_date,
+        'entidade_pessoa_filter': entidade_pessoa_filter,
+        'entidade_municipio_filter': entidade_municipio_filter,
+        'entidade_organizacao_filter': entidade_organizacao_filter,
+        'entidade_local_filter': entidade_local_filter,
     }
     service_response = requests.get(settings.SERVICES_URL+'search', params, headers=headers)
     response_content = service_response.json()
@@ -84,7 +92,12 @@ def search(request):
             'instances': response_content['instances'],
             'doc_types': response_content['doc_types'],
             'filter_instances': ['Belo Horizonte', 'Uberlândia', 'São Lourenço', 'Minas Gerais', 'Ipatinga', 'Associação Mineira de Municípios', 'Governador Valadares', 'Uberaba', 'Araguari', 'Poços de Caldas', 'Varginha', 'Tribunal Regional Federal da 2ª Região - TRF2','Obras TCE'],#TODO:Automatizar
-            'filter_doc_types': ['Diario', 'Processo', 'Licitacao']#TODO:Automatizar
+            'filter_doc_types': ['Diario', 'DiarioSegmentado', 'Processo', 'Licitacao'], #TODO:Automatizar
+            'entities_filter_list': response_content['entities_filter_list'],
+            'entidade_pessoa_filter': entidade_pessoa_filter,
+            'entidade_municipio_filter': entidade_municipio_filter,
+            'entidade_organizacao_filter': entidade_organizacao_filter,
+            'entidade_local_filter': entidade_local_filter,
         }
         
         return render(request, 'aduna/search.html', context)
