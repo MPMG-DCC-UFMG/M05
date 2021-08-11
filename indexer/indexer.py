@@ -13,6 +13,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from sentence_transformers import SentenceTransformer, models
 from torch import nn
+import numpy as np
 from nltk import tokenize
 nltk.download('punkt')
 
@@ -48,6 +49,11 @@ def get_sentence_model(model_path="neuralmind/bert-base-portuguese-cased"):
     return SentenceTransformer(modules=[word_embedding_model, pooling_model])
 
 
+def change_vector_precision(vector, precision=24):
+    vector = np.array(vector, dtype=np.float16)
+    return vector.tolist()
+
+
 def parse_date(text):
     for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
         try:
@@ -79,6 +85,8 @@ class Indexer:
         file_count = open(file_path, encoding=encoding)
         table_count = csv.DictReader(file_count)
 
+        sentences_num = 0
+
         columns = table.fieldnames.copy()
 
         rows = list(table_count)
@@ -108,12 +116,15 @@ class Indexer:
 
             if self.model_path != "None":
                 sentences = get_sentences(line['conteudo'])
-                doc["sentences_vectors"] = [{"vector": vector} for vector in get_dense_vector(self.sentence_model, sentences)]
+                sentences_num += len(sentences)
+                doc["sentences_vectors"] = [{"vector": change_vector_precision(vector)} for vector in get_dense_vector(self.sentence_model, sentences)]
 
             yield {
                 "_index": index,
                 "_source": doc
             }
+        
+        print("Sentences mean: ", sentences_num/lines_num)
 
     def simple_indexer(self, files_to_index, index):
         """

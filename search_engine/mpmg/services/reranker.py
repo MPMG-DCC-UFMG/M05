@@ -9,7 +9,7 @@ class Reranker():
     def __init__(self):
         self.model = self.get_sentence_model()
     
-    def get_sentence_model(self, model_path="neuralmind/bert-base-portuguese-cased"):
+    def get_sentence_model(self, model_path="prajjwal1/bert-tiny"):
         word_embedding_model = models.Transformer(model_path, max_seq_length=500)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
 
@@ -30,7 +30,7 @@ class Reranker():
         query_vector = self.model.encode(text_query)
 
         for document in documents:
-            document.score += self.get_bert_score(document.sentences_vectors, query_vector)
+            document.score = self.get_bert_score(document.sentences_vectors, query_vector)
 
         documents = sorted(documents, reverse=True, key=lambda doc: doc.score)
         return documents
