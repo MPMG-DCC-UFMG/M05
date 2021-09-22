@@ -12,6 +12,7 @@ urlpatterns = [
     path('search', views.SearchView.as_view(), name='search'),
     path('search_comparison', views.CompareView.as_view(), name='search_comparison'),
     path('document', views.DocumentView.as_view(), name='document'),
+    path('document_navigation', views.DocumentNavigationView.as_view(), name='document_navigation'),
     path('query_suggestion', views.QuerySuggestionView.as_view(), name='query_suggestion'),
     path('log_search_click', views.LogSearchClickView.as_view(), name='log_search_click'),
     path('log_query_suggestion_click', views.LogQuerySuggestionClickView.as_view(), name='log_query_suggestion_click'),

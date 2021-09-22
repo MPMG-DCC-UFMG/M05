@@ -98,6 +98,7 @@ def search(request):
             'entidade_municipio_filter': entidade_municipio_filter,
             'entidade_organizacao_filter': entidade_organizacao_filter,
             'entidade_local_filter': entidade_local_filter,
+            'filter_url': '&pessoa='+'&pessoa='.join(entidade_pessoa_filter)+'&municipio='+'&municipio='.join(entidade_municipio_filter)+'&organizacao='+'&organizacao='.join(entidade_organizacao_filter)+'&local='+'&local='.join(entidade_local_filter)
         }
         
         return render(request, 'aduna/search.html', context)
@@ -116,15 +117,44 @@ def document(request, doc_type, doc_id):
         request.session['user_info'] = None
         return redirect('/aduna/login')
     else:
-        response_content = service_response.json()
-        document = response_content['document']
-        document['conteudo'] = document['conteudo'].replace('\n', '<br>')
-        document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
-        context = {
-            'user_name': request.session.get('user_info')['first_name'],
-            'document': document
-        }
-        return render(request, 'aduna/document.html', context)
+        query = request.GET['query']
+        pessoa_filter = request.GET.getlist('pessoa', [])
+        municipio_filter = request.GET.getlist('municipio', [])
+        organizacao_filter = request.GET.getlist('organizacao', [])
+        local_filter = request.GET.getlist('local', [])
+
+        if '_segmentado' in doc_type:
+            # requisita a estrutura de navegação do documento, para criar um índice lateral na página
+            nav_params = {
+                'doc_type': doc_type, 
+                'doc_id': doc_id, 
+                'query':query,
+                'pessoa_filter': pessoa_filter,
+                'municipio_filter': municipio_filter,
+                'organizacao_filter': organizacao_filter,
+                'local_filter': local_filter,
+                }
+            nav_response = requests.get(settings.SERVICES_URL+'document_navigation', nav_params, headers=headers)
+            navigation = nav_response.json()['navigation']
+
+            response_content = service_response.json()
+            context = {
+                'user_name': request.session.get('user_info')['first_name'],
+                'query': query,
+                'document': response_content['document'],
+                'navigation': navigation
+            }
+            return render(request, 'aduna/document_segmented.html', context)
+        else:
+            response_content = service_response.json()
+            document = response_content['document']
+            document['conteudo'] = document['conteudo'].replace('\n', '<br>')
+            document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
+            context = {
+                'user_name': request.session.get('user_info')['first_name'],
+                'document': document
+            }
+            return render(request, 'aduna/document.html', context)
 
 
 def login(request):

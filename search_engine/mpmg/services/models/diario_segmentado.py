@@ -19,6 +19,7 @@ class DiarioSegmentado(ElasticModel):
             'num_bloco',
             'num_segmento_bloco',
             'num_segmento_global',
+            'publicador',
             'tipo_documento',
             'entidade_pessoa',
             'entidade_organizacao',
@@ -53,20 +54,30 @@ class DiarioSegmentado(ElasticModel):
         # refaz a consulta trazendo todos os segmentos
         search_obj = search_obj[0:total_records]
         search_obj = search_obj.sort(sort_param)
-        elastic_result = search_obj.execute()
+        segments_result = search_obj.execute()
         
+        all_segments = []
+        for item in segments_result:
+            segment = {
+                'entidade_bloco': item.entidade_bloco if hasattr(item, 'entidade_bloco') else '',
+                'titulo': item.titulo if hasattr(item, 'titulo') else '',
+                'subtitulo': item.subtitulo if hasattr(item, 'subtitulo') else '',
+                'conteudo': item.conteudo if hasattr(item, 'conteudo') else '',
+                'publicador': item.publicador if hasattr(item, 'publicador') else '',
+                'num_bloco': int(item.num_bloco) if hasattr(item, 'num_bloco') else -1,
+                'num_segmento_bloco': int(item.num_segmento_bloco) if hasattr(item, 'num_segmento_bloco') else -1,
+                'num_segmento_global': int(item.num_segmento_global) if hasattr(item, 'num_segmento_global') else -1,
 
-        conteudo_total = '<h1><center>'+retrieved_doc['titulo_diario']+'</center></h1><h2><center>'+datetime.fromtimestamp(retrieved_doc['data']).strftime('%d/%m/%Y')+'</center></h2>'
-        for item in elastic_result:
-            if int(item.num_segmento_bloco) == 1:
-                conteudo_total += '<br>&nbsp;<br><h3><center>'+item.entidade_bloco+'</center></h3><br>&nbsp;<br>'
-                conteudo_total += '<h4>'+item.titulo+'</h4>'
-            if hasattr(item, 'subtitulo'):
-                conteudo_total += '<h5>'+item.subtitulo+'</h5>'
-            if hasattr(item, 'conteudo'):
-                conteudo_total += item.conteudo+"<br><br>"
-        retrieved_doc['conteudo'] = conteudo_total
+            }
+            all_segments.append(segment)
+        
+        document = {
+            'id': retrieved_doc.meta.id,
+            'titulo': retrieved_doc['titulo_diario'],
+            'data': datetime.fromtimestamp(retrieved_doc['data']).strftime('%d/%m/%Y'),
+            'num_segmento_ativo': int(retrieved_doc['num_segmento_global']),
+            'segmentos': all_segments
+        }
 
-        document = dict({'id': retrieved_doc.meta.id}, **retrieved_doc.to_dict())
-        return cls(**document)
+        return document
     

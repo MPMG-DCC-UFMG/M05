@@ -83,6 +83,10 @@
     box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
 }
 
+.view-as-page .page.nav-active{
+    /*margin-left: 250px;*/
+}
+
 
 .error-box{
     margin-top: 40px;
@@ -100,3 +104,85 @@
     white-space: pre-wrap;
   }
 
+
+mark.nav{
+    font-weight: bold;
+}
+
+mark.nav-active{
+    background-color: yellow;
+}
+
+mark.nav a{
+    color: #00277f !important;
+}
+
+mark.active{
+    background-color: yellow;
+}
+
+#doc-navbar{
+    position: fixed;
+    width: 250px;
+    top: 73px;
+    left: 0px;
+    height: calc(100% - 73px);
+    background-color: #ddd;
+    border: 1px solid #aaa;
+    z-index: 2000;
+
+    transition: left ease 0.25s;
+    -webkit-transition: left ease 0.25s;
+}
+
+#doc-navbar.nav-active{
+    left: -250px;
+}
+
+#doc-navbar #doc-navbar-toggle{
+    position: absolute;
+    top: 70px;
+    left: 249px;
+    background-color: white;
+    padding: 8px 12px;
+    font-size: 20px;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    border-left-color: white;
+}
+
+#doc-navbar > ul{
+    padding: 20px 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /*list-style-type: none;*/
+    padding-inline-start: 20px;
+}
+
+#doc-navbar ul li ul{
+    max-height: auto;
+    overflow: hidden;
+    padding-inline-start: 20px;
+}
+
+#doc-navbar li a{
+    font-size: 12px;
+}
+
+.highlight-text{
+    -webkit-animation: flash-text 1s ease-in-out 0s;
+    -moz-animation: flash-text 1s ease-in-out 0s;
+    -o-animation: flash-text 1s ease-in-out 0s;
+    animation: flash-text 1s ease-in-out 0s;
+}
+
+
+@keyframes flash-text {
+    from{
+        background-color: rgba(255, 255, 0, 1.0);
+    }
+    to{
+        background-color: rgba(255, 255, 255, 0.0);
+    }
+}

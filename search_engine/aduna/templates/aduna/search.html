@@ -134,7 +134,7 @@
                     <div id="results-container" data-executed-query="{{ query }}">
                     {% for doc in documents %}
                         <div class="result-item">
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type doc.id %}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" >{{ doc.titulo }}</a></h3>
+                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type doc.id %}?query={{ query }}{{ filter_url }}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" >{{ doc.titulo }}</a></h3>
                             <div class="result-description">
                                 {{ doc.description|safe }}
                             </div>
