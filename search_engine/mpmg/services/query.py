@@ -1,56 +1,73 @@
-from collections import defaultdict
 import time
 import hashlib
-
 from django.conf import settings
-from elasticsearch_dsl import field
 from .elastic import Elastic
+from.query_filter import QueryFilter
 from .ner import NER
 from mpmg.services.models import LogSearch, Document
-from mpmg.services.models import WeightedSearchFieldsConfigs, SearchableIndicesConfigs, SearchConfigs
 
-#Classe funciona como uma especie de interface para usar o Models/Document
-class Query: #TODO: Refatorar essa classe
-    def __init__(self, raw_query, page, qid, sid, user_id, instances=[], 
-                 doc_types=[], start_date=None, end_date=None, group='regular', use_entities = True, entity_filter=[]):
 
+class Query:
+    '''
+    Classe que encapsula todo processamento de uma consulta na API. Englobando todas as 
+    propriedades, filtros, logs, além da execução da consulta no ElasticSearch
+
+    Parameters:
+        raw_query: 
+            Consulta fornecida pelo usuário, sem qualquer tratamento
+        page: 
+            Página dos resultados de busca a ser retornada (varia de acordo com results_per_page)
+        qid: 
+            ID da consulta. Passe None na primeira vez que a consulta for executada e esta classe irá criar o ID
+        sid: 
+            ID da sessão. A aplicação que consumir a API se encarregará de criar e gerenciar este ID
+        user_id: 
+            ID do usuário. A aplicação que consumir a API se encarregará de criar e gerenciar este ID
+        group: 
+            Nome do grupo de índices onde a consulta será executada. Atualmente as opções são 'regular' ou 'replica'.
+            Estas opções estão no arquivo de settings
+        use_entities:
+            Se True irá reconhecer entidades na consulta e irá considerar a ocorrência destas entidades nos campos
+            específicos de entidades, dando um boost a mais em documentos que as possuirem.
+        query_filter: 
+            Classe que encapsula os filtros a serem considerados ao executar a consulta, como por exemplo, datas, locais
+            entidades, etc.
+    '''
+
+    def __init__(self, raw_query, page, qid, sid, user_id, group='regular', use_entities=False, query_filter:QueryFilter=None):
         self.start_time = time.time()
         self.raw_query = raw_query
         self.page = page
         self.qid = qid
         self.sid = sid
         self.user_id = user_id
-
-        self.instances = instances
-        self.doc_types = doc_types
-        self.start_date = start_date
-        self.end_date = end_date
-        if self.instances == [] or self.instances == None or self.instances == "":
-            self.instances = [] 
-        if self.doc_types == [] or self.doc_types == None or self.doc_types == "":
-            self.doc_types = [] 
-        if self.start_date == "":
-            self.start_date = None
-        if self.end_date == "":
-            self.end_date = None
-
-        self.data_hora = int(time.time()*1000)
-        self.query = ' '.join([w for w in self.raw_query.split() if len(w) > 1])
         self.group = group
         self.use_entities = use_entities
-        
-        self.algo_configs = Elastic().get_cur_algo(group=self.group)
-        self.results_per_page =  SearchConfigs.get_results_per_page()
-
-        self._generate_query_id()
-
-        self.query_entities, entities_fields = self._get_entities_in_query() #TODO: encapsular mais essas funçoes e tirar resposabilidade do init
-        # print(self.query_entities)
-        self.weighted_fields =  self._get_weighted_fields(entities_fields)
-        self.indices = self._get_search_indices()
-        self.entity_filter = entity_filter
+        self.query_filter = query_filter
+        self.data_hora = int(time.time()*1000)
+        self.results_per_page =  settings.NUM_RESULTS_PER_PAGE
+        self.weighted_fields = settings.SEARCHABLE_FIELDS
+        self.indices = list(settings.SEARCHABLE_INDICES[group].keys())
+        self._proccess_query()
     
-    def _get_entities_in_query(self): #TODO: Qual a melhor forma de incluir esse serviço
+
+    def _proccess_query(self):
+        '''
+        Faz todo o processamento necessário em cima da consulta original (raw_query):
+            - Tokeniza a consulta ignorando tokens com apenas um caractere
+            - Gera o ID da consulta (para os logs)
+            - Reconhece entidades na consulta caso o atributo use_entities seja True
+        '''
+
+        self.query = ' '.join([w for w in self.raw_query.split() if len(w) > 1])
+        self._generate_query_id()
+        self.query_entities, entities_fields = self._get_entities_in_query()
+
+
+    def _get_entities_in_query(self):
+        '''
+        Reconhece entidades presentes na consulta caso o atributo use_entities seja True
+        '''
         if self.use_entities:
             entities = NER().execute(self.raw_query)
             entities_fields = list(entities.keys())
@@ -58,118 +75,97 @@ class Query: #TODO: Refatorar essa classe
         else:
             return {}, []
 
+
     def _generate_query_id(self):
+        '''
+        Gera um ID único para a consulta, caso ainda não tenha sido gerado.
+        O ID é um hash baseado na data e hora, ID do usuário, consulta e ID da sessão
+        O ID é gerado na primeira execução da consulta. Ao paginar os resultados para
+        a mesma consulta o ID é aproveitado.
+        '''
         if not self.qid:
             pre_qid = hashlib.sha1()
             pre_qid.update(bytes(str(self.data_hora) + str(self.user_id) + self.query + self.sid, encoding='utf-8'))
             self.qid = pre_qid.hexdigest()
 
-    def _get_weighted_fields(self, entities_fields):
-        weighted_fields = WeightedSearchFieldsConfigs.get_weigted_search_fields()
-        for field in weighted_fields:
-            if field.split('^')[0] in entities_fields:
-                entities_fields.remove(field.split('^')[0])
-        weighted_fields = weighted_fields+entities_fields
-        return weighted_fields
 
     def is_valid(self):
+        '''
+        Retorna True caso a consulta seja válida, e False caso contrário
+        Uma consulta é considerada válida caso possua pelo menos um token
+        com mais de 2 caracteres
+        '''
         query_len = len(''.join(self.query.split()))
         if query_len < 2 or len(self.indices)==0:
             return False
         else:
             return True
 
-    def _get_must_queries(self):
+
+    def _get_must_clause(self):
+        '''
+        Monta uma clásula onde os termos da consulta DEVEM aparecer em TODOS os campos listados em fields.
+        Os campos podem possuir diferentes pesos de importância.
+        Os campos e seus respectivos pesos são listados no arquivo de settings
+        '''
         must_queries = [Elastic().dsl.Q('query_string', query=self.query, fields=self.weighted_fields)]
         return must_queries
 
-    def _get_should_queries(self):
-        # print("using entities: ", self.use_entities)
+
+    def _get_should_clause(self):
+        '''
+        Monta uma clásula onde os termos da consulta podem ou não aparecer nos campos listados.
+        Atualmente este método está sendo usado apenas para considerar entidades mencionadas na
+        consulta que apareçam em algum dos campos de entidade.
+        A clásula será montada apenas se o atributo use_entities for True
+        '''
         if self.use_entities:
             should_queries = []
             for field in self.query_entities:
                 for entity in self.query_entities[field]:
                     q = Elastic().dsl.Q({'match': { field: entity}})
                     should_queries.append(q)
-            # print(should_queries)
             return(should_queries)
         else:
             return []
 
 
-    def _get_filters_queries(self):
-        filters_queries = []
-        if self.instances != None and self.instances != []:
-            filters_queries.append(
-                Elastic().dsl.Q({'terms': {'instancia.keyword': self.instances}})
-            )
-        if self.start_date != None and self.start_date != "":
-            filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'gte': self.start_date }}})
-            )
-        if self.end_date != None and self.end_date != "":
-            filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'lte': self.end_date }}})
-            )
-        for entity_field_name in self.entity_filter.keys():
-            for entity_name in self.entity_filter[entity_field_name]:
-                filters_queries.append(
-                    Elastic().dsl.Q({'match_phrase': {entity_field_name: entity_name}})
-                    # Elastic().dsl.Q('bool', must=[Elastic().dsl.Q('match', entidade_pessoa = entity_name)])
-                )
-
-        return filters_queries
-
     def execute(self):
-        must_queries = self._get_must_queries()
-        filter_queries = self._get_filters_queries()
-        should_queries = self._get_should_queries()
-        # print(should_queries)
-        
-        self.total_docs, self.total_pages, self.documents, self.response_time  = Document().custum_search( self.indices,
-            must_queries, should_queries, filter_queries, self.page, self.results_per_page)
+        '''
+        Executa a consulta no ElasticSearch.
+        A consulta é construida considerando clásulas MUST, SHOULD e filtros selecionados pelo usuário.
+        Além de executar a consulta é gravado o log com dados da execução da consulta.
+        Também é gerado dinamicamente as opções para o filtro de entidades, que nesta primeira versão é 
+        computado baseado nos documentos retornados pela consulta.
 
-        entities_filter_list = self._bulid_dynamic_entity_filter()
+        Returns:
+            - Total de documentos encontrados
+            - Total de páginas
+            - Lista com os documentos da página atual
+            - Tempo de resposta
+            - Lista de entidades para montar o filtro dinâmico de entidades
+
+        '''
+        must_clause = self._get_must_clause()
+        should_clause = self._get_should_clause()
+        filter_clause = self.query_filter._get_filters_queries()
+        
+        self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
+            must_clause, should_clause, filter_clause, self.page, self.results_per_page)
+
+        entities_filter_list = self.query_filter._bulid_dynamic_entity_filter(self.documents)
 
         self._log()
 
         return self.total_docs, self.total_pages, self.documents, self.response_time, entities_filter_list
 
-    def _get_search_indices(self):
-        # print('len de doc_types: ', len(self.doc_types))
-        if len(self.doc_types) > 0:
-            indices = SearchableIndicesConfigs.get_searchable_indices(models=self.doc_types, groups=[self.group])
-            return indices
-        else:
-            indices = SearchableIndicesConfigs.get_searchable_indices(groups=[self.group])
-            return indices
-    
-    def _bulid_dynamic_entity_filter(self):
-        tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
-        entities = {}
-        for t in tipos_entidades:
-            entities[t] = defaultdict(int)
-        
-        for doc in self.documents:
-            for campo_entidade in tipos_entidades:
-                entities_list = eval(doc[campo_entidade])
-                for ent in entities_list:
-                    entities[campo_entidade][ent.lower()] += 1
-        
-        # pegas as 10 entidades que mais aparecem
-        selected_entities = {}
-        for campo_entidade in tipos_entidades:
-            entities[campo_entidade] = sorted(entities[campo_entidade].items(), key=lambda x: x[1], reverse=True)
-            selected_entities[campo_entidade] = []
-            for i in range(10):
-                try:
-                    selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
-                except:
-                    break
-        return selected_entities
 
-
-    def _log(self): #TODO: Adicionar parametros de entidades nos logs
+    #TODO: Adicionar parametros de entidades nos logs
+    def _log(self):
+        '''
+        Grava o log da consulta que foi executada. Este método é chamado automaticamente no execute.
+        '''
+        algo_configs = Elastic().get_cur_algo(group=self.group)
         data = dict(
             id_sessao = self.sid,
             id_consulta = self.qid,
@@ -183,22 +179,15 @@ class Query: #TODO: Refatorar essa classe
             tempo_resposta_total = time.time() - self.start_time,
             indices = self.indices,
             
-            algoritmo = self.algo_configs['type'],
-            algoritmo_variaveis = str(self.algo_configs),
+            algoritmo = algo_configs['type'],
+            algoritmo_variaveis = str(algo_configs),
 
             campos_ponderados = self.weighted_fields,
 
-            instancias =  self.instances,
-            data_inicial = self.start_date,
-            data_final = self.end_date
+            instancias =  self.query_filter.instances,
+            data_inicial = self.query_filter.start_date,
+            data_final = self.query_filter.end_date
 
         )
         # print(data)
         LogSearch().save(data)
-
-        
-
-
-
-
-

@@ -14,6 +14,7 @@ from ..features_extractor import FeaturesExtractor
 from ..ranking.tf_idf import TF_IDF
 from ..features_extractor import TermVectorsFeaturesExtractor
 from ..query import Query
+from ..query_filter import QueryFilter
 from ..docstring_schema import AutoDocstringSchema
 
 
@@ -121,10 +122,10 @@ class SearchView(APIView):
             'results_per_page': self.query.results_per_page,
             'time': wall_time,
             'time_elastic': response_time,
-            'start_date': self.query.start_date,
-            'end_date': self.query.end_date,
-            'instances': self.query.instances,
-            'doc_types': self.query.doc_types,
+            'start_date': self.query.query_filter.start_date,
+            'end_date': self.query.query_filter.end_date,
+            'instances': self.query.query_filter.instances,
+            'doc_types': self.query.query_filter.doc_types,
             'documents': documents,
             'entities_filter_list': entities_filter_list,
         }               
@@ -140,6 +141,8 @@ class SearchView(APIView):
         
     def _generate_query(self, request):
         # url parameters
+        use_entities = False
+        group = 'regular'
         raw_query = request.GET['query']
         page = int(request.GET.get('page', 1))
         sid = request.GET['sid']
@@ -156,16 +159,17 @@ class SearchView(APIView):
         entidade_local_filter = request.GET.getlist('entidade_local_filter', [])
         entity_filter = {}
         if len(entidade_pessoa_filter) > 0:
-          entity_filter['entidade_pessoa'] = entidade_pessoa_filter
+            entity_filter['entidade_pessoa'] = entidade_pessoa_filter
         if len(entidade_municipio_filter) > 0:
-          entity_filter['entidade_municipio'] = entidade_municipio_filter
+            entity_filter['entidade_municipio'] = entidade_municipio_filter
         if len(entidade_organizacao_filter) > 0:
-          entity_filter['entidade_organizacao'] = entidade_organizacao_filter
+            entity_filter['entidade_organizacao'] = entidade_organizacao_filter
         if len(entidade_local_filter) > 0:
-          entity_filter['entidade_local'] = entidade_local_filter
+            entity_filter['entidade_local'] = entidade_local_filter
 
-        self.query = Query(raw_query, page, qid, sid, user_id, instances, 
-                doc_types, start_date, end_date, use_entities=SearchConfigs.get_use_entities_in_search(), entity_filter=entity_filter)
+        query_filter = QueryFilter(instances, doc_types, start_date, end_date, entity_filter)
+
+        self.query = Query(raw_query, page, qid, sid, user_id, group, use_entities=use_entities, query_filter=query_filter)
 
 
 

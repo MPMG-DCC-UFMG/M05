@@ -1,65 +1,37 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Aduna - Administração</title>
-    <link rel="stylesheet" href="{% static 'admin/fontawesome/css/all.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/jquery-ui/jquery-ui.min.css' %}">
-    <!-- plugins:css -->
-    <link rel="stylesheet" href="{% static 'admin/vendors/iconfonts/mdi/css/materialdesignicons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/iconfonts/ionicons/css/ionicons.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/iconfonts/typicons/src/font/typicons.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/iconfonts/flag-icon-css/css/flag-icon.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.addons.css' %}">
-    <!-- endinject -->
-    <!-- plugin css for this page -->
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <link rel="stylesheet" href="{% static 'admin/css/shared/style.css' %}">
-    <!-- endinject -->
-    <!-- Layout styles -->
-    <link rel="stylesheet" href="{% static 'admin/css/demo_1/style.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
-    <!-- End Layout styles -->
-    <!-- <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" /> -->
-  </head>
-  <body>
-    <div class="container-scroller">
-      <div class="container-fluid page-body-wrapper">
-        {% include './_sidebar.html' %}
-        <div class="main-panel">
-          {% block content %}{% endblock %}
-          <!-- content-wrapper ends -->
-          {% include './_footer.html' %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Aduna - Administração</title>
+        <link rel="stylesheet" href="{% static 'admin/fontawesome/css/all.min.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/jquery-ui/jquery-ui.min.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.addons.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/css/shared/style.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/css/demo_1/style.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
+
+    </head>
+    <body>
+        <div class="container-scroller">
+        <div class="container-fluid page-body-wrapper">
+            {% include './_sidebar.html' %}
+            <div class="main-panel">
+            {% block content %}{% endblock %}
+            {% include './_footer.html' %}
+            </div>
         </div>
-        <!-- main-panel ends -->
-      </div>
-      <!-- page-body-wrapper ends -->
-    </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
-    <script src="{% static 'admin/vendors/js/vendor.bundle.addons.js' %}"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page-->
-    <!-- End plugin js for this page-->
-    <!-- inject:js -->
-    <script src="{% static 'admin/js/shared/off-canvas.js' %}"></script>
-    <script src="{% static 'admin/js/shared/misc.js' %}"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page-->
-    <script src="{% static 'admin/js/demo_1/dashboard.js' %}"></script>
-    
-    <script src="{% static 'admin/js/jquery-3.4.1.min.js' %}"></script>
-    <script src="{% static 'aduna/jquery-ui/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'admin/bootstrap/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'admin/js/admin.js' %}"></script>
-    <script src="{% static 'admin/js/dashboard.js' %}"></script>
-    {% block additional_script %}{% endblock %}
-    <!-- End custom js for this page-->
-  </body>
+        </div>
+        <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
+        <script src="{% static 'admin/vendors/js/vendor.bundle.addons.js' %}"></script>
+
+        <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+        <script src="{% static 'aduna/jquery-ui/jquery-ui.min.js' %}"></script>
+        <script src="{% static 'admin/bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'admin/js/admin.js' %}"></script>
+        <script src="{% static 'admin/js/dashboard.js' %}"></script>
+        {% block additional_script %}{% endblock %}
+    </body>
 </html>
