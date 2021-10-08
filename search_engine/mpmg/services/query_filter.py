@@ -18,8 +18,37 @@ class QueryFilter:
             self.start_date = None
         if self.end_date == "":
             self.end_date = None
+        
     
-    def _get_filters_queries(self):
+    @staticmethod
+    def create_from_request(request):
+        '''
+        Cria uma instância desta classe lendo diretamente os parâmetros do request
+        '''
+        instances = request.GET.getlist('filter_instances', [])
+        start_date = request.GET.get('filter_start_date', None)
+        end_date = request.GET.get('filter_end_date', None)
+        doc_types = request.GET.getlist('filter_doc_types', [])
+
+        
+        entidade_pessoa_filter = request.GET.getlist('filter_entidade_pessoa', [])
+        entidade_municipio_filter = request.GET.getlist('filter_entidade_municipio', [])
+        entidade_organizacao_filter = request.GET.getlist('filter_entidade_organizacao', [])
+        entidade_local_filter = request.GET.getlist('filter_entidade_local', [])
+        filter_entities_selected = {}
+        if len(entidade_pessoa_filter) > 0:
+            filter_entities_selected['entidade_pessoa'] = entidade_pessoa_filter
+        if len(entidade_municipio_filter) > 0:
+            filter_entities_selected['entidade_municipio'] = entidade_municipio_filter
+        if len(entidade_organizacao_filter) > 0:
+            filter_entities_selected['entidade_organizacao'] = entidade_organizacao_filter
+        if len(entidade_local_filter) > 0:
+            filter_entities_selected['entidade_local'] = entidade_local_filter
+
+        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected)
+    
+    
+    def get_filters_clause(self):
         filters_queries = []
         if self.instances != None and self.instances != []:
             filters_queries.append(
@@ -41,27 +70,3 @@ class QueryFilter:
                 )
 
         return filters_queries
-    
-    def _bulid_dynamic_entity_filter(self, documents):
-        tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
-        entities = {}
-        for t in tipos_entidades:
-            entities[t] = defaultdict(int)
-        
-        for doc in documents:
-            for campo_entidade in tipos_entidades:
-                entities_list = eval(doc[campo_entidade])
-                for ent in entities_list:
-                    entities[campo_entidade][ent.lower()] += 1
-        
-        # pegas as 10 entidades que mais aparecem
-        selected_entities = {}
-        for campo_entidade in tipos_entidades:
-            entities[campo_entidade] = sorted(entities[campo_entidade].items(), key=lambda x: x[1], reverse=True)
-            selected_entities[campo_entidade] = []
-            for i in range(10):
-                try:
-                    selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
-                except:
-                    break
-        return selected_entities

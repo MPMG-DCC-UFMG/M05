@@ -39,19 +39,19 @@
                         <input type="hidden" name="query" id="query" value="{{ query }}">
                         <div class="form-group">
                             <label class="control-label mb-0">Data inicial:</label> 
-                            <input type="text" id="start_date_filter_display" class="form-control border-secondary" value="{{ start_date|date:'d/m/Y' }}" autocomplete="off">
-                            <input type="hidden", name="start_date", id="start_date_filter" value="{{ start_date|date:'Y-m-d' }}">
+                            <input type="text" id="filter_start_date_display" class="form-control border-secondary" value="{{ filter_start_date|date:'d/m/Y' }}" autocomplete="off">
+                            <input type="hidden", name="filter_start_date", id="filter_start_date" value="{{ filter_start_date|date:'Y-m-d' }}">
                         </div>    
                         <div class="form-group">
                             <label class="control-label mb-0">Data final:</label>
-                            <input type="text" id="end_date_filter_display" class="form-control border-secondary" value="{{ end_date|date:'d/m/Y' }}" autocomplete="off">
-                            <input type="hidden", name="end_date", id="end_date_filter" value="{{ end_date|date:'Y-m-d' }}">
+                            <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
+                            <input type="hidden", name="filter_end_date", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
                         </div>
                         <div class="form-group">
                             <label class="control-label mb-0">Instância:</label>
-                            <select id="instancia_filter" name="instance" multiple="multiple">
-                                {% for item in filter_instances %}
-                                    <option value="{{ item }}" {% if item in instances %}selected="selected"{% endif %}>
+                            <select id="filter_instances" name="filter_instances" multiple="multiple">
+                                {% for item in filter_instances_list %}
+                                    <option value="{{ item }}" {% if item in filter_instances %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
                                 {% endfor %}                            
@@ -59,20 +59,20 @@
                         </div>
                         <div class="form-group">
                             <label class="control-label mb-0">Tipo de documento:</label>
-                            <select id="tipo_filter" name="doc_type" multiple="multiple">
-                                {% for item in filter_doc_types %}
-                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in doc_types %}selected="selected"{% endif %}>
-                                    {{ item }}
+                            <select id="filter_doc_types" name="filter_doc_types" multiple="multiple">
+                                {% for name, value in filter_doc_types_list %}
+                                    <option value="{{ value }}" style="text-transform: capitalize;" {% if value in filter_doc_types %}selected="selected"{% endif %}>
+                                    {{ name }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        {% if entities_filter_list.entidade_pessoa|length > 0 %}
+                        {% if filter_entities_list.entidade_pessoa|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir pessoa:</label>
-                            <select id="entidade_pessoa_filter" name="entidade_pessoa_filter" multiple="multiple">
-                                {% for item in entities_filter_list.entidade_pessoa %}
-                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in entidade_pessoa_filter %}selected="selected"{% endif %}>
+                            <select id="filter_entidade_pessoa" name="filter_entidade_pessoa" multiple="multiple">
+                                {% for item in filter_entities_list.entidade_pessoa %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_pessoa %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
                                 {% endfor %}
@@ -80,12 +80,12 @@
                         </div>
                         {% endif %}
 
-                        {% if entities_filter_list.entidade_municipio|length > 0 %}
+                        {% if filter_entities_list.entidade_municipio|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir município:</label>
-                            <select id="entidade_municipio_filter" name="entidade_municipio_filter" multiple="multiple">
-                                {% for item in entities_filter_list.entidade_municipio %}
-                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in entidade_municipio_filter %}selected="selected"{% endif %}>
+                            <select id="filter_entidade_municipio" name="filter_entidade_municipio" multiple="multiple">
+                                {% for item in filter_entities_list.entidade_municipio %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_municipio %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
                                 {% endfor %}
@@ -93,12 +93,12 @@
                         </div>
                         {% endif %}
 
-                        {% if entities_filter_list.entidade_organizacao|length > 0 %}
+                        {% if filter_entities_list.entidade_organizacao|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir organização:</label>
-                            <select id="entidade_organizacao_filter" name="entidade_organizacao_filter" multiple="multiple">
-                                {% for item in entities_filter_list.entidade_organizacao %}
-                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in entidade_organizacao_filter %}selected="selected"{% endif %}>
+                            <select id="filter_entidade_organizacao" name="filter_entidade_organizacao" multiple="multiple">
+                                {% for item in filter_entities_list.entidade_organizacao %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_organizacao %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
                                 {% endfor %}
@@ -106,12 +106,12 @@
                         </div>
                         {% endif %}
 
-                        {% if entities_filter_list.entidade_local|length > 0 %}
+                        {% if filter_entities_list.entidade_local|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir local:</label>
-                            <select id="entidade_local_filter" name="entidade_local_filter" multiple="multiple">
-                                {% for item in entities_filter_list.entidade_local %}
-                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in entidade_local_filter %}selected="selected"{% endif %}>
+                            <select id="filter_entidade_local" name="filter_entidade_local" multiple="multiple">
+                                {% for item in filter_entities_list.entidade_local %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_local %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
                                 {% endfor %}

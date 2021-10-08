@@ -49,6 +49,12 @@ class Query:
         self.weighted_fields = settings.SEARCHABLE_FIELDS
         self.indices = list(settings.SEARCHABLE_INDICES[group].keys())
         self._proccess_query()
+
+        # Os doc_types são os índices onde deve ser feita a busca, se o usuário
+        # filtrou por doc_types, devemos atualizar em quais índices faremos a busca.
+        # Caso contrário busca em todos os índices definidos no settings
+        if self.query_filter != None and len(self.query_filter.doc_types) > 0:
+            self.indices = self.query_filter.doc_types
     
 
     def _proccess_query(self):
@@ -96,7 +102,7 @@ class Query:
         com mais de 2 caracteres
         '''
         query_len = len(''.join(self.query.split()))
-        if query_len < 2 or len(self.indices)==0:
+        if query_len < 2:
             return False
         else:
             return True
@@ -143,21 +149,18 @@ class Query:
             - Total de páginas
             - Lista com os documentos da página atual
             - Tempo de resposta
-            - Lista de entidades para montar o filtro dinâmico de entidades
 
         '''
         must_clause = self._get_must_clause()
         should_clause = self._get_should_clause()
-        filter_clause = self.query_filter._get_filters_queries()
+        filter_clause = self.query_filter.get_filters_clause()
         
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
 
-        entities_filter_list = self.query_filter._bulid_dynamic_entity_filter(self.documents)
-
         self._log()
 
-        return self.total_docs, self.total_pages, self.documents, self.response_time, entities_filter_list
+        return self.total_docs, self.total_pages, self.documents, self.response_time
 
 
     #TODO: Adicionar parametros de entidades nos logs

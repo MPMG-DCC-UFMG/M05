@@ -10,6 +10,7 @@ urlpatterns = [
     path('login', views.CustomAuthToken.as_view(), name='login'),
     path('logout', views.TokenLogout.as_view(), name='logout'),
     path('search', views.SearchView.as_view(), name='search'),
+    path('search_filter/<str:filter_name>', views.SearchFilterView.as_view(), name='search'),
     path('search_comparison', views.CompareView.as_view(), name='search_comparison'),
     path('document', views.DocumentView.as_view(), name='document'),
     path('document_navigation', views.DocumentNavigationView.as_view(), name='document_navigation'),
