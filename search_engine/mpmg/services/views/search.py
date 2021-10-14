@@ -65,9 +65,10 @@ class SearchView(APIView):
             items:
               type: string
               enum:
-                - Diario
-                - Processo
-                - Licitacao
+                - diarios
+                - processos
+                - licitacoes
+                - diarios_segmentado
         - name: filter_start_date
           in: query
           description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
@@ -166,7 +167,6 @@ class SearchView(APIView):
         
         
     def _generate_query(self, request):
-        use_entities = settings.USE_ENTITIES_IN_SEARCH
         group = 'regular'
         user_id = request.user.id
         raw_query = request.GET['query']
@@ -177,7 +177,7 @@ class SearchView(APIView):
         # o restante dos parâmetros do request são lidos automaticamente
         query_filter = QueryFilter.create_from_request(request)
 
-        self.query = Query(raw_query, page, qid, sid, user_id, group, use_entities=use_entities, query_filter=query_filter)
+        self.query = Query(raw_query, page, qid, sid, user_id, group, query_filter=query_filter)
 
 
 

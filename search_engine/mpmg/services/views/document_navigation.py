@@ -2,20 +2,67 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..elastic import Elastic
+from ..docstring_schema import AutoDocstringSchema
 
 
 class DocumentNavigationView(APIView):
+    '''
+    get:
+        description: Retorna uma lista com todas as seções do documento a ser visualizado. \
+        Caso a consulta e as entidades sejam passadas, as seções que contiverem os termos da consulta ou as entidades serão destacadas.
+        parameters:
+            -   name: doc_id
+                in: query
+                description: ID do documento (ou segmento) a ser buscado
+                required: true
+                schema:
+                    type: string
+            -   name: doc_type
+                in: query
+                description: Tipo do documento
+                required: true
+                schema:
+                    type: string
+                    enum:
+                        - diarios
+                        - processos
+                        - licitacoes
+                        - diarios_segmentado
+            -   name: query
+                in: query
+                description: Texto da consulta, para ter a seção onde a consulta aparece destacada.
+                schema:
+                    type: string
+            -   name: filter_entidade_pessoa
+                in: query
+                description: Lista de entidades do tipo pessoa. Seções que contiverem estas entidades serão destacadas
+                schema:
+                    type: array
+            -   name: filter_entidade_municipio
+                in: query
+                description: Lista de entidades do tipo município. Seções que contiverem estas entidades serão destacadas
+                schema:
+                    type: array
+            -   name: filter_entidade_organizacao
+                in: query
+                description: Lista de entidades do tipo organização. Seções que contiverem estas entidades serão destacadas
+                schema:
+                    type: array
+            
+
+    '''
     
-    # schema = AutoDocstringSchema()
+    schema = AutoDocstringSchema()
     
     def get(self, request):
+        
 
         doc_id = request.GET['doc_id']
         index_name = request.GET['doc_type'] # o tipo do documento é o nome do índice
         query = request.GET.get('query', None)
-        pessoa_filter = request.GET.getlist('pessoa_filter', [])
-        municipio_filter = request.GET.getlist('municipio_filter', [])
-        organizacao_filter = request.GET.getlist('organizacao_filter', [])
+        filter_entidade_pessoa = request.GET.getlist('filter_entidade_pessoa', [])
+        filter_entidade_municipio = request.GET.getlist('filter_entidade_municipio', [])
+        filter_entidade_organizacao = request.GET.getlist('filter_entidade_organizacao', [])
         local_filter = request.GET.getlist('local_filter', [])
 
         self.elastic = Elastic()

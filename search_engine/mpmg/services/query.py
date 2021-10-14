@@ -26,15 +26,12 @@ class Query:
         group: 
             Nome do grupo de índices onde a consulta será executada. Atualmente as opções são 'regular' ou 'replica'.
             Estas opções estão no arquivo de settings
-        use_entities:
-            Se True irá reconhecer entidades na consulta e irá considerar a ocorrência destas entidades nos campos
-            específicos de entidades, dando um boost a mais em documentos que as possuirem.
         query_filter: 
             Classe que encapsula os filtros a serem considerados ao executar a consulta, como por exemplo, datas, locais
             entidades, etc.
     '''
 
-    def __init__(self, raw_query, page, qid, sid, user_id, group='regular', use_entities=False, query_filter:QueryFilter=None):
+    def __init__(self, raw_query, page, qid, sid, user_id, group='regular', query_filter:QueryFilter=None):
         self.start_time = time.time()
         self.raw_query = raw_query
         self.page = page
@@ -42,9 +39,9 @@ class Query:
         self.sid = sid
         self.user_id = user_id
         self.group = group
-        self.use_entities = use_entities
         self.query_filter = query_filter
         self.data_hora = int(time.time()*1000)
+        self.use_entities = settings.USE_ENTITIES_IN_SEARCH
         self.results_per_page =  settings.NUM_RESULTS_PER_PAGE
         self.weighted_fields = settings.SEARCHABLE_FIELDS
         self.indices = list(settings.SEARCHABLE_INDICES[group].keys())

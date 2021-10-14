@@ -4,6 +4,15 @@ from .elastic import Elastic
 
 
 class QueryFilter:
+    '''
+    Classe que encapsula todas as opções de filtro selecionadas pelo usuário.
+    Ela é usada como um parâmetro da classe Query e fica responsável por montar
+    a clásula de filtragem para o ElasticSearch
+
+    A maneira recomendada de instanciá-la é usar o método estático create_from_request
+    passando o objeto request que vem da requisição. Para mais detalhes veja na classe Query
+    '''
+
     def __init__(self, instances=[], doc_types=[], start_date=None, end_date=None, entity_filter=[]):
         self.instances = instances
         self.doc_types = doc_types
@@ -49,6 +58,11 @@ class QueryFilter:
     
     
     def get_filters_clause(self):
+        '''
+        Cria a clásula de filtragem da consulta de acordo com as opções selecionadas pelo usuário.
+        Esta clásula será combinada com a consulta e será executada pelo ElasticSearch
+        '''
+
         filters_queries = []
         if self.instances != None and self.instances != []:
             filters_queries.append(
@@ -66,7 +80,6 @@ class QueryFilter:
             for entity_name in self.entity_filter[entity_field_name]:
                 filters_queries.append(
                     Elastic().dsl.Q({'match_phrase': {entity_field_name: entity_name}})
-                    # Elastic().dsl.Q('bool', must=[Elastic().dsl.Q('match', entidade_pessoa = entity_name)])
                 )
 
         return filters_queries
