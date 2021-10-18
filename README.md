@@ -16,10 +16,10 @@
   
   4. Navegue até a pasta search_engine/mpmg e faça uma cópia do arquivo "settings.template.py" com o nome de "settings.py". Altere alguns diretórios e senhas caso necessário.
   5. Crie um usuário para acessar a interface da API. Navegue até o diretório search_engine e rode:
-    > python manage.py createsuperuser
+     > python manage.py createsuperuser
     
   6. Instancie o projeto rodando:
-    > python manage.py runserver
+     > python manage.py runserver
 
 
 # Etapas de 2021
