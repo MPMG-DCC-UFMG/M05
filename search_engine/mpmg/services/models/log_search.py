@@ -28,8 +28,7 @@ class LogSearch(ElasticModel):
             'instancias',
             'data_inicial',
             'data_final',
-
-            
+            'filtros'
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)

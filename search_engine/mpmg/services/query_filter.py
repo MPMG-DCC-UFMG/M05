@@ -83,3 +83,12 @@ class QueryFilter:
                 )
 
         return filters_queries
+
+    def get_representation(self) -> dict:
+        return dict(
+            instances = self.instances,
+            doc_types = self.doc_types,
+            start_date = self.start_date,
+            end_date = self.end_date,
+            entity_filter = self.entity_filter
+        )

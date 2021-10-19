@@ -186,8 +186,10 @@ class Query:
 
             instancias =  self.query_filter.instances,
             data_inicial = self.query_filter.start_date,
-            data_final = self.query_filter.end_date
+            data_final = self.query_filter.end_date,
+
+            filtros = {} if self.query_filter is None else self.query_filter.get_representation()
 
         )
-        # print(data)
+
         LogSearch().save(data)
