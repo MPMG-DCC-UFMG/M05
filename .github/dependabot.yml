@@ -1,0 +1,10 @@
+version: 1
+updates:
+    - package-ecosystem: "pip"
+      directory: "/NER"
+      open-pull-requests-limit: 0
+    
+    - package-ecosystem: "npm"
+      directory: "/NER"
+      open-pull-requests-limit: 0
+      
