@@ -1,13 +1,13 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/NER"
+    directory: "/NER/M02"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
     
   - package-ecosystem: "npm"
-    directory: "/NER"
+    directory: "/NER/M02/doccano"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
