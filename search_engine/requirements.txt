@@ -20,4 +20,4 @@ wrapt==1.11.1
 tensorflow==2.3.0
 html2text==2020.1.16
 pyyaml==5.4.1 
-uritemplate==3.0.1
+uritemplate==4.1.1
