@@ -4,7 +4,7 @@ chardet==3.0.4
 Django==3.0.5
 idna==2.9
 pytz==2019.3
-requests==2.23.0
+requests==2.26.0
 sqlparse==0.3.1
 urllib3==1.25.8
 elasticsearch==7.6.0
