@@ -63,6 +63,14 @@ def parse_date(text):
     raise ValueError('no valid date format found')
 
 
+def parse_date(text):
+    for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(text, fmt)
+        except ValueError:
+            pass
+    raise ValueError('no valid date format found')
+
 class Indexer:
 
     def __init__(self, elastic_address='localhost:9200', model_path="neuralmind/bert-base-portuguese-cased"):

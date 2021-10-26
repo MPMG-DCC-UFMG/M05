@@ -1,6 +1,7 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.processo import Processo
 from mpmg.services.models.diario import Diario
+from mpmg.services.models.diario_segmentado import DiarioSegmentado
 from mpmg.services.models.licitacao import Licitacao
 from mpmg.services.models.search_configs import SearchableIndicesConfigs
 from django.conf import settings
@@ -18,58 +19,32 @@ class Document:
     retornar os resultados como uma lista de múltiplas classes.
     '''
 
-    def __init__(self, searchable_indices=None):
+    def __init__(self):
         self.elastic = Elastic()
-        # self.results_per_page = 10
+
+        self.retrievable_fields = settings.RETRIEVABLE_FIELDS
+        self.highlight_field = settings.HIGHLIGHT_FIELD
         
-        # if searchable_indices == None:
-        #     searchable_indices = {}
-        #     for k, v in settings.SEARCHABLE_INDICES.items(): # converte a string para classe
-        #         searchable_indices[k] = eval(v)
-        # else:
-        #     for k, v in searchable_indices.items(): # converte a string para classe
-        #         searchable_indices[k] = eval(v)
-        # self.searchable_indices = searchable_indices
-        # self.index_names = list(self.searchable_indices.keys())
-
-    
-
-    # def search(self, query, page_number):
-    #     start = self.results_per_page * (page_number - 1)
-    #     end = start + self.results_per_page
-        
-    #     elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_names) \
-    #             .source(['fonte', 'titulo', 'conteudo']) \
-    #             .query('query_string', query=query, phrase_slop='2', default_field='conteudo')[start:end] \
-    #             .highlight('conteudo', fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
-
-    #     response = elastic_request.execute()
-    #     total_docs = response.hits.total.value
-    #     total_pages = (total_docs // self.results_per_page) + 1 # Total retrieved documents per page + 1 page for rest of division
-    #     documents = []
-
-    #     for i, item in enumerate(response):
-    #         dict_data = item.to_dict()
-    #         dict_data['id'] = item.meta.id
-    #         dict_data['description'] = item.meta.highlight.conteudo[0]
-    #         dict_data['rank_number'] = self.results_per_page * (page_number-1) + (i+1)
-    #         dict_data['type'] = item.meta.index
-
-    #         result_class = self.searchable_indices[item.meta.index]
-    #         documents.append(result_class(**dict_data))
-        
-    #     return total_docs, total_pages, documents, response.took
+        # relaciona o nome do índice com a classe Django que o representa
+        self.index_to_class = {}
+        for group, indices in settings.SEARCHABLE_INDICES.items():
+            for index_name, class_name in indices.items():
+                self.index_to_class[index_name] = eval(class_name)
 
         
-    def custum_search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
+    def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
         
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
         # print('indices: ', indices)
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
+<<<<<<< HEAD
                         .source(['fonte', 'titulo', 'conteudo', 'sentences_vectors']) \
+=======
+                        .source(self.retrievable_fields) \
+>>>>>>> 95bbd677e5a9949c111ca6b2463be089aaf1d5f3
                         .query("bool", must = must_queries, should = should_queries, filter = filter_queries)[start:end] \
-                        .highlight('conteudo', fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")                        
+                        .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")                        
         
         response = elastic_request.execute()
         total_docs = response.hits.total.value
@@ -79,13 +54,14 @@ class Document:
         for i, item in enumerate(response):
             dict_data = item.to_dict()
             dict_data['id'] = item.meta.id
-            dict_data['description'] = item.meta.highlight.conteudo[0]
+            if hasattr(item.meta, 'highlight'):
+                dict_data['description'] = item.meta.highlight.conteudo[0]
+            else:
+                dict_data['description'] = 'Sem descrição.'
             dict_data['rank_number'] = results_per_page * (page_number-1) + (i+1)
             dict_data['type'] = item.meta.index
-            dict_data['score'] =  item.meta.score
-
-            index_model_class_name = SearchableIndicesConfigs.get_index_model_class_name(item.meta.index)
-            result_class = eval(index_model_class_name)
+            
+            result_class = self.index_to_class[item.meta.index]
             documents.append(result_class(**dict_data))
         
         return total_docs, total_pages, documents, response.took

@@ -66,7 +66,7 @@ $(function(){
         log_search_click(e.target);
     });
 
-    $('#instancia_filter').multiselect({
+    $('#filter_instances').multiselect({
         includeSelectAllOption: true,
         enableFiltering: true,
         selectAllText: 'Selecionar todas',
@@ -76,7 +76,7 @@ $(function(){
         buttonWidth: '100%',
     });
 
-    $('#tipo_filter').multiselect({
+    $('#filter_doc_types').multiselect({
         includeSelectAllOption: true,
         enableFiltering: true,
         selectAllText: 'Selecionar todos',
@@ -86,19 +86,29 @@ $(function(){
         buttonWidth: '100%',
     });
 
-    $("#start_date_filter_display").datepicker({
+    $('#filter_entidade_pessoa, #filter_entidade_municipio, #filter_entidade_organizacao, #filter_entidade_local').multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        selectAllText: 'Selecionar todos',
+        nonSelectedText: 'Nada selecionado',
+        filterPlaceholder: 'Procurar',
+        buttonClass: 'btn btn-outline-secondary',
+        buttonWidth: '100%',
+    });
+
+    $("#filter_start_date_display").datepicker({
         changeMonth: true,
         changeYear: true,
         dateFormat: 'dd/mm/yy',
-        altField: "#start_date_filter",
+        altField: "#filter_start_date",
         altFormat: "yy-mm-dd"
     });
 
-    $("#end_date_filter_display").datepicker({
+    $("#filter_end_date_display").datepicker({
         changeMonth: true,
         changeYear: true,
         dateFormat: 'dd/mm/yy',
-        altField: "#end_date_filter",
+        altField: "#filter_end_date",
         altFormat: "yy-mm-dd"
     });
 });

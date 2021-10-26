@@ -6,7 +6,7 @@ import traceback
 import sys
 from elasticsearch import helpers
 from django.conf import settings
-from mpmg.services.models.search_configs import SearchableIndicesConfigs
+
 
 class Elastic:
     def __init__(self):
@@ -15,6 +15,11 @@ class Elastic:
         self.es = elasticsearch.Elasticsearch([self.ELASTIC_ADDRESS], timeout=120)
         self.dsl = elasticsearch_dsl
         self.helpers = helpers
+        
+        self.all_searchable_indices = []
+        for group, indices in settings.SEARCHABLE_INDICES.items():
+            for index_name, class_name in indices.items():
+                self.all_searchable_indices.append(index_name)
     
     def close_then_modify(self, index, body):
         """
@@ -36,19 +41,25 @@ class Elastic:
 # somente façam a modificação ou peguem o valor de um grupo
 
     def get_cur_algo(self, group):
-        for index in SearchableIndicesConfigs.get_indices_list(group=group):
-            resp = self.es.indices.get_settings(index=index, name='*sim*')
+        '''
+        A aplicação garantirá que todos os índices do grupo estarão configurados com mesmo algoritmo
+        Portanto, pega a configuração do primeiro índice que der e retorna.
+        '''
+        for index in list(settings.SEARCHABLE_INDICES[group].keys()):
             try:
+                resp = self.es.indices.get_settings(index=index, name='*sim*')
                 sim_settings = resp[index]['settings']['index']['similarity']['default']
+                return sim_settings
             except:
-                sim_settings = {'type': 'BM25', 'k1': 1.2, 'b': 0.75, 'discount_overlaps': True} # Default value
-        return sim_settings
+                print('Não foi possível encontrar o algoritmo de ranqueamento para o índice {}'.format(index))
+                continue
+        return {'type': 'BM25', 'k1': 1.2, 'b': 0.75, 'discount_overlaps': True} # Default value
 
     def set_cur_algo(self, **kwargs):
         algo = kwargs.get('algorithm')
         group = kwargs.get('compare')
         
-        for index in SearchableIndicesConfigs.get_indices_list(group=group):
+        for index in list(settings.SEARCHABLE_INDICES[group].keys()):
             
             cur_settings = self.es.indices.get_settings(index=index, name='*sim*')
             body = {'similarity': {'default': {}}}
@@ -143,17 +154,18 @@ class Elastic:
         return resp
 
     def get_cur_replicas(self):
-        for index in SearchableIndicesConfigs.get_indices_list():
-            resp = self.es.indices.get_settings(index=index, name='*replicas')
+        for index in self.all_searchable_indices:
             try:
+                resp = self.es.indices.get_settings(index=index, name='*replicas')
                 num_repl = resp[index]['settings']['index']['number_of_replicas']
+                return num_repl
             except:
                 print('Não foi possível encontrar o número de replicas para o índice {}'.format(index))
-                resp = {'acknowledged': False}
-        return num_repl
+                continue
+        return False
     
     def set_cur_replicas(self, value):
-        for index in SearchableIndicesConfigs.get_indices_list():
+        for index in self.all_searchable_indices:
             try:
                 resp = self.es.indices.put_settings(body={'number_of_replicas': value}, index=index)
             except:
@@ -162,17 +174,19 @@ class Elastic:
         return resp
 
     def get_max_result_window(self):
-        for index in SearchableIndicesConfigs.get_indices_list():
-            resp = self.es.indices.get_settings(index=index, name='*max_result_window')
+        for index in self.all_searchable_indices:
             try:
+                resp = self.es.indices.get_settings(index=index, name='*max_result_window')
                 max_result_window = resp[index]['settings']['index']['max_result_window']
+                return max_result_window
             except:
-                max_result_window = 10000 # Default value
+                print('Não foi possível pegar o max_result_window para o índice {}'.format(index))
+                continue
                 
-        return max_result_window
+        return 10000 # Default value
     
     def set_max_result_window(self, value):
-        for index in SearchableIndicesConfigs.get_indices_list():
+        for index in self.all_searchable_indices:
             try:
                 resp = self.es.indices.put_settings(body={'max_result_window': value}, index=index)
             except:

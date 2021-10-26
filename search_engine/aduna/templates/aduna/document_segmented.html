@@ -1,0 +1,150 @@
+{% extends "./_base.html" %}
+{% load aduna_extras %}
+{% block body_tags %}class="view-as-page"{% endblock %}
+{% block content %}
+    <header>
+        <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top shadow p-3">
+            <div class="container">
+                <a href="javascript:history.back()" class="btn btn-danger my-2 my-sm-0" type="button"><i class="fas fa-arrow-alt-circle-left"></i> Voltar</a>
+                <a class="navbar-brand" href="{% url 'aduna:index' %}" style="margin-left: 50px">Áduna</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <form action="{% url 'aduna:search' %}" method="GET" class="form-inline mt-2 mt-md-0">
+                        <input id="query" name="query" class="form-control mr-sm-2" type="text" placeholder="Sua consulta aqui..." aria-label="Consulta" value="{{ query }}" oninvalid="setCustomValidity('Insira uma consulta válida.')" oninput="setCustomValidity('')"  required>
+                        <button class="btn btn-primary my-2 my-sm-0" type="submit">Pesquisar</button>
+                    </form>
+                </div>
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            {{ user_name }}
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdown07">
+                            <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <nav id="doc-navbar">
+            <ul>
+                {% for item in navigation %}
+                <li>
+                    <a id="nav_bloco_{{ item.num_bloco }}" href="#bloco_{{ item.num_bloco }}">{{ item.entidade_bloco }}</a>
+                    <ul>
+                    {% for child in item.childs %}
+                      <li>
+                        {% if child.num_segmento_global == document.num_segmento_ativo or child.matched == 1 %}
+                        <mark class="nav{% if child.num_segmento_global == document.num_segmento_ativo %} nav-active{% endif %}">
+                        {% endif %}
+                        <a id="nav_seg_{{ child.num_segmento_global }}" href="#seg_{{ child.num_segmento_global }}">{{ child.titulo }}</a>
+                        {% if child.num_segmento_global == document.num_segmento_ativo or child.matched == 1 %}
+                        </mark>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+
+            </ul>
+            <div id="doc-navbar-toggle"><i class="fas fa-bars"></i></div>
+        </nav>
+        <div class="page nav-active">
+            <h1><center>{{ document.titulo }}</center></h1>
+            <h2><center>{{ document.data }}</center></h2>
+            <br><br><br>
+            {% for segmento in document.segmentos %}
+                {% if segmento.num_segmento_bloco == 1 %}
+                <div id="bloco_{{ segmento.num_bloco}}">
+                    <h4 style="color: #6495ed; text-align: center;">{{ segmento.entidade_bloco }}</h4>
+                    <br>
+                {% endif %}
+                    <div id="seg_{{ segmento.num_segmento_global}}">
+                        {% if segmento.titulo != '' %}
+                        <h5>{{ segmento.titulo}}</h5>
+                        {% endif %}
+                        {% if segmento.subtitulo != '' %}
+                        <h6>{{ segmento.subtitulo }}</h6>
+                        {% endif %}
+                        <p style="text-align: justify;">
+                            {% if segmento.num_segmento_global == document.num_segmento_ativo %}
+                            <mark class="active">
+                            {% endif %}
+                            {{ segmento.conteudo }}
+                            {% if segmento.num_segmento_global == document.num_segmento_ativo %}
+                            </mark>
+                            {% endif %}
+                        </p>
+                        <br><br>
+                    </div>
+                {% if segmento.num_segmento_bloco == 1 %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+{% block script_before %}
+    <script>
+        SERVICES_URL = '{{ services_url }}';
+        QID = '{{ qid }}';
+        PAGE = '{{ page }}';
+    </script>
+{% endblock %}
+{% block additional_head %}
+    <style>
+        
+    </style>
+{% endblock %}
+{% block script_after %}
+    <script>
+        num_segmento_ativo = {{ document.num_segmento_ativo }};
+        function scrollToSegment(id, hightlight=false){
+            $([document.documentElement, document.body]).animate({
+                scrollTop: $(id).offset().top - ($(window).height()/2)
+            }, 1000, function(){
+                if(hightlight){
+                    $(id).addClass('highlight-text'); 
+                    setTimeout(function(){
+                        $(id).removeClass('highlight-text')
+                    }, 1001)
+                }
+            });
+            
+        }
+
+        function scrollToNavItem(id){
+            $("#doc-navbar > ul").animate({
+                scrollTop: $(id).position().top - ($(this).height()/2)
+            }, 1000);
+        }
+
+        $(function(){
+            // rola a página até o segmento destacado
+            scrollToSegment("#seg_"+num_segmento_ativo);
+
+            //rola tbm o índice
+            scrollToNavItem("#nav_seg_"+num_segmento_ativo);
+
+            //quando clica em algum item do índice rola até o segmento
+            $("#doc-navbar a").click(function(event){
+                id = $(this).attr('href');
+                scrollToSegment(id, true);
+            });
+
+            //exibe-esconde o índice de navegação
+            $('#doc-navbar-toggle').click(function(event){
+                $('#doc-navbar').toggleClass('nav-active');
+                $('.page').toggleClass('nav-active');
+                event.preventDefault();
+                return false;
+            });
+        });
+    </script>
+{% endblock %}
