@@ -12,13 +12,9 @@
                         }
                     }
                 },
-                "sentences_vectors": {
-                    "type": "nested",
-                    "properties": {
-                      "vector": {
-                        "type": "dense_vector",
-                        "dims": 768
-                      }
+                "embedding_vector": {
+                    "type": "dense_vector",
+                    "dims": 768
                     }
                 },
                 "data": {
@@ -274,13 +270,9 @@
                 "num_segmento_global": {
                     "type": "integer"
                 },
-                "sentences_vectors": {
-                    "type": "nested",
-                    "properties": {
-                      "vector": {
-                        "type": "dense_vector",
-                        "dims": 768
-                      }
+                "embedding_vector": {
+                    "type": "dense_vector",
+                    "dims": 768
                     }
                 },
                 "data": {
@@ -449,13 +441,9 @@
                         }
                     }
                 },
-                "sentences_vectors": {
-                    "type": "nested",
-                    "properties": {
-                      "vector": {
-                        "type": "dense_vector",
-                        "dims": 768
-                      }
+                "embedding_vector": {
+                    "type": "dense_vector",
+                    "dims": 768
                     }
                 },
                 "conteudo": {
@@ -539,13 +527,9 @@
                         }
                     }
                 },
-                "sentences_vectors": {
-                    "type": "nested",
-                    "properties": {
-                      "vector": {
-                        "type": "dense_vector",
-                        "dims": 768
-                      }
+                "embedding_vector": {
+                    "type": "dense_vector",
+                    "dims": 768
                     }
                 },
                 "tipo_documento":{

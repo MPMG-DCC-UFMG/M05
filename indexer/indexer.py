@@ -37,9 +37,9 @@ def get_sentences(text):
 
 
 def get_dense_vector(model, text_list):
-    vectors = model.encode(text_list)
+    vectors = model.encode([text_list])
     vectors = [vec.tolist() for vec in vectors]
-    return vectors
+    return vectors[0]
 
 
 def get_sentence_model(model_path="neuralmind/bert-base-portuguese-cased"):
@@ -123,9 +123,7 @@ class Indexer:
                     doc[field_name] = line[field]
 
             if self.model_path != "None":
-                sentences = get_sentences(line['conteudo'])
-                sentences_num += len(sentences)
-                doc["sentences_vectors"] = [{"vector": change_vector_precision(vector)} for vector in get_dense_vector(self.sentence_model, sentences)]
+                doc["embedding_vector"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
 
             yield {
                 "_index": index,

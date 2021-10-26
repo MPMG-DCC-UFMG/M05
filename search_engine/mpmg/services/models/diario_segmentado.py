@@ -25,6 +25,7 @@ class DiarioSegmentado(ElasticModel):
             'entidade_organizacao',
             'entidade_municipio',
             'entidade_local',
+            'embedding_vector'
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)

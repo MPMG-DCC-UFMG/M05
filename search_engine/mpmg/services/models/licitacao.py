@@ -13,7 +13,7 @@ class Licitacao(ElasticModel):
             'conteudo',
             'fonte',
             'tipo_documento',
-            'sentences_vectors'
+            'embedding_vector'
             'entidade_pessoa',
             'entidade_organizacao',
             'entidade_municipio',

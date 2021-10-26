@@ -38,11 +38,7 @@ class Document:
         end = start + results_per_page
         # print('indices: ', indices)
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
-<<<<<<< HEAD
-                        .source(['fonte', 'titulo', 'conteudo', 'sentences_vectors']) \
-=======
                         .source(self.retrievable_fields) \
->>>>>>> 95bbd677e5a9949c111ca6b2463be089aaf1d5f3
                         .query("bool", must = must_queries, should = should_queries, filter = filter_queries)[start:end] \
                         .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")                        
         
