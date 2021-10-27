@@ -14,8 +14,7 @@
                 },
                 "embedding_vector": {
                     "type": "dense_vector",
-                    "dims": 768
-                    }
+                    "dims": 128
                 },
                 "data": {
                     "type": "date"
@@ -272,8 +271,7 @@
                 },
                 "embedding_vector": {
                     "type": "dense_vector",
-                    "dims": 768
-                    }
+                    "dims": 128
                 },
                 "data": {
                     "type": "date"
@@ -443,8 +441,7 @@
                 },
                 "embedding_vector": {
                     "type": "dense_vector",
-                    "dims": 768
-                    }
+                    "dims": 128
                 },
                 "conteudo": {
                     "type": "text",
@@ -529,8 +526,7 @@
                 },
                 "embedding_vector": {
                     "type": "dense_vector",
-                    "dims": 768
-                    }
+                    "dims": 128
                 },
                 "tipo_documento":{
                     "type": "text",
