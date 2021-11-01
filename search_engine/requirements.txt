@@ -16,7 +16,7 @@ djangorestframework==3.11.1
 nltk==3.4.5
 numpy==1.16.0
 spacy==2.0.12
-wrapt==1.11.1
+wrapt==1.13.3
 tensorflow==2.3.0
 html2text==2020.1.16
 pyyaml==5.4.1 
