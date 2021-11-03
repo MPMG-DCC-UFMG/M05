@@ -3,12 +3,17 @@ import ctypes
 import os
 import time
 import json
+from copy import deepcopy
 from random import random
 import datetime
 
 import nltk
+from tqdm import tqdm
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+from sentence_transformers import SentenceTransformer, models
+from torch import nn
+import numpy as np
 from nltk import tokenize
 nltk.download('punkt')
 
@@ -31,8 +36,31 @@ def get_sentences(text):
     return tokenize.sent_tokenize(text)
 
 
-def get_dense_vector(text):
-    return [random() for i in range(768)]
+def get_dense_vector(model, text_list):
+    vectors = model.encode([text_list])
+    vectors = [vec.tolist() for vec in vectors]
+    return vectors[0]
+
+
+def get_sentence_model(model_path="neuralmind/bert-base-portuguese-cased"):
+    word_embedding_model = models.Transformer(model_path, max_seq_length=500)
+    pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
+
+    return SentenceTransformer(modules=[word_embedding_model, pooling_model])
+
+
+def change_vector_precision(vector, precision=24):
+    vector = np.array(vector, dtype=np.float16)
+    return vector.tolist()
+
+
+def parse_date(text):
+    for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(text, fmt)
+        except ValueError:
+            pass
+    raise ValueError('no valid date format found')
 
 
 def parse_date(text):
@@ -45,10 +73,13 @@ def parse_date(text):
 
 class Indexer:
 
-    def __init__(self, elastic_address='localhost:9200'):
+    def __init__(self, elastic_address='localhost:9200', model_path="neuralmind/bert-base-portuguese-cased"):
 
         self.ELASTIC_ADDRESS = elastic_address
         self.es = Elasticsearch([self.ELASTIC_ADDRESS], timeout=120, max_retries=3, retry_on_timeout=True)
+        self.model_path = model_path
+        if self.model_path != "None":
+            self.sentence_model = get_sentence_model(self.model_path)
 
         csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
@@ -58,9 +89,17 @@ class Indexer:
         """
         file = open(file_path, encoding=encoding)
         table = csv.DictReader(file)
+
+        file_count = open(file_path, encoding=encoding)
+        table_count = csv.DictReader(file_count)
+
+        sentences_num = 0
+
         columns = table.fieldnames.copy()
 
-        for line in table:
+        rows = list(table_count)
+        lines_num = len(rows)
+        for line in tqdm(table, total=lines_num):
             line = dict(line)
             doc = {}
             for field in columns:
@@ -83,14 +122,15 @@ class Indexer:
                 else:
                     doc[field_name] = line[field]
 
-            sentences = get_sentences(line['conteudo'])
-            # doc["sentences_vectors"] = [{"vector": get_dense_vector(sent)} for sent in sentences]
-            doc["sentences_vectors"] = []
+            if self.model_path != "None":
+                doc["embedding_vector"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
 
             yield {
                 "_index": index,
                 "_source": doc
             }
+        
+        print("Sentences mean: ", sentences_num/lines_num)
 
     def simple_indexer(self, files_to_index, index):
         """
