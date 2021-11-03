@@ -33,7 +33,6 @@ search_engine/env/
 
 # Extensions
 *.sqlite3
-*.ipynb
 *.xml
 
 # VS Code
