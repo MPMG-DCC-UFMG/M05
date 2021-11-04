@@ -134,7 +134,10 @@ class SearchFilterView(APIView):
         
         for doc in response:
             for campo_entidade in tipos_entidades:
-                entities_list = eval(doc[campo_entidade])
+                try:
+                   entities_list = eval(doc[campo_entidade])
+                except:
+                    entities_list = []
                 for ent in entities_list:
                     entities[campo_entidade][ent.lower()] += 1
         
