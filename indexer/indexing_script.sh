@@ -3,7 +3,7 @@
 python elastic_indexer.py -strategy simple -index licitacoes -d indices-sample/licitacoes -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index processos -d indices-sample/processos -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios -model_path prajjwal1/bert-tiny;
-python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios_segmentado -model_path prajjwal1/bert-tiny;
+python elastic_indexer.py -strategy simple -index diarios_segmentado -d indices-sample/diarios_segmentado -model_path prajjwal1/bert-tiny;
 
 python create_mappings.py;
 
