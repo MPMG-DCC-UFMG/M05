@@ -41,3 +41,5 @@ search_engine/env/
 
 #NER stuff:
 NER/M02/models/lener_model.ser.gz
+
+search_engine/venv/

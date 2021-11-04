@@ -32,16 +32,399 @@
     </header>
     <div class="container">
         <div class="page">
-            <h2>{{ document.title }}</h2>
-
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="m-0">{{ document.title }}</h2>
+                
+                <div id="bookmark-popover" data-toggle="popover"  data-container="body" data-toggle="popover" data-placement="right" >
+                    <button class="btn p-0">
+                        <!-- <i class="fas fa-star fa-lg"></i> -->
+                        <i class="far fa-star fa-lg"></i>
+                    </button>
+                    <div id="bookmark-popover-content" class="d-none">
+                        <h3 class="h6 font-weight-bold">Editar favorito</h3>
+                        <div>
+                            <div class="form-group">
+                                <label for="inputName" class="">Nome</label>
+                                <div >
+                                    <input type="texto" class="form-control" id="inputName" placeholder="Nome">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="selectFolder">Pasta</label>
+                                <select class="custom-select" id="selectFolder">
+                                    <option selected title="Processos/Juncao/Point/Fabio Nogueira">Processos/.../Fábio Junção</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-secondary" data-toggle="modal" data-target="#folderModal">Mais...</button>
+                                <button class="btn btn-secondary">Remover</button>
+                                <button class="btn btn-success">Salvar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <p>{{ document.conteudo|safe }}</p>
         </div>
     </div>
-{% endblock %}
-{% block script_before %}
+
+    <div class="modal fade" id="folderModal" tabindex="-1" aria-labelledby="folderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-bold" id="folderModalLabel">Editar favorito</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="inputName" class="">Nome</label>
+                        <div>
+                            <input type="texto" class="form-control" id="inputName" placeholder="Nome">
+                        </div>
+                    </div>
+                    <label for="">Pasta</label>
+                    <div class="bg-light rounded border px-3 pt-1 pb-3 font-weight-bold" id="folder-complete-list" style="min-height: 180px;">
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div class="">
+                        <button type="button" class="btn btn-secondary" onclick="create_children_from_active_folder()">Nova pasta</button>
+                    </div>
+                    <div class="">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="removeFolderModal" tabindex="-1" aria-labelledby="removeFolderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-bold" id="removeFolderModalLabel">O que deseja fazer com os favoritos dessa pasta?</h5>
+                    <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button> -->
+                </div>
+                <div class="modal-body d-flex justify-content-between">
+                    <div class="">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                    <div class="">
+                        <button type="button" class="btn btn-primary" onclick="remove_folder('keep')">Mover todos para pasta acima</button>
+                        <button type="button" class="btn btn-danger" onclick="remove_folder('remove_all')">Excluir todos</button>
+                    </div>
+                </div>
+                <!-- <div class="modal-footer d-flex justify-content-between">
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+    {% block script_before %}
     <script>
         SERVICES_URL = '{{ services_url }}';
         QID = '{{ qid }}';
         PAGE = '{{ page }}';
+        
+        
+        </script>
+    {% endblock %}
+
+    {% block script_after %}
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+
+        <script>
+            var folder_to_remove;
+            var active_folder;
+
+            tree = { "name": "Bookmarks de Elves", "id": 123, "children": [{ "name": "Processos", "id": 797, "children": [{ "name": "Estaduais", "id": 63, "children": [{ "name": "Bias Fortes", "id": 630, "children": [{ "name": "Catupity", "id": 6340, "children": [] }] }] }, { "name": "Federais", "id": 31, "children": [] }] }, { "name": "Diários", "id": 89, "created_at": "Apr. 2012", "children": [] }] }
+            
+            function update_active_folder(new_active_folder) {
+                if (active_folder) 
+                    $(`#${active_folder}-folder-name`).removeClass('text-primary')
+
+                active_folder = new_active_folder;
+                
+                $(`#${active_folder}-folder-name`).addClass('text-primary')
+            }
+
+            function enable_edit_mode() {
+                $(`#${this.context}-folder-name`).addClass('d-none');
+                $(`#${this.context}-input`).removeClass('d-none');
+                $(`#${this.context}-input`).focus();
+                $(`#${this.context}-folder-name`).popover('hide');
+            }
+            
+            function remove_folder(decision) {
+                $('#removeFolderModal').modal('hide')
+                $('#folderModal').modal('show')
+
+                console.log(decision)
+                $(`#${folder_to_remove}`).remove()
+                
+                
+                // TODO: desabilitar todos os listeners da pasta excluída
+            }
+
+            function create_folder(name, folder_id, opened, depth, children=[]) {
+                let folder = document.createElement('DIV')
+
+                folder.id = folder_id
+                folder.name = name
+
+                folder.depth = depth
+                folder.opened = opened
+                folder.className = 'folder d-flex mt-2'
+                folder.style.userSelect = 'none'; 
+                folder.setAttribute('depth', depth)
+
+                let folder_wrapper = document.createElement('DIV')
+                folder_wrapper.className = depth > 0 ? 'ml-4' : 'ml-0'
+                // folder_wrapper.style.marginLeft = `{32}px`
+
+                let folder_info = document.createElement('DIV')
+                folder_info.className = 'folder-info d-flex align-items-center'
+                folder_info.style.cursor = 'pointer'
+                
+                let folder_icon = document.createElement('I')
+                folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
+                
+                let folder_name = document.createElement('P')
+                folder_name.id = `${folder_id}-folder-name`
+                folder_name.className = 'my-0 ml-2'
+                folder_name.appendChild(folder_icon)
+
+                let text = document.createElement('STRONG')
+                text.textContent = name
+                text.className = 'mx-2'
+            
+                folder_name.appendChild(text)
+
+                let input = document.createElement('INPUT')
+                input.setAttribute('type', 'text')
+                input.value = name 
+                input.id = `${folder_id}-input`
+                input.className = 'p-0 m-0 border-0 bg-light px-2 font-weight-bold d-none'
+                
+                let disable_edit_mode = function () {
+                    text.textContent = input.value
+                    input.className = 'p-0 m-0 border-0 bg-light px-2 font-weight-bold d-none'
+                    if (active_folder == folder_id)
+                        folder_name.className = 'my-0 ml-2 text-primary'
+                    else
+                        folder_name.className = 'my-0 ml-2'
+                }
+
+                input.addEventListener('keyup', function () {
+                    // Number 13 is the "Enter" key on the keyboard
+                    if (event.keyCode === 13) 
+                        disable_edit_mode()
+                })
+
+                input.addEventListener('blur', disable_edit_mode)
+
+                let folder_children = document.createElement('DIV')
+                folder_children.id = `${folder_id}-children`
+
+                folder_children.className = folder.opened ? 'children' : 'children d-none'
+
+                for (let i=0;i < children.length;i++) 
+                    folder_children.appendChild(children[i])
+
+                let input_detail_wrapper = document.createElement('DIV')
+                input_detail_wrapper.appendChild(input)
+                input_detail_wrapper.appendChild(folder_name)
+
+                folder_info.appendChild(input_detail_wrapper)
+
+                folder_wrapper.appendChild(folder_info)
+                folder_wrapper.appendChild(folder_children)
+
+                folder.appendChild(folder_wrapper)
+
+                folder_name.onclick = function () {
+                    folder.opened = !folder.opened;
+                    folder_children.className = folder.opened ? 'children' : 'children d-none'
+                    folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
+
+                    update_active_folder(folder_id)
+                }
+
+                folder_info.setAttribute('data-toggle', 'popover')
+                folder_info.setAttribute('data-container', 'body')
+                folder_info.setAttribute('data-placement', 'right')
+
+                return folder;
+            }
+
+            function randomIntFromInterval(min, max) { // min and max included 
+                return Math.floor(Math.random() * (max - min + 1) + min)
+            }
+            
+            function create_children(folder_id) {
+                let children_id = randomIntFromInterval(10000, 100000)
+                
+                let folder_context = $(`#${folder_id}`);
+
+                if ($(`#${folder_id}-children`).hasClass('d-none'))
+                    $(`#${folder_id}-folder-name`).click()
+
+                let parent_depth = parseInt(folder_context.attr("depth")); 
+                
+                let new_folder = create_folder(`Pasta sem nome`, children_id, true, parent_depth + 1, []);
+
+                $(`#${folder_id}-children`).append(new_folder);
+
+                attach_popover(children_id)
+
+                $(`#${folder_id}-folder-name`).popover('hide');
+                
+                $(`#${children_id}-folder-name`).addClass('d-none');
+                $(`#${children_id}-input`).removeClass('d-none');
+                $(`#${children_id}-input`).focus();
+
+                update_active_folder(children_id)
+            }
+
+            function create_children_from_context_menu() {
+                create_children(this.context)    
+            }
+
+            function create_children_from_active_folder() {
+                create_children(active_folder)    
+            }
+
+            function create_context_menu_item(icon, name, context, event=null) {
+                let li = document.createElement('LI')
+                li.style.cursor = 'pointer'
+                li.context = context
+
+                let li_icon = document.createElement('I')
+                li_icon.className = icon
+                
+                let li_text = document.createElement('STRONG')
+                li_text.textContent = name
+                li_text.className = 'ml-2'
+                
+                li.appendChild(li_icon)
+                li.appendChild(li_text)
+
+                li.onclick = event
+
+                return li;
+            }
+
+            function show_remove_folder_modal() {
+                folder_to_remove = this.context
+
+                $('#folderModal').modal('hide')
+                $('#removeFolderModal').modal('show')
+            }
+
+            function create_context_menu(context) {
+                let depth = parseInt($(`#${context}`).attr("depth"));
+                
+                let ul = document.createElement('UL');
+
+                ul.style.listStyle = 'none'
+                ul.className = 'm-0 p-0'
+
+                let li_new = create_context_menu_item('fas fa-plus', 'Nova pasta', context, create_children_from_context_menu)
+                ul.appendChild(li_new)
+
+                if (depth == 0)
+                    return ul 
+
+                let li_edit = create_context_menu_item('fas fa-pen', 'Editar', context, enable_edit_mode)
+                ul.appendChild(li_edit)
+
+                let li_remove = create_context_menu_item('fas fa-trash-alt', 'Remover', context, show_remove_folder_modal)
+                ul.appendChild(li_remove)
+
+                li_edit.className = 'mt-2'
+                li_remove.className = 'mt-2'
+
+                return ul
+            }
+
+            function parse_tree(tree, depth=0) {
+                let children_parsed = []
+                
+                for (let i = 0; i < tree.children.length; i++)
+                    children_parsed.push(parse_tree(tree.children[i], depth + 1))
+                
+                return create_folder(tree.name, tree.id, true, depth, children_parsed)
+            }
+
+            function attach_popover(tree_id) {
+                $(`#${tree_id}-folder-name`).popover({
+                    html: true,
+                    sanitize: false,
+                    trigger: "manual",
+                    content: function () {
+                        return create_context_menu(tree_id);
+                    }
+                })
+                .on("mouseenter", function () {
+                    var _this = this;
+                    $(this).popover("show");
+                    $(".popover").on("mouseleave", function () {
+                        $(_this).popover('hide');
+                    });
+                }).on("mouseleave", function () {
+                    var _this = this;
+                    if (!$(".popover:hover").length) {
+                        $(_this).popover("hide");
+                    }
+                });
+            }
+
+            function set_context_menu_event(tree) {
+                attach_popover(tree.id)
+                for (let i = 0; i < tree.children.length; i++)
+                    set_context_menu_event(tree.children[i])
+            } 
+
+            
+            let parsed_tree = parse_tree(tree)
+            $('#folder-complete-list').append(parsed_tree)
+            set_context_menu_event(tree)
+
+            update_active_folder(tree.id)
+
+            $('#bookmark-popover').popover({
+                html: true,
+                sanitize: false,
+                trigger: "manual",
+                content: function () {
+                    return $('#bookmark-popover-content').html();
+                }
+            })
+            .on("mouseenter", function () {
+                var _this = this;
+                $(this).popover("show");
+                $(".popover").on("mouseleave", function () {
+                    $(_this).popover('hide');
+                });
+            }).on("mouseleave", function () {
+                var _this = this;
+                setTimeout(function () {
+                    if (!$(".popover:hover").length) {
+                        $(_this).popover("hide");
+                    }
+                }, 300);
+            });
     </script>
 {% endblock %}
