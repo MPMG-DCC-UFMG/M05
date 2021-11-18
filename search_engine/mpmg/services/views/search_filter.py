@@ -6,6 +6,7 @@ from django.conf import settings
 from ..elastic import Elastic
 from ..query_filter import QueryFilter
 from ..docstring_schema import AutoDocstringSchema
+from mpmg.services.models import APIConfig
 
 
 
@@ -114,11 +115,11 @@ class SearchFilterView(APIView):
         
         elastic = Elastic()
         
-        indices = list(settings.SEARCHABLE_INDICES['regular'].keys())
+        indices = APIConfig.searchable_indices('regular')
         if len(query_filter.doc_types) > 0:
             indices = query_filter.doc_types
 
-        must_clause = [elastic.dsl.Q('query_string', query=query, fields=settings.SEARCHABLE_FIELDS)]
+        must_clause = [elastic.dsl.Q('query_string', query=query, fields=APIConfig.searchable_fields())]
         filter_clause = query_filter.get_filters_clause()
 
         elastic_request = elastic.dsl.Search(using=elastic.es, index=indices) \

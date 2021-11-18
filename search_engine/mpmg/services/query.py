@@ -4,7 +4,7 @@ from django.conf import settings
 from .elastic import Elastic
 from.query_filter import QueryFilter
 from .ner import NER
-from mpmg.services.models import LogSearch, Document
+from mpmg.services.models import LogSearch, Document, APIConfig
 
 
 class Query:
@@ -41,15 +41,15 @@ class Query:
         self.group = group
         self.query_filter = query_filter
         self.data_hora = int(time.time()*1000)
-        self.use_entities = settings.USE_ENTITIES_IN_SEARCH
-        self.results_per_page =  settings.NUM_RESULTS_PER_PAGE
-        self.weighted_fields = settings.SEARCHABLE_FIELDS
-        self.indices = list(settings.SEARCHABLE_INDICES[group].keys())
+        self.use_entities = APIConfig.identify_entities_in_query()
+        self.results_per_page =  APIConfig.results_per_page()
+        self.weighted_fields = APIConfig.searchable_fields()
+        self.indices = APIConfig.searchable_indices(group)
         self._proccess_query()
 
         # Os doc_types são os índices onde deve ser feita a busca, se o usuário
         # filtrou por doc_types, devemos atualizar em quais índices faremos a busca.
-        # Caso contrário busca em todos os índices definidos no settings
+        # Caso contrário busca em todos os índices definidos nas configurações
         if self.query_filter != None and len(self.query_filter.doc_types) > 0:
             self.indices = self.query_filter.doc_types
     
