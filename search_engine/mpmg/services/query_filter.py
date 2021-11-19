@@ -1,5 +1,3 @@
-from collections import defaultdict
-from django.conf import settings
 from .elastic import Elastic
 
 

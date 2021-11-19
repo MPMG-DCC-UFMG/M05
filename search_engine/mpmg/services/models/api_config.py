@@ -21,6 +21,9 @@ class APIConfig():
     - config_options:
       Armazena opções da API que consistem em valores individuais. Por exemplo, número de
       resultados por página, nome do campo que deve ser feito o highlight de busca, etc
+    
+    - config_entities_mapping
+      Mapeia o tipo da entidade do módulo NER para o respectivo campo nos índices
 
     '''
     
@@ -28,6 +31,7 @@ class APIConfig():
     INDEX_CONFIG_INDICES = 'config_indices'
     INDEX_CONFIG_FIELDS = 'config_fields'
     INDEX_CONFIG_OPTIONS = 'config_options'
+    INDEX_CONFIG_ENTITIES = 'config_entities_mapping'
 
     def __init__(self, **kwargs):
         None
@@ -166,3 +170,19 @@ class APIConfig():
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
         
         return result_list
+    
+    # CONFIGURAÇÕES DO MAPEAMENTO DAS ENTIDADES #########################################################
+
+    @classmethod
+    def entity_type_to_index_name(cls):
+        total = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_ENTITIES).count()
+
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_ENTITIES)
+        search_obj = search_obj[0:total]
+        elastic_result = search_obj.execute()
+        
+        type2field = {}
+        for item in elastic_result:
+            type2field[item['entity_type']] = item['field_name']
+        
+        return type2field

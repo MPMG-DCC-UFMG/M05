@@ -1,6 +1,5 @@
 import time
 import hashlib
-from django.conf import settings
 from .elastic import Elastic
 from.query_filter import QueryFilter
 from .ner import NER
@@ -71,7 +70,7 @@ class Query:
         '''
         Reconhece entidades presentes na consulta caso o atributo use_entities seja True
         '''
-        if self.use_entities:
+        if self.use_entities or True:
             entities = NER().execute(self.raw_query)
             entities_fields = list(entities.keys())
             return entities, entities_fields

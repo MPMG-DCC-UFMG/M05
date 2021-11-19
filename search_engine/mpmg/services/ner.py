@@ -2,7 +2,7 @@ import subprocess
 import json
 
 from django.conf import settings
-from mpmg.services. models import SearchableIndicesConfigs
+from mpmg.services. models import APIConfig
 
 class NER:
     '''
@@ -27,9 +27,11 @@ class NER:
         out, err = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=cls.ner_dir).communicate()
         ner_data = json.loads(out.decode('utf-8'))
 
+        label2field = APIConfig.entity_type_to_index_name()
+
         entities = {}
         for line in ner_data['entities']:
-            field = settings.ENTITY_TYPE_TO_INDEX_FIELD[line['label']]
+            field = label2field[line['label']]
             if field not in entities:
                 entities[field] = set()
             entities[field].add(line['entity'])

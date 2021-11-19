@@ -1,13 +1,10 @@
 from collections import defaultdict
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
 from ..elastic import Elastic
 from ..query_filter import QueryFilter
 from ..docstring_schema import AutoDocstringSchema
 from mpmg.services.models import APIConfig
-
 
 
 class SearchFilterView(APIView):
