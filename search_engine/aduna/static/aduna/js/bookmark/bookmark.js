@@ -1,0 +1,114 @@
+// Contém o código responsável por gerenciar os bookmarks
+
+var bookmark = {};
+bookmark.folder = null;
+bookmark.id = null;
+
+
+function save_or_update_bookmark_by_dropdown() {
+    bookmark.folder = $('.popover select').val();
+    $('#bookmark-popover').popover('toggle');
+    services.create_bookmark();
+}
+
+
+function get_bookmark_html(doc_title) {
+    /** Cria o html que contém o menu de contexto e o icone do bookmark que fica na página
+     * 
+     */
+    return `<div id="bookmark-popover" data-toggle="popover"  data-container="body" data-toggle="popover" data-placement="right" >
+                <div id="bookmark-toggle-wrapper">
+                </div>
+                <div id="bookmark-popover-content" class="d-none">
+                    <h3 class="h6 font-weight-bold">Editar favorito</h3>
+                    <div>
+                        <div class="form-group">
+                            <label for="inputName" class="">Nome</label>
+                            <div >
+                                <input type="texto" class="form-control" id="inputName" placeholder="Nome" value="${doc_title}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="selectFolder">Pasta</label>
+                            <select class="custom-select" id="selectFolder">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-secondary" data-toggle="modal" data-target="#folderModal">Mais...</button>
+                            <button class="btn btn-secondary">Remover</button>
+                            <button class="btn btn-success" onclick="save_or_update_bookmark_by_dropdown()">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+}
+
+function inject_bookmark() {
+    // Injeta o HTML do bookmark na página
+    let bookmark_html = get_bookmark_html(DOC_TITLE);
+    $('.bookmark').append(bookmark_html);
+}
+
+function create_bookmark_toggle(active) {
+    // Cria o icone de bookmark com lógica para manipulá-lo
+    let el_bookmark = document.createElement('BUTTON');
+    el_bookmark.className = 'btn p-0';
+    el_bookmark.active = active;
+    el_bookmark.id = 'bookmark-button';
+
+    let icon = document.createElement('I');
+    icon.id = 'bookmark-icon';
+    icon.className = active ? 'fas fa-star fa-lg' : 'far fa-star fa-lg';
+
+    el_bookmark.appendChild(icon);
+
+    el_bookmark.onclick = function () {
+        $('#bookmark-popover').popover('toggle');
+
+        el_bookmark.active = !el_bookmark.active;
+
+        if (el_bookmark.active)
+            services.create_bookmark();
+            
+        else 
+            services.remove_bookmark(bookmark.id);
+
+    }
+
+    return el_bookmark;
+}
+
+$(document).ready(function () {
+    inject_bookmark()
+
+    // Cria o evendo que aparece o menu de contexto para edição do bookmark quando 
+    // o mouse passa em cima dele
+    $('#bookmark-popover').popover({
+        html: true,
+        sanitize: false,
+        trigger: "manual",
+        content: function () {
+            return $('#bookmark-popover-content').html();
+        }
+    })
+    .on("mouseenter", function () {
+        var _this = this;
+        $(this).popover("show");
+        $(".popover").on("mouseleave", function () {
+            $(_this).popover('hide');
+        });
+    }).on("mouseleave", function () {
+        var _this = this;
+        setTimeout(function () {
+            if (!$(".popover:hover").length) {
+                $(_this).popover("hide");
+            }
+        }, 300);
+    });
+
+    $('#selectFolder').on('change', function () {
+        console.log(this.value);
+    });
+
+    services.start_bookmark(DOC_TYPE, DOC_ID);
+});

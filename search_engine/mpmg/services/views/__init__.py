@@ -8,3 +8,5 @@ from .monitoring import *
 from .search_comparison import *
 from .search_comparison_entity import *
 from .document_navigation import *
+from .bookmark_folder import *
+from .bookmark import *

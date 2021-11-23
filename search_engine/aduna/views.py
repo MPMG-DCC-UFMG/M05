@@ -173,7 +173,12 @@ def document(request, doc_type, doc_id):
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
             context = {
                 'user_name': request.session.get('user_info')['first_name'],
-                'document': document
+                'document': document,
+                'query': query,
+                'services_url': settings.SERVICES_URL,
+                'doc_type': doc_type,
+                'doc_id': doc_id,
+                'auth_token': request.session.get('auth_token'),
             }
             return render(request, 'aduna/document.html', context)
 
@@ -391,3 +396,7 @@ def search_comparison_entity(request):
         print(response_content['entities'])
         
         return render(request, 'aduna/search_comparison_entity.html', context)
+
+def bookmark(request):
+    context = {}
+    return render(request, 'aduna/bookmark.html', context)

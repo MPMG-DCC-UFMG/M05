@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from ..docstring_schema import AutoDocstringSchema
 
+from mpmg.services.models import BookmarkFolder
+
 class CustomAuthToken(ObtainAuthToken):
     '''
     post:
@@ -53,6 +55,7 @@ class CustomAuthToken(ObtainAuthToken):
         if valid_user:
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
+            BookmarkFolder().create_default_bookmark_folder_if_necessary(user.pk)
             return Response({
                 'token': token.key,
                 'user_info': {
