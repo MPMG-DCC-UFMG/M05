@@ -64,6 +64,19 @@ class APIConfig():
         options = dict({'id': item.meta.id}, **item.to_dict())
         return options
     
+    @classmethod
+    def update_options(cls, item_id, results_per_page, highlight_field, identify_entities_in_query, use_semantic_vectors_in_search):
+        return cls.elastic.es.update(index=cls.INDEX_CONFIG_OPTIONS, 
+                                     doc_type='_doc',
+                                     id=item_id, 
+                                     body={"doc": 
+                                            {
+                                                "results_per_page": results_per_page, 
+                                                "highlight_field": highlight_field,
+                                                "identify_entities_in_query": identify_entities_in_query,
+                                                "use_semantic_vectors_in_search": use_semantic_vectors_in_search,
+                                            }})
+    
     
     # CONFIGURAÇÕES DOS CAMPOS ######################################################################
     
@@ -111,12 +124,22 @@ class APIConfig():
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "searchable": True }}))
         if retrievable != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "retrievable": True }}))
+        search_obj = search_obj.sort({'_id':{'order':'asc'}})
         elastic_result = search_obj.execute()
 
         result_list = []
         for item in elastic_result:
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
         return result_list
+    
+
+    @classmethod
+    def update_field(cls, item_id, searchable, weight):
+        '''
+        Atualiza o peso e se o campo deve ser considerado na busca
+        '''
+        return cls.elastic.es.update(index=cls.INDEX_CONFIG_FIELDS, doc_type='_doc',id=item_id, body={"doc": {"searchable": searchable, "weight": weight }})
+        
     
     # CONFIGURAÇÕES DOS ÍNDICES ######################################################################
 
@@ -163,6 +186,7 @@ class APIConfig():
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
         if group != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "group": group }}))
+        search_obj = search_obj.sort({'_id':{'order':'asc'}})
 
         elastic_result = search_obj.execute()
         result_list = []
@@ -170,6 +194,22 @@ class APIConfig():
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
         
         return result_list
+    
+
+    @classmethod
+    def update_active_indices(cls, ids, active):
+        '''
+        Atualiza o campo 'active' para True ou False dos registros listados em ids
+        '''
+
+        results = []
+        for item_id in ids:
+            result = cls.elastic.es.update(index=cls.INDEX_CONFIG_INDICES, doc_type='_doc',id=item_id, body={"doc": {"active": active }})
+            results.append(result)
+        
+        return results
+
+    
     
     # CONFIGURAÇÕES DO MAPEAMENTO DAS ENTIDADES #########################################################
 
