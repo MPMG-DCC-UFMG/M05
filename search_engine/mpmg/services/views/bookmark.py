@@ -11,11 +11,19 @@ class BookmarkView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        index = request.GET['index']
-        item_id = request.GET['item_id']
-        bookmark = Bookmark().get_item_by_index_and_item_id(index, item_id)
+        
+        if 'id_bookmark' in request.GET:
+            bookmark = Bookmark().get_item(request.GET['id_bookmark'])
+
+        else:
+            index = request.GET['index']
+            item_id = request.GET['item_id']
+
+            bookmark = Bookmark().get_item_by_index_and_item_id(index, item_id)
+
         if bookmark is None:
             return Response({"success": False}, status=status.HTTP_404_NOT_FOUND)
+            
         return Response({"success": True, "bookmark": bookmark}, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -42,8 +50,9 @@ class BookmarkView(APIView):
     def put(self, request):
         id_pasta_destino = request.data['id_pasta_destino']
         id_bookmark = request.data['id_bookmark']
+        novo_nome = request.data['novo_nome']
 
-        if Bookmark().change_folder(id_bookmark, id_pasta_destino):
+        if Bookmark().update(id_bookmark, id_pasta_destino, novo_nome):
             return Response(status.HTTP_200_OK)
 
         return Response({"success": False, "msg": "Confira se os parâmetros estão corretos e tente novamente!"}, status.HTTP_400_BAD_REQUEST)

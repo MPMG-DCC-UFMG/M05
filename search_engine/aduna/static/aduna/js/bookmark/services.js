@@ -21,7 +21,7 @@ services.create_bookmark = function() {
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
                 id_folder: bookmark.folder,
-                nome: DOC_TITLE,
+                nome: bookmark.name,
                 index: DOC_TYPE,
                 item_id: DOC_ID,
                 consulta: QUERY
@@ -44,6 +44,7 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
+                novo_nome: bookmark.name,
                 id_pasta_destino: bookmark.folder,
                 id_bookmark: bookmark.id,
             }
@@ -57,8 +58,8 @@ services.remove_bookmark = function(bookmark_id) {
     bookmark_icon.removeClass('fas');
     bookmark_icon.addClass('far');
 
-    bookmark.id = null;
-    bookmark.folder = null;
+    // bookmark.id = null;
+    // bookmark.folder = null;
 
     $.ajax({
         url: SERVICES_URL + 'bookmark',
@@ -84,13 +85,80 @@ services.start_bookmark = function(index, item_id) {
         success: function (res) {
             bookmark.id = res.bookmark.id;
             bookmark.folder = res.bookmark.id_folder;
-            $('#bookmark-toggle-wrapper').append(create_bookmark_toggle(true))
+            bookmark.name = res.bookmark.nome;
+
+            inject_bookmark();
+            $('#bookmark-toggle-wrapper').append(create_bookmark_toggle(true));
         },
         error: function () {
+            inject_bookmark();
             $('#bookmark-toggle-wrapper').append(create_bookmark_toggle(false))
         }
     });
 }
+
+services.get_bookmark = function (id_bookmark) {
+    return $.ajax({
+        url: SERVICES_URL + 'bookmark',
+        type: 'get',
+        dataType: 'json',
+        data: {
+            id_bookmark: id_bookmark,
+        },
+        // async: false,
+        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+    });
+}
+
+services.move_bookmark = function () {
+    if (!folder_to_move_bookmark) {
+        alert('Escolha a nova pasta do favorito!');
+        return;
+    }
+    
+    if (!id_bookmark_to_move) {
+        alert('Escolha o favorito a ser movido!');
+        return;
+    }
+    
+    $('#moveBookmarkModal').modal('hide');
+    let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
+
+    let idx = folder_tree[active_folder].arquivos.indexOf(id_bookmark_to_move);
+    if (idx >= 0)
+        folder_tree[active_folder].arquivos.splice(idx, 1);
+
+    folder_tree[folder_to_move_bookmark].arquivos.push(id_bookmark_to_move);
+
+    update_gallery();
+
+    $.ajax({
+        url: SERVICES_URL + 'bookmark',
+        type: 'put',
+        dataType: 'json',
+        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        data: {
+            novo_nome: doc_name,
+            id_pasta_destino: folder_to_move_bookmark,
+            id_bookmark: id_bookmark_to_move,
+        }
+    });
+}
+
+services.rename_bookmark = function (new_name, id_bookmark, id_folder) {
+    $.ajax({
+        url: SERVICES_URL + 'bookmark',
+        type: 'put',
+        dataType: 'json',
+        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        data: {
+            novo_nome: new_name,
+            id_pasta_destino: id_folder,
+            id_bookmark: id_bookmark,
+        }
+    });
+}
+
 
 services.rename_folder = function(folder_id, new_name) {
     $.ajax({
@@ -133,8 +201,18 @@ services.create_folder = function(parent_id) {
     });
 
     ajax.done(function (data) {
+        
+        folder_tree[data.folder_id] = {
+            id: data.folder_id,
+            pasta_pai: parent_id,
+            nome: folder_name,
+            subpastas: [],
+            arquivos: [],
+        }
+
+        folder_tree[parent_id].subpastas.push(folder_tree[data.folder_id]);
+        
         create_children(parent_id, data.folder_id, folder_name);
-        add_new_folder_to_dropdown(data.folder_id, folder_name);
     });
 }
 
@@ -148,17 +226,19 @@ services.get_bookmark_folder_tree = function() {
 
     ajax.done(function (tree) {
         // Inserindo após converter o json com estrutura de pastas do usuário em HTML
-        $('#bookmark-folder').append(parse_folder_tree(tree))
-
+        $('#bookmark-folder').append(parse_folder_tree(tree));
+        $('#bookmark-move-folder').html(parse_folder_move_tree(tree));
         // Habilita o evento de menu de contexto
-        enable_context_menu_event(tree)
+        enable_context_menu_event(tree);
 
-        // define que o pasta raiz é a pasta ativa, por default
-        update_active_folder(tree.id)    
+        dictify_tree(tree);
 
-        let folders = [];
-        listify_tree(tree, folders);
-        
-        update_recently_folder_dropdown(folders);
+        if (typeof DOC_ID !== 'undefined')
+            listify_tree(tree, folders);
+
+        // // define que o pasta raiz é a pasta ativa, por default
+        // active_folder = tree.id;
+
+        update_active_folder(tree.id) ;
     });
 }

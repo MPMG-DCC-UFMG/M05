@@ -79,7 +79,7 @@ class Bookmark(ElasticModel):
         except:
             return False 
 
-    def change_folder(self, id_bookmark, id_new_folder):
+    def update(self, id_bookmark, id_new_folder, novo_nome):
         bookmark = self.get_item(id_bookmark)
         id_folder = bookmark['id_folder']
 
@@ -88,5 +88,5 @@ class Bookmark(ElasticModel):
         
         bookmark_folder.add_file(id_new_folder, id_bookmark)
 
-        response = Elastic().es.update(index=self.index_name, id=id_bookmark, body={"doc": {"id_folder": id_new_folder}})
+        response = Elastic().es.update(index=self.index_name, id=id_bookmark, body={"doc": {"id_folder": id_new_folder, "nome": novo_nome}})
         return response['result'] == 'updated'

@@ -398,5 +398,9 @@ def search_comparison_entity(request):
         return render(request, 'aduna/search_comparison_entity.html', context)
 
 def bookmark(request):
-    context = {}
+    context = {
+        'services_url': settings.SERVICES_URL,
+        'auth_token': request.session.get('auth_token')
+    }
+    
     return render(request, 'aduna/bookmark.html', context)

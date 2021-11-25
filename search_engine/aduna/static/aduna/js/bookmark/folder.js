@@ -1,22 +1,247 @@
 // Contém o código responsável por gerar as visualização das pastas de bookmarks
+var MAX_FOLDERS_IN_DROPDOWN = 5;
+var SERVER_ADDRESS = window.location.origin;
 
+var folder_opened_historic = [];
 var active_folder = null;
 var folder_to_remove = null;
-var MAX_FOLDERS_IN_DROPDOWN = 5;
+var folder_to_move_bookmark = null;
+var id_bookmark_to_move = null;
+var folder_tree = {};
+var folders = [];
 
-function update_active_folder(new_active_folder) {
+function show_move_to_modal() {
+    id_bookmark_to_move = this.context;
+    
+    $(`#document-${this.context}`).popover('hide');
+    $('#moveBookmarkModal').modal('show');
+}
+
+function remove_bookmark() {
+    $(`#document-${this.context}`).popover('hide');
+    $(`#document-${this.context}-li`).remove();
+    
+    let idx = folder_tree[active_folder].arquivos.indexOf(this.context);
+    if (idx >= 0) 
+        folder_tree[active_folder].arquivos.splice(idx, 1);
+
+    services.remove_bookmark(this.context);
+}
+
+function dictify_tree(tree) {
+    for (let i = 0; i < tree.subpastas.length; i++)
+        dictify_tree(tree.subpastas[i]);
+    folder_tree[tree.id] = tree;
+}
+
+function enable_bookmark_edit_mode() {
+    console.log(this.context);
+    $(`#document-${this.context}`).addClass('d-none');
+    $(`#document-${this.context}-input`).removeClass('d-none');
+    $(`#document-${this.context}-input`).focus();
+    $(`#document-${this.context}`).popover('hide');
+}
+
+function document_context_menu(doc_id) {
+    // lista base com as opções do menu de contexto de uma pasta
+    let ul = document.createElement('UL');
+
+    // melhorando o layout da lista
+    ul.style.listStyle = 'none';
+    ul.className = 'm-0 p-0';
+
+    // html da opção de criar nova pasta que aparece no menu de contexto de uma página
+    let li_new = create_context_menu_item('fas fa-pen', 'Editar', doc_id, enable_bookmark_edit_mode);
+    ul.appendChild(li_new);
+
+    let li_move = create_context_menu_item('fas fa-folder', 'Mover para', doc_id, show_move_to_modal);
+    ul.appendChild(li_move);
+
+    let li_remove = create_context_menu_item('fas fa-trash-alt', 'Remover', doc_id, remove_bookmark);
+    ul.appendChild(li_remove);
+
+    li_move.className = 'mt-2';
+    li_remove.className = 'mt-2';
+
+    return ul
+}
+
+function get_document_url(bookmark) {
+    return `${SERVER_ADDRESS}/aduna/document/${bookmark.index}/${bookmark.item_id}?query=`;
+}
+
+function attach_document_context_menu(doc_id) {
+    $(`#document-${doc_id}`).popover({
+        html: true,
+        sanitize: false,
+        trigger: "manual",
+        content: function () {
+            // retorna o html do menu de contexto, que será renderizado quando o evento
+            // popover('show') estiver ativo
+            return document_context_menu(doc_id);
+        }
+    })
+        .on("mouseenter", function () {
+            var _this = this;
+            $(this).popover("show");
+            $(".popover").on("mouseleave", function () {
+                $(_this).popover('hide');
+            });
+        }).on("mouseleave", function () {
+            var _this = this;
+            if (!$(".popover:hover").length) {
+                $(_this).popover("hide");
+            }
+        });
+}
+
+function create_bookmark_item(bookmark) {
+    /**
+        <li class="my-1">
+            <div class="d-flex justify-content-between align-items-center">
+                <a id="document-${bookmark.id}" target="_blank" data-toggle="popover" data-container="body" data-placement="right" href="${server_address}/aduna/document/${bookmark.index}/${bookmark.item_id}?query=" class="m-0 p-0 pr-2"><i class="fas fa-file-alt text-dark"></i> ${bookmark.nome}</a>
+            </div>
+        </li>
+    */
+
+    let li = document.createElement('LI');
+    li.className = 'my-1';
+    li.id = `document-${bookmark.id}-li`;
+
+    let div = document.createElement('DIV');
+
+    let input = document.createElement('INPUT');
+
+    input.setAttribute('type', 'text');
+    input.value = bookmark.nome;
+    input.id = `document-${bookmark.id}-input`;
+
+    let disabled_input_classes = 'p-0 m-0 border-0 px-2 d-none';
+    input.className = disabled_input_classes;
+
+    
+    let link = document.createElement('A');
+    
+    link.id = `document-${bookmark.id}`;
+    link.setAttribute('href', get_document_url(bookmark));
+    link.setAttribute('target', '_blank');
+    
+    let icon = document.createElement('I');
+    icon.className = 'fas fa-file-alt text-dark';
+    
+    let text = document.createElement('SPAN');
+    text.id = `document-${bookmark.id}-name`;
+    text.textContent = bookmark.nome;
+    text.className = 'mx-2';
+    
+    let disable_edit_mode = function () {
+        text.textContent = input.value;
+        input.className = disabled_input_classes;
+        link.className = '';
+
+        services.rename_bookmark(input.value, bookmark.id, active_folder);
+    }
+
+    input.addEventListener('keyup', function () {
+        // Number 13 is the "Enter" key on the keyboard
+        if (event.keyCode === 13) {
+            input.blur();
+        }
+    })
+
+    input.addEventListener('blur', disable_edit_mode);
+
+    link.setAttribute('data-toggle', 'popover');
+    link.setAttribute('data-container', 'body');
+    link.setAttribute('data-placement', 'right');
+
+    link.appendChild(icon);
+    link.appendChild(text);
+
+    div.appendChild(input);
+    div.appendChild(link);
+    li.appendChild(div);
+
+    return li;
+}
+
+function back_folder() {
+    if (folder_opened_historic.length > 0) {
+        update_active_folder(folder_opened_historic.pop(), true);
+    }
+}
+
+function update_gallery() {
+    if (typeof DOC_ID !== 'undefined')
+        return; 
+
+    let folder_items = $('#folder-items');
+    let pasta = folder_tree[active_folder];
+    
+    let back_folder_li = '';
+    if(folder_opened_historic.length > 0) {
+        back_folder_li = `<li class="my-1">
+                            <div class="d-flex justify-content-between">
+                                <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
+                            </div>
+                        </li>
+                        <hr/>`;
+    }
+
+    if ((pasta.arquivos.length + pasta.subpastas.length) == 0) {
+        folder_items.html(`
+            ${back_folder_li}
+            <li class="my-1">
+                <div class="d-flex justify-content-center text-center">
+                    <p class="m-0">Essa pasta está vazia.</p>
+                </div>
+            </li>
+            `);
+        return;
+    }
+
+    let subitems = [back_folder_li];
+
+    for (let i=0;i<pasta.subpastas.length;i++) {
+        let subpasta = pasta.subpastas[i];
+        subitems.push(`<li class="my-1">
+                            <div class="d-flex justify-content-between" title="Clique para acessar a pasta" onclick="update_active_folder('${subpasta.id}')" style="cursor: pointer;">
+                                <p class="m-0 p-0 font-weight-bold"><i class="fas fa-folder"></i> ${subpasta.nome}</p>
+                                <small>${subpasta.subpastas.length} subpasta(s), ${subpasta.arquivos.length} documento(s)</small>
+                            </div>
+                        </li>`);
+    }
+
+    folder_items.html(subitems);
+
+    for (let i=0;i<pasta.arquivos.length;i++) {
+        services.get_bookmark(pasta.arquivos[i]).then(response => {
+            let bookmark = response.bookmark;
+            folder_items.append(create_bookmark_item(bookmark));
+            attach_document_context_menu(bookmark.id);
+        });
+    }
+}
+
+function update_active_folder(new_active_folder, back_folder=false) {
+
     /** Atualiza a informação de qual pasta está correntemente ativa
      *
      * Argumentos:
      *  -  new_active_folder: ID da nova pasta que será ativa 
      */
 
+    if (active_folder && !back_folder)
+        folder_opened_historic.push(active_folder);
+
     if (active_folder)
-        $(`#${active_folder}-folder-name`).removeClass('text-primary')
+        $(`#${active_folder}-folder-name`).removeClass('text-primary');
 
     active_folder = new_active_folder;
 
-    $(`#${active_folder}-folder-name`).addClass('text-primary')
+    $(`#${active_folder}-folder-name`).addClass('text-primary');
+
+    update_gallery();
 }
 
 function create_children_from_active_folder() {
@@ -24,10 +249,9 @@ function create_children_from_active_folder() {
 }
 
 function show_remove_folder_modal() {
-    folder_to_remove = this.context
-
-    $('#folderModal').modal('hide')
-    $('#removeFolderModal').modal('show')
+    folder_to_remove = this.context;
+    $('#folderModal').modal('hide');
+    $('#removeFolderModal').modal('show');
 }
 
 function attach_context_menu(folder_id) {
@@ -63,7 +287,6 @@ function attach_context_menu(folder_id) {
     });
 }
 
-
 function enable_edit_mode(context) {
     /* Habilita o modo de edição de uma pasta (permitindo alterar seu nome)
 
@@ -75,10 +298,6 @@ function enable_edit_mode(context) {
     $(`#${context}-input`).removeClass('d-none');
     $(`#${context}-input`).focus();
     $(`#${context}-folder-name`).popover('hide');
-}
-
-function randomIntFromInterval(min, max) { // min and max included 
-    return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 function create_children(parent_id, children_id, folder_name) {
@@ -109,10 +328,16 @@ function create_children(parent_id, children_id, folder_name) {
     // fecha o menu de contexto da pasta pai
     parent_folder_detail.popover('hide');
 
-    update_active_folder(children_id)
-    enable_edit_mode(children_id)
+    update_active_folder(children_id);
+    enable_edit_mode(children_id);
 
-    attach_context_menu(children_id)
+    attach_context_menu(children_id);
+
+    folders.push({
+        data_ultimo_arquivo_adicionado: Date.now(),
+        id: children_id,
+        nome: folder_name,
+    });
 }
 
 function create_children_from_context_menu() {
@@ -131,10 +356,25 @@ function enable_edit_mode_from_context_menu() {
 function remove_folder(decision) {
     $('#removeFolderModal').modal('hide')
     $('#folderModal').modal('show')
-
+    
     $(`#${folder_to_remove}`).remove()
 
+    let pasta_pai = folder_tree[folder_to_remove].pasta_pai;
+    if (pasta_pai) {
+        let idx = folder_tree[pasta_pai].subpastas.findIndex(pasta => pasta.id === folder_to_remove);
+        if (idx >= 0)
+            folder_tree[pasta_pai].subpastas.splice(idx, 1);
+    }
+
+    update_active_folder(pasta_pai);
     services.remove_folder(folder_to_remove, decision)
+
+
+    let idx = folder_opened_historic.indexOf(folder_to_remove);
+    while (idx >= 0) {
+        folder_opened_historic.splice(idx, 1);
+        idx = folder_opened_historic.indexOf(folder_to_remove);
+    }
 
     // TODO: desabilitar todos os listeners da pasta excluída
 }
@@ -214,6 +454,101 @@ function create_context_menu(context) {
     li_remove.className = 'mt-2'
 
     return ul
+}
+
+function update_folder_to_move(folder_id) {
+    if (folder_to_move_bookmark) 
+        $(`#${folder_to_move_bookmark}-move-to-name`).removeClass('text-primary');
+    folder_to_move_bookmark = folder_id;
+    $(`#${folder_to_move_bookmark}-move-to-name`).addClass('text-primary');
+}
+
+function create_simple_folder(name, folder_id, opened, depth, children = []) {
+    let folder = document.createElement('DIV')
+
+    folder.id = `move-to-${folder_id}`
+    folder.name = name
+
+    folder.depth = depth
+    folder.opened = opened
+    folder.className = 'folder d-flex mt-2'
+    folder.style.userSelect = 'none';
+    folder.setAttribute('depth', depth)
+
+    // Criação da seção responsável por realizar a identação da pasta de acordo com sua pasta pai
+    let folder_wrapper = document.createElement('DIV')
+
+    // Identa a pasta de acordo com a pasta pai
+    // A pasta filho terá margin esquerda maior que a da pai caso não seja a pasta raiz (profundidade 0)
+    folder_wrapper.className = depth > 0 ? 'ml-4' : 'ml-0'
+
+    // Seção que possui as informações básicas da pasta.
+    let folder_info = document.createElement('DIV')
+    folder_info.className = 'folder-info d-flex align-items-center'
+    folder_info.style.cursor = 'pointer'
+
+    // ícone da pasta que varia se ela deverá estar aberta (mostrando subpastas) ou não
+    let folder_icon = document.createElement('I')
+    folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
+
+    // Cria o nome da pasta
+    let folder_name = document.createElement('P')
+    folder_name.id = `${folder_id}-move-to-name`
+
+    folder_name.className = 'my-0 ml-2'
+
+    // adicionando o ícone na pasta
+    folder_name.appendChild(folder_icon)
+
+    // Cria o texto com o nome da pasta
+    let text = document.createElement('STRONG');
+    text.textContent = name;
+    text.className = 'mx-2';
+
+    // adicionando o nome da pasta 
+    folder_name.appendChild(text);
+
+    // Cria a seção de subpastas dessa pasta
+    let folder_children = document.createElement('DIV');
+    folder_children.id = `${folder_id}-move-to-children`;
+
+    // Se a pasta está aberta, devemos mostrar suas subpastas. A presença ou ausência da classe
+    // `d-none` define se as subpastas são ou não mostradas
+    folder_children.className = folder.opened ? 'children' : 'children d-none';
+
+    // Adicionamos todas subpastas dessa pasta na sua devida seção
+    for (let i = 0; i < children.length; i++)
+        folder_children.appendChild(children[i]);
+
+    // Criação de seção apenas para manter o layout correto 
+    let input_detail_wrapper = document.createElement('DIV');
+
+    // Adiciona do elemento input de texto (que aparece quando o modo edição está ativado) e do 
+    // de nome da pasta
+    input_detail_wrapper.appendChild(folder_name);
+
+    // Inserção da seção para corrigir layout, que também possui o nome da pasta e o input de texto 
+    // do modo edição na seção superior
+    folder_info.appendChild(input_detail_wrapper);
+
+    // inserção da seção de informações da pasta e da de subpasta na seção superior
+    folder_wrapper.appendChild(folder_info);
+    folder_wrapper.appendChild(folder_children);
+
+    // Finalmente, adicionamos a seção com o conteúdo da pasta na seção raiz
+    folder.appendChild(folder_wrapper);
+
+    // Criação de um listener que fecha ou abre a pasta, mostrando suas subpastas
+    folder_name.onclick = function () {
+        // folder.opened = !folder.opened;
+
+        // folder_children.className = folder.opened ? 'children' : 'children d-none';
+        // folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder';
+
+        update_folder_to_move(folder_id);
+    }
+
+    return folder;
 }
 
 function create_folder(name, folder_id, opened, depth, children = []) {
@@ -308,17 +643,23 @@ function create_folder(name, folder_id, opened, depth, children = []) {
 
     // disabilita o modo de edição da pasta ao esconder o input de texto
     let disable_edit_mode = function () {
-        text.textContent = input.value
-        input.className = disabled_input_classes
+        text.textContent = input.value;
+        input.className = disabled_input_classes;
 
-        services.rename_folder(folder_id, input.value)
-        rename_recently_folder_dropdown_option(folder_id, input.value);
+        services.rename_folder(folder_id, input.value);
+
+        let idx = folders.findIndex(pasta => pasta.id === folder_id);
+        if (idx >= 0) {
+            folders[idx].nome = input.value;
+        }
+        
+        folder_tree[folder_id].nome = input.value;
 
         if (active_folder == folder_id)
-            folder_name.className = active_folder_classes
+            folder_name.className = active_folder_classes;
 
         else
-            folder_name.className = unactive_folder_classes
+            folder_name.className = unactive_folder_classes;
     }
 
     // Quando clicamos ENTER dentro do input de texto quando a pasta está sendo editada,
@@ -368,8 +709,11 @@ function create_folder(name, folder_id, opened, depth, children = []) {
     // Criação de um listener que fecha ou abre a pasta, mostrando suas subpastas
     folder_name.onclick = function () {
         folder.opened = !folder.opened;
-        folder_children.className = folder.opened ? 'children' : 'children d-none'
-        folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
+
+        if (typeof DOC_ID !== 'undefined') {
+            folder_children.className = folder.opened ? 'children' : 'children d-none'
+            folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
+        }
 
         update_active_folder(folder_id)
     }
@@ -405,6 +749,15 @@ function parse_folder_tree(tree, depth = 0) {
     return create_folder(tree.nome, tree.id, true, depth, subpastas_processadas)
 }
 
+function parse_folder_move_tree(tree, depth = 0) {
+    let subpastas_processadas = [];
+
+    for (let i = 0; i < tree.subpastas.length; i++)
+        subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], depth + 1));
+
+    return create_simple_folder(tree.nome, tree.id, true, depth, subpastas_processadas);
+}
+
 function folder_comparator(a, b) {
     return b.data_ultimo_arquivo_adicionado - a.data_ultimo_arquivo_adicionado;
 }
@@ -417,19 +770,16 @@ function update_recently_folder_dropdown(folders) {
         lis.push(`<option id="folder-option-${folder.id}" value="${folder.id}">${folder.nome}</option>`)
     }
 
-    $('#selectFolder').html(lis);
+    return lis;
+    // $('#selectFolder').html(lis);
 }
 
-function add_new_folder_to_dropdown(folder_id, name) {
-    if ($('#selectFolder > option').length < MAX_FOLDERS_IN_DROPDOWN) {
-        let li = `<option id="folder-option-${folder_id}" value="${folder_id}">${name}</option>`;
-        $('#selectFolder').append(li);
-    }
-}
-
-function rename_recently_folder_dropdown_option(folder_id, new_name) {
-    $(`#folder-option-${folder_id}`).text(new_name);
-}
+// function add_new_folder_to_dropdown(folder_id, name) {
+//     if ($('#selectFolder > option').length < MAX_FOLDERS_IN_DROPDOWN) {
+//         let li = `<option id="folder-option-${folder_id}" value="${folder_id}">${name}</option>`;
+//         $('#selectFolder').append(li);
+//     }
+// }
 
 function listify_tree(tree, list) {
     for (let i = 0; i < tree.subpastas.length; i++)
@@ -512,19 +862,18 @@ function get_remove_folder_modal_html() {
 }
 
 function create_folder_modals() {
-    let folder_modal_html = get_folder_modal_html(DOC_TITLE)
-    let remove_folder_modal_html = get_remove_folder_modal_html()
-
-    let modals = $('.modals')
-
     // adiciona os modais ao corpo da página
+    let remove_folder_modal_html = get_remove_folder_modal_html();
+    let modals = $('.modals');
     
     // Se há uma seção para adição de bookmarks, significa que estamos em uma página de 
     // visualização de docuemtnos, então criamos um modal para lidar com as pastas 
-    if ($('.bookmark').length > 0)
-        modals.append(folder_modal_html)
+    if ($('.bookmark').length > 0) {
+        let folder_modal_html = get_folder_modal_html(DOC_TITLE);
+        modals.append(folder_modal_html);
+    }
     
-    modals.append(remove_folder_modal_html)
+    modals.append(remove_folder_modal_html);
 }
 
 $(document).ready(function () {

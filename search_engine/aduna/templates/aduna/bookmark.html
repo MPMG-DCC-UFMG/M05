@@ -43,102 +43,74 @@
     <div class="row">
         <div class="col-3" id="bookmark-folder">
         </div>
-        <div class="col-6 rounded border mt-3">
-            <ul class="m-0 p-0 py-3" style="list-style: none;">
-                <li class="">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
-                <li class="mt-2">
-                    <div class="d-flex justify-content-between">
-                        <p class="m-0 p-0">Lorem ipsum dolor sit amet consectetur.</p>
-                        <i class="d-block fas fa-ellipsis-v"></i>
-                    </div>
-                </li>
+        <div class="col-6 p-0 mt-2">
+            <ul class="rounded border m-0 p-3" style="list-style: none;" id="folder-items">
             </ul>
         </div>
     </div>
 </div>
 
-    <div class="modal fade" id="removeFolderModal" tabindex="-1" aria-labelledby="removeFolderModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title font-weight-bold" id="removeFolderModalLabel">O que deseja fazer com os favoritos
-                        dessa pasta?</h5>
-                    <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button> -->
+<div class="modal fade" id="removeFolderModal" tabindex="-1" aria-labelledby="removeFolderModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold" id="removeFolderModalLabel">O que deseja fazer com os favoritos
+                    dessa pasta?</h5>
+                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button> -->
+            </div>
+            <div class="modal-body d-flex justify-content-between">
+                <div class="">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 </div>
-                <div class="modal-body d-flex justify-content-between">
-                    <div class="">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    </div>
-                    <div class="">
-                        <button type="button" class="btn btn-primary" onclick="remove_folder('keep')">Mover todos para pasta
-                            acima</button>
-                        <button type="button" class="btn btn-danger" onclick="remove_folder('remove_all')">Excluir
-                            todos</button>
-                    </div>
+                <div class="">
+                    <button type="button" class="btn btn-primary" onclick="remove_folder('keep')">Mover todos para pasta
+                        acima</button>
+                    <button type="button" class="btn btn-danger" onclick="remove_folder('remove_all')">Excluir
+                        todos</button>
                 </div>
-                <!-- <div class="modal-footer d-flex justify-content-between">
-                    </div> -->
+            </div>
+            <!-- <div class="modal-footer d-flex justify-content-between">
+                </div> -->
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="moveBookmarkModal" tabindex="-1" aria-labelledby="moveBookmarkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold" id="moveBookmarkModalLabel">Mover favorito</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <label for="">Escolha a pasta para mover o favorito</label>
+                <div class="bg-light rounded border px-3 pt-1 pb-3 font-weight-bold" id="bookmark-move-folder"
+                    style="min-height: 180px;">
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <div class="">
+                </div>
+                <div class="">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary"
+                        onclick="services.move_bookmark()">Mover</button>
+                </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 {% block script_before %}
 <script>
     SERVICES_URL = '{{ services_url }}';
-    QID = '{{ qid }}';
-    PAGE = '{{ page }}';
-
-
+    AUTH_TOKEN = '{{ auth_token }}';
 </script>
 {% endblock %}
 
@@ -148,6 +120,7 @@
     integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
     crossorigin="anonymous"></script>
 
+    <script src="{% static 'aduna/js/bookmark/services.js' %}"></script>
     <script src="{% static 'aduna/js/bookmark/folder.js' %}"></script>
 
 <script>
