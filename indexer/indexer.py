@@ -73,10 +73,15 @@ def parse_date(text):
 
 class Indexer:
 
-    def __init__(self, elastic_address='localhost:9200', model_path="neuralmind/bert-base-portuguese-cased"):
+    def __init__(self, elastic_address='localhost:9200', model_path="neuralmind/bert-base-portuguese-cased", username=None, password=None):
 
         self.ELASTIC_ADDRESS = elastic_address
-        self.es = Elasticsearch([self.ELASTIC_ADDRESS], timeout=120, max_retries=3, retry_on_timeout=True)
+
+        if username != None and password != None:
+            self.es = Elasticsearch([self.ELASTIC_ADDRESS], timeout=120, max_retries=3, retry_on_timeout=True, http_auth=(username, password))
+        else:
+            self.es = Elasticsearch([self.ELASTIC_ADDRESS], timeout=120, max_retries=3, retry_on_timeout=True)
+        
         self.model_path = model_path
         if self.model_path != "None":
             self.sentence_model = get_sentence_model(self.model_path)

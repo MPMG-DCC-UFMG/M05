@@ -9,7 +9,11 @@ def main(args):
     elastic_address = args["elastic_address"]
     force_creation = args["force_creation"]
 
-    es = Elasticsearch([elastic_address])
+    if args['username'] != None and args['password'] != None:
+        es = Elasticsearch([elastic_address], http_auth=(args['username'], args['password']))
+    else:
+        es = Elasticsearch([elastic_address])
+
     mappings_json = json.load(open(mappings_path))
 
     local_indices = [index for index in mappings_json.keys() if es.indices.exists(index)]
@@ -43,6 +47,8 @@ if __name__ == "__main__":
     parser.add_argument("-force_creation", action='store_true', help="Força a recriação dos índices que já existem")
     parser.add_argument("-mappings_path", default="mappings.json", help="Caminho do arquivo de mappings")
     parser.add_argument("-elastic_address", default="localhost:9200", help="Elasticsearch address. Format: <ip>:<port>")
+    parser.add_argument("-username", nargs='?', help="Username to access elasticsearch if needed.")
+    parser.add_argument("-password", nargs='?', help="Password to access elasticsearch if needed.")
 
     # Get all args
     args = vars(parser.parse_args())
