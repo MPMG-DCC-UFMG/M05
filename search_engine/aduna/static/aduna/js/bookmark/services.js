@@ -111,7 +111,7 @@ services.get_bookmark = function (id_bookmark) {
 }
 
 services.move_bookmark = function () {
-    if (!folder_to_move_bookmark) {
+    if (!move_to_folder) {
         alert('Escolha a nova pasta do favorito!');
         return;
     }
@@ -128,7 +128,7 @@ services.move_bookmark = function () {
     if (idx >= 0)
         folder_tree[active_folder].arquivos.splice(idx, 1);
 
-    folder_tree[folder_to_move_bookmark].arquivos.push(id_bookmark_to_move);
+    folder_tree[move_to_folder].arquivos.push(id_bookmark_to_move);
 
     update_gallery();
 
@@ -139,7 +139,7 @@ services.move_bookmark = function () {
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             novo_nome: doc_name,
-            id_pasta_destino: folder_to_move_bookmark,
+            id_pasta_destino: move_to_folder,
             id_bookmark: id_bookmark_to_move,
         }
     });
@@ -227,7 +227,9 @@ services.get_bookmark_folder_tree = function() {
     ajax.done(function (tree) {
         // Inserindo após converter o json com estrutura de pastas do usuário em HTML
         $('#bookmark-folder').append(parse_folder_tree(tree));
-        $('#bookmark-move-folder').html(parse_folder_move_tree(tree));
+        $('#bookmark-move-folder').html(parse_folder_move_tree(tree,'bookmark'));
+        $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
+
         // Habilita o evento de menu de contexto
         enable_context_menu_event(tree);
 

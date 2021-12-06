@@ -6,62 +6,275 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from mpmg.services.models import Bookmark
+from mpmg.services.views.bookmark_folder import BOOKMARK
+
+from ..docstring_schema import AutoDocstringSchema
 
 class BookmarkView(APIView):
+    '''
+    get:
+        description: Busca o conteúdo de um bookmark por meio de seu ID único ou pelo índice e ID do documento que ele salva.
+        parameters:
+            - name: id_bookmark
+              in: query
+              description: ID do bookmark. 
+              required: false
+              schema:
+                    type: string
+            - name: doc_index
+              in: query
+              description: Índice do documento salvo pelo bookmark. Use isso junto com doc_id para checar se um documento já possui bookmark.
+              required: false
+              schema:
+                    type: string
+            - name: doc_id
+              in: query
+              description: ID do documento salvo pelo bookmark. Use isso junto com doc_index para checar se um documento já possui bookmark.
+              required: false
+              schema:
+                    type: string
+
+        responses:
+            '200':
+                description: Retorna a representação do bookmark.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                id: 
+                                    type: string
+                                    description: ID do bookmark.
+                                id_pasta:
+                                    type: string
+                                    description: ID da pasta onde está salvo o bookmark.
+                                indice_documento:
+                                    type: string
+                                    description: Índice do documento salvo pelo bookmark.
+                                id_documento:
+                                    type: string
+                                    description: ID do documento salvo pelo bookmark.
+                                id_consulta:
+                                    type: string
+                                    description: ID da consulta que originou a criação do bookmark.
+                                id_sessao:
+                                    type: string
+                                    description: ID da sessão de criação do bookmark.
+                                nome:
+                                    type: string
+                                    description: Nome do bookmark.
+                                data_criacao:
+                                    type: number
+                                    description: Timestamp de quando o bookmark foi criado.
+                                data_modificacao:
+                                    type: number
+                                    description: Timestamp da última modificação do bookmark.
+            '400':
+                description: Não foi informado o ID do bookmark ou índice e ID do documento que ele salva.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404': 
+                description: O bookmark não foi encontrado.
+
+    post:
+        description: Persiste a descrição de um bookmark. 
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            folder_id:
+                                description: ID da pasta onde será salvo o bookmark. Se esse campo não for informado, o bookmark será salvo na pasta default. 
+                                type: string
+                            doc_index:
+                                description: Índice do documento salvo pelo bookmark.
+                                type: string
+                            doc_id:
+                                description: ID do documento salvo pelo bookmark.
+                                type: string
+                            query_id:
+                                description: ID da consulta.
+                                type: string
+                            name:
+                                description: Nome do bookmark.
+                                type: string
+                        required:
+                            - doc_index
+                            - doc_id
+                            - query_id
+                            - name
+        responses:
+            '201':
+                description: O bookmark foi criado com sucesso.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                bookmark_id: 
+                                    type: string
+                                    description: ID do bookmark.
+            '400':
+                description: Algum(ns) do(s) campo(s) de criação foi(ram) informado(s) incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum erro interno do servidor ao criar o bookmark.
+                content: 
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    put:
+        description: Permite atualizar o nome e/ou pasta onde o bookmark foi salvo. 
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            bookmark_id:
+                                description: ID do bookmark a ser alterado.
+                                type: string
+                            folder_id:
+                                description: Nova pasta do bookmark, para onde ele será movido. 
+                                type: string
+                            name:
+                                description: Novo nome do bookmark.
+                                type: string
+                        required:
+                            - bookmark_id
+        responses:
+            '204':
+                description: As alterações a serem feitas foram executadas com sucesso.
+            
+            '400':
+                description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    delete:
+        description: Apaga um bookmark.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            bookmark_id:
+                                description: ID do bookmark a ser removido.
+                                type: string
+                        required:
+                            - bookmark_id      
+        responses:
+            '204':
+                description: O bookmark foi removido com sucesso.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+    '''
+
     permission_classes = (IsAuthenticated,)
+    schema = AutoDocstringSchema()
 
     def get(self, request):
         
         if 'id_bookmark' in request.GET:
-            bookmark = Bookmark().get_item(request.GET['id_bookmark'])
+            bookmark = Bookmark().get(request.GET['id_bookmark'])
 
-        else:
-            index = request.GET['index']
-            item_id = request.GET['item_id']
+        elif 'doc_index' in request.GET and 'doc_id' in request.GET:
+            index = request.GET['doc_index']
+            item_id = request.GET['doc_id']
 
             bookmark = Bookmark().get_item_by_index_and_item_id(index, item_id)
 
+        else:
+            msg_error = "É necessário informar o campo id_bookmark ou index e item_id!"
+            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+
         if bookmark is None:
-            return Response({"success": False}, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_404_NOT_FOUND)
             
-        return Response({"success": True, "bookmark": bookmark}, status=status.HTTP_200_OK)
+        return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
-        id_folder = str(request.user.id)
+        # pasta default onde são salvo os bookmarks do usuário
+        folder_id = str(request.user.id)
 
-        if request.POST.get('id_folder'):
-            id_folder = request.POST['id_folder'] 
+        if 'folder_id' in request.POST:
+            folder_id = request.POST['folder_id'] 
 
-        id_bookmark = Bookmark().save(dict(
-            id_folder=id_folder,
-            nome=request.POST['nome'],
-            index=request.POST['index'],
-            item_id=request.POST['item_id'],
-            consulta=request.POST['consulta'],
-            id_sessao=request.session.session_key,
-            data_criacao=str(datetime.now())
-        )) 
+        try:
+            now = datetime.now().timestamp()
+            bookmark_id = Bookmark().save(dict(
+                id_folder=folder_id,
+                index=request.POST['doc_index'],
+                item_id=request.POST['doc_id'],
+                query_id=request.POST['query_id'],
+                id_sessao=request.session.session_key,
+                nome=request.POST['name'],
+                data_criacao=now,
+                data_modificacao=now
+            )) 
 
-        if id_bookmark is None:
-            return Response({"success": False}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except KeyError:
+            msg_error = 'Informe corretamente os campos de criação de bookmark!'
+            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST) 
 
-        return Response({"success": True, "id_bookmark": id_bookmark}, status=status.HTTP_201_CREATED)        
+        if bookmark_id is None:
+            return Response({"message": 'Não foi possível criar o bookmark. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'id_bookmark': bookmark_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
-        id_pasta_destino = request.data['id_pasta_destino']
-        id_bookmark = request.data['id_bookmark']
-        novo_nome = request.data['novo_nome']
 
-        if Bookmark().update(id_bookmark, id_pasta_destino, novo_nome):
-            return Response(status.HTTP_200_OK)
+        data = request.data.dict()
+        id_bookmark = data.get('id_bookmark')
+        if id_bookmark is None:
+            return Response({'message': 'É necessário informar o campo id_bookmark!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"success": False, "msg": "Confira se os parâmetros estão corretos e tente novamente!"}, status.HTTP_400_BAD_REQUEST)
+        success, msg_error = BOOKMARK.update(id_bookmark, data)
+        if success:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
         id_bookmark = request.data['id_bookmark']
 
-        if Bookmark().remove(id_bookmark):
-            return Response(status.HTTP_200_OK)
+        success, msg_error = BOOKMARK.remove(id_bookmark)
+        if success:
+            return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({"success": False, "msg": f'Confira se "{id_bookmark}" é um ID válido e tente novamente!'}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 

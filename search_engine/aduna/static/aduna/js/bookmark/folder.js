@@ -5,8 +5,9 @@ var SERVER_ADDRESS = window.location.origin;
 var folder_opened_historic = [];
 var active_folder = null;
 var folder_to_remove = null;
-var folder_to_move_bookmark = null;
+var move_to_folder = null;
 var id_bookmark_to_move = null;
+var id_folder_to_move = null;
 var folder_tree = {};
 var folders = [];
 
@@ -15,6 +16,12 @@ function show_move_to_modal() {
     
     $(`#document-${this.context}`).popover('hide');
     $('#moveBookmarkModal').modal('show');
+}
+
+function show_move_folder_modal() {
+    id_folder_to_move = this.context;
+    $(`#${this.context}-folder-name`).popover('hide');
+    $('#moveFolderModal').modal('show');
 }
 
 function remove_bookmark() {
@@ -95,6 +102,113 @@ function attach_document_context_menu(doc_id) {
         });
 }
 
+function enable_folder_items_selection() {
+    $('#enable-edit-all-folder-wrapper').addClass('d-none');
+    $('#edit-all-folder-options-wrapper').removeClass('d-none');
+
+    $('.folder-item-content').removeClass('d-flex')
+    $('.folder-item-content').addClass('d-none');
+
+    $('.select-folder-item').removeClass('d-none');
+    $('.select-folder-item').addClass('d-flex');
+}
+
+function disable_folder_items_selection() {
+    $('#edit-all-folder-options-wrapper').addClass('d-none');
+    $('#enable-edit-all-folder-wrapper').removeClass('d-none');
+
+    $('.select-folder-item').removeClass('d-flex')
+    $('.select-folder-item').addClass('d-none');
+
+    $('.folder-item-content').removeClass('d-none');
+    $('.folder-item-content').addClass('d-flex');
+}
+
+function create_folder_item(folder) {
+    /**
+        <li class="my-1">
+            <div class="d-flex justify-content-between" title="Clique para acessar a pasta" onclick="update_active_folder('${subpasta.id}')" style="cursor: pointer;">
+                <p class="m-0 p-0 font-weight-bold"><i class="fas fa-folder"></i> ${subpasta.nome}</p>
+                <small>${subpasta.subpastas.length} subpasta(s), ${subpasta.arquivos.length} documento(s)</small>
+            </div>
+        </li>
+     */
+
+    let li = document.createElement('LI');
+    li.className = 'mt-1'
+    li.style.userSelect = 'none';
+    li.id = `folder-${folder.id}-li`;
+    li.style.cursor = 'pointer'
+    li.title = `Clique para abrir a pasta "${folder.nome}"`;
+
+    let icon = document.createElement('I');
+    icon.className = 'fas fa-folder';
+    
+    let text = document.createElement('SPAN');
+    text.textContent = folder.nome;
+    text.className = 'mx-2';
+    
+    let folder_name = document.createElement('P');
+    folder_name.id = `folder-${folder.id}-name`;
+    folder_name.className = 'p-0 m-0';
+    folder_name.appendChild(icon);
+    folder_name.appendChild(text); 
+    folder_name.style.cursor = 'pointer';
+    
+    let info = document.createElement('SMALL');
+    info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.arquivos.length} documento(s)`;
+    
+    let detail_wrapper = document.createElement('DIV');
+    detail_wrapper.id = `folder-${folder.id}-detail`;
+    
+    detail_wrapper.className = 'd-flex justify-content-between align-items-center w-100 folder-item-content';
+
+    detail_wrapper.appendChild(folder_name);
+    detail_wrapper.appendChild(info);
+    detail_wrapper.onclick = () => update_active_folder(`${folder.id}`);
+
+    let checkbox = document.createElement('INPUT');
+    checkbox.id = `checkbox-folder-${folder.id}`;
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.className = `folder-ckeckbox mr-3 my-0 p-0`;
+    checkbox.value = folder.id; 
+
+    let label = document.createElement('LABEL');
+    label.className = 'm-0 d-flex justify-content-between align-items-center w-100'
+    label.setAttribute('for', `checkbox-folder-${folder.id}`);
+    label.style.cursor = 'pointer';
+
+    let label_icon = document.createElement('I');
+    label_icon.className = 'fas fa-folder';
+
+    let label_text = document.createElement('SPAN');
+    label_text.textContent = folder.nome;
+    label_text.className = 'mx-2';
+
+    let label_info = document.createElement('SMALL');
+    label_info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.arquivos.length} documento(s)`;
+
+    let label_folder_name = document.createElement('P');
+    label_folder_name.className = 'p-0 m-0';
+    label_folder_name.appendChild(label_icon);
+    label_folder_name.appendChild(label_text);
+
+    label.appendChild(label_folder_name);
+    label.appendChild(label_info);
+
+    label.className = 'd-flex justify-content-between align-items-center w-100 m-0';
+
+    let select_wrapper = document.createElement('DIV');
+    select_wrapper.appendChild(checkbox)
+    select_wrapper.appendChild(label)
+    select_wrapper.className = 'align-items-center select-folder-item d-none';
+
+    li.appendChild(select_wrapper);
+    li.appendChild(detail_wrapper);
+
+    return li;
+}
+
 function create_bookmark_item(bookmark) {
     /**
         <li class="my-1">
@@ -107,8 +221,9 @@ function create_bookmark_item(bookmark) {
     let li = document.createElement('LI');
     li.className = 'my-1';
     li.id = `document-${bookmark.id}-li`;
+    li.style.userSelect = 'none';
 
-    let div = document.createElement('DIV');
+    let content_wrapper = document.createElement('DIV');
 
     let input = document.createElement('INPUT');
 
@@ -158,9 +273,40 @@ function create_bookmark_item(bookmark) {
     link.appendChild(icon);
     link.appendChild(text);
 
-    div.appendChild(input);
-    div.appendChild(link);
-    li.appendChild(div);
+    content_wrapper.appendChild(input);
+    content_wrapper.appendChild(link);
+    content_wrapper.className = 'folder-item-content';
+
+    let checkbox = document.createElement('INPUT');
+    checkbox.id = `checkbox-bookmark-${bookmark.id}`;
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.className = `bookmark-ckeckbox mr-3 my-0 p-0`;
+    checkbox.value = bookmark.id;
+
+    let label = document.createElement('LABEL');
+    label.className = 'm-0 w-100'
+    label.setAttribute('for', `checkbox-bookmark-${bookmark.id}`);
+    label.style.cursor = 'pointer';
+
+    let label_text = document.createElement('SPAN');
+    label_text.textContent = bookmark.nome;
+    label_text.className = 'mx-2';
+
+    let label_icon = document.createElement('I');
+    label_icon.className = 'fas fa-file-alt text-dark';
+
+    label.appendChild(label_icon);
+    label.appendChild(label_text);
+    
+    let select_wrapper = document.createElement('DIV');
+    select_wrapper.className = 'select-folder-item align-items-center d-none p-0';
+    select_wrapper.appendChild(checkbox);
+    select_wrapper.appendChild(label);
+
+    li.appendChild(select_wrapper);
+    li.appendChild(content_wrapper)
+
+    li.className = 'mt-1 d-flex align-items-center';
 
     return li;
 }
@@ -183,6 +329,22 @@ function update_gallery() {
         back_folder_li = `<li class="my-1">
                             <div class="d-flex justify-content-between">
                                 <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
+                                <div id="enable-edit-all-folder-wrapper">
+                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
+                                        <i class="far fa-edit"></i> Selecionar
+                                    </button>
+                                </div>
+                                <div id="edit-all-folder-options-wrapper" class="d-none">
+                                    <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
+                                        <i class="fas fa-folder"></i> Mover
+                                    </button>
+                                    <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
+                                        <i class="fas fa-trash-alt"></i> Remover
+                                    </button>
+                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
                             </div>
                         </li>
                         <hr/>`;
@@ -200,19 +362,13 @@ function update_gallery() {
         return;
     }
 
-    let subitems = [back_folder_li];
+    folder_items.html(back_folder_li);
 
     for (let i=0;i<pasta.subpastas.length;i++) {
         let subpasta = pasta.subpastas[i];
-        subitems.push(`<li class="my-1">
-                            <div class="d-flex justify-content-between" title="Clique para acessar a pasta" onclick="update_active_folder('${subpasta.id}')" style="cursor: pointer;">
-                                <p class="m-0 p-0 font-weight-bold"><i class="fas fa-folder"></i> ${subpasta.nome}</p>
-                                <small>${subpasta.subpastas.length} subpasta(s), ${subpasta.arquivos.length} documento(s)</small>
-                            </div>
-                        </li>`);
+        folder_items.append(create_folder_item(subpasta));
     }
 
-    folder_items.html(subitems);
 
     for (let i=0;i<pasta.arquivos.length;i++) {
         services.get_bookmark(pasta.arquivos[i]).then(response => {
@@ -445,25 +601,29 @@ function create_context_menu(context) {
     let li_edit = create_context_menu_item('fas fa-pen', 'Editar', context, enable_edit_mode_from_context_menu)
     ul.appendChild(li_edit)
 
+    let li_move = create_context_menu_item('fas fa-folder', 'Mover para', context, show_move_folder_modal);
+    ul.appendChild(li_move);
+
     // html da opção de remover pasta que aparece no menu de contexto de uma página
     let li_remove = create_context_menu_item('fas fa-trash-alt', 'Remover', context, show_remove_folder_modal)
     ul.appendChild(li_remove)
 
     // melhorias de layout entre as opções do menu de contexto
     li_edit.className = 'mt-2'
+    li_move.className = 'mt-2'
     li_remove.className = 'mt-2'
 
     return ul
 }
 
-function update_folder_to_move(folder_id) {
-    if (folder_to_move_bookmark) 
-        $(`#${folder_to_move_bookmark}-move-to-name`).removeClass('text-primary');
-    folder_to_move_bookmark = folder_id;
-    $(`#${folder_to_move_bookmark}-move-to-name`).addClass('text-primary');
+function update_folder_to_move(folder_id, context) {
+    if (move_to_folder)
+        $(`#${move_to_folder}-${context}-move-to-name`).removeClass('text-primary');
+    move_to_folder = folder_id;
+    $(`#${move_to_folder}-${context}-move-to-name`).addClass('text-primary');
 }
 
-function create_simple_folder(name, folder_id, opened, depth, children = []) {
+function create_simple_folder(name, folder_id, opened, depth, context, children = []) {
     let folder = document.createElement('DIV')
 
     folder.id = `move-to-${folder_id}`
@@ -493,7 +653,7 @@ function create_simple_folder(name, folder_id, opened, depth, children = []) {
 
     // Cria o nome da pasta
     let folder_name = document.createElement('P')
-    folder_name.id = `${folder_id}-move-to-name`
+    folder_name.id = `${folder_id}-${context}-move-to-name`
 
     folder_name.className = 'my-0 ml-2'
 
@@ -510,7 +670,7 @@ function create_simple_folder(name, folder_id, opened, depth, children = []) {
 
     // Cria a seção de subpastas dessa pasta
     let folder_children = document.createElement('DIV');
-    folder_children.id = `${folder_id}-move-to-children`;
+    folder_children.id = `${folder_id}-${context}-move-to-children`;
 
     // Se a pasta está aberta, devemos mostrar suas subpastas. A presença ou ausência da classe
     // `d-none` define se as subpastas são ou não mostradas
@@ -539,14 +699,7 @@ function create_simple_folder(name, folder_id, opened, depth, children = []) {
     folder.appendChild(folder_wrapper);
 
     // Criação de um listener que fecha ou abre a pasta, mostrando suas subpastas
-    folder_name.onclick = function () {
-        // folder.opened = !folder.opened;
-
-        // folder_children.className = folder.opened ? 'children' : 'children d-none';
-        // folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder';
-
-        update_folder_to_move(folder_id);
-    }
+    folder_name.onclick = () => update_folder_to_move(folder_id, context);
 
     return folder;
 }
@@ -749,13 +902,13 @@ function parse_folder_tree(tree, depth = 0) {
     return create_folder(tree.nome, tree.id, true, depth, subpastas_processadas)
 }
 
-function parse_folder_move_tree(tree, depth = 0) {
+function parse_folder_move_tree(tree, context, depth = 0) {
     let subpastas_processadas = [];
 
     for (let i = 0; i < tree.subpastas.length; i++)
-        subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], depth + 1));
+        subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], context, depth + 1));
 
-    return create_simple_folder(tree.nome, tree.id, true, depth, subpastas_processadas);
+    return create_simple_folder(tree.nome, tree.id, true, depth, context, subpastas_processadas);
 }
 
 function folder_comparator(a, b) {
@@ -869,7 +1022,7 @@ function create_folder_modals() {
     // Se há uma seção para adição de bookmarks, significa que estamos em uma página de 
     // visualização de docuemtnos, então criamos um modal para lidar com as pastas 
     if ($('.bookmark').length > 0) {
-        let folder_modal_html = get_folder_modal_html(DOC_TITLE);
+        let folder_modal_html = get_folder_modal_html(bookmark.name);
         modals.append(folder_modal_html);
     }
     
