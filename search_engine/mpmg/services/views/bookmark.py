@@ -219,7 +219,7 @@ class BookmarkView(APIView):
             bookmark = Bookmark().get(request.GET['bookmark_id'])
 
         elif 'doc_index' in request.GET and 'doc_id' in request.GET:
-            user_id = request.GET['user_id']
+            user_id = str(request.user.id)
             doc_index = request.GET['doc_index']
             doc_id = request.GET['doc_id']
 
