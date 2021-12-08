@@ -6,18 +6,25 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from mpmg.services.models import Bookmark
-from mpmg.services.views.bookmark_folder import BOOKMARK
+from mpmg.services.views.bookmark_folder import BOOKMARK, BOOKMARK_FOLDER
 
 from ..docstring_schema import AutoDocstringSchema
 
 class BookmarkView(APIView):
     '''
     get:
-        description: Busca o conteúdo de um bookmark por meio de seu ID único ou pelo índice e ID do documento que ele salva.
+        description: Busca o conteúdo de um bookmark por meio de seu ID único, pelo índice e ID do documento que ele salva ou, se nenhum desses campos forem informado,
+            retorna a lista de todos bookmarks do usuário.
         parameters:
-            - name: id_bookmark
+            - name: bookmark_id
               in: query
               description: ID do bookmark. 
+              required: false
+              schema:
+                    type: string
+            - name: user_id
+              in: query
+              description: ID do usuário que criou o bookmark.
               required: false
               schema:
                     type: string
@@ -208,19 +215,24 @@ class BookmarkView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        
-        if 'id_bookmark' in request.GET:
-            bookmark = Bookmark().get(request.GET['id_bookmark'])
+        if 'bookmark_id' in request.GET:
+            bookmark = Bookmark().get(request.GET['bookmark_id'])
 
         elif 'doc_index' in request.GET and 'doc_id' in request.GET:
-            index = request.GET['doc_index']
-            item_id = request.GET['doc_id']
+            user_id = request.GET['user_id']
+            doc_index = request.GET['doc_index']
+            doc_id = request.GET['doc_id']
 
-            bookmark = Bookmark().get_item_by_index_and_item_id(index, item_id)
+            bookmark_id = BOOKMARK.get_id(user_id, doc_index, doc_id)
+
+            bookmark = BOOKMARK.get(bookmark_id)
 
         else:
-            msg_error = "É necessário informar o campo id_bookmark ou index e item_id!"
-            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
+
+            user_id = str(request.user.id)
+            bookmarks = BOOKMARK.get_all(user_id)
+            return Response(bookmarks, status=status.HTTP_200_OK)
 
         if bookmark is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -228,19 +240,24 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
+        user_id = str(request.user.id)
+
         # pasta default onde são salvo os bookmarks do usuário
-        folder_id = str(request.user.id)
+        folder_id = user_id
 
         if 'folder_id' in request.POST:
             folder_id = request.POST['folder_id'] 
 
         try:
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
+
             now = datetime.now().timestamp()
-            bookmark_id = Bookmark().save(dict(
-                id_folder=folder_id,
-                index=request.POST['doc_index'],
-                item_id=request.POST['doc_id'],
-                query_id=request.POST['query_id'],
+            bookmark_id = BOOKMARK.save(dict(
+                id_pasta=folder_id,
+                id_usuario=user_id,
+                indice_documento=request.POST['doc_index'],
+                id_documento=request.POST['doc_id'],
+                id_consulta=request.POST['query_id'],
                 id_sessao=request.session.session_key,
                 nome=request.POST['name'],
                 data_criacao=now,
@@ -259,20 +276,25 @@ class BookmarkView(APIView):
     def put(self, request):
 
         data = request.data.dict()
-        id_bookmark = data.get('id_bookmark')
-        if id_bookmark is None:
-            return Response({'message': 'É necessário informar o campo id_bookmark!'}, status=status.HTTP_400_BAD_REQUEST)
+        bookmark_id = data.get('bookmark_id')
+        if not bookmark_id:
+            return Response({'message': 'É necessário informar o campo bookmark_id!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        success, msg_error = BOOKMARK.update(id_bookmark, data)
+        del data['bookmark_id']
+
+        success, msg_error = BOOKMARK.update(bookmark_id, data)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        id_bookmark = request.data['id_bookmark']
+        if 'bookmark_id' not in request.data:
+            return Response({'message': 'Informe o bookmark_id!'}, status.HTTP_400_BAD_REQUEST) 
 
-        success, msg_error = BOOKMARK.remove(id_bookmark)
+        bookmark_id = request.data['bookmark_id']
+
+        success, msg_error = BOOKMARK.remove(bookmark_id)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         

@@ -54,7 +54,6 @@ class BookmarkFolderView(APIView):
                                     oneOf:
                                         - type: string
                                         - type: object
-
                                 arquivos:
                                     type: array
                                     description: Lista de arquivos da pasta.
@@ -112,7 +111,7 @@ class BookmarkFolderView(APIView):
                             folder_id:
                                 description: ID da pasta a ser alterada.
                                 type: string
-                            nome:
+                            name:
                                 description: Novo nome da pasta. 
                                 type: string
                             parent_folder_id:
@@ -183,7 +182,7 @@ class BookmarkFolderView(APIView):
             # retornar também os itens que estão na pasta do usuário
             result = BOOKMARK_FOLDER.get(folder_id)
             if result is None:
-                msg_error = f"Não foi possível obter encontrar a pasta de ID {folder_id}. Certifique que este é um ID válido"
+                msg_error = f"Não foi possível encontrar a pasta de ID {folder_id}. Certifique que este é um ID válido!"
                 return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
             return Response(result, status=status.HTTP_200_OK)
         
@@ -193,16 +192,16 @@ class BookmarkFolderView(APIView):
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
     def post(self, request):
-        parent_folder = request.POST.get('pasta_pai')
+        parent_folder_id = request.POST.get('parent_folder_id')
 
-        if not parent_folder:
+        if not parent_folder_id:
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
-            parent_folder = str(request.user.id )
+            parent_folder_id = str(request.user.id )
 
         data = dict(
             criador = str(request.user.id),
-            nome=request.POST['nome'],
-            pasta_pai=parent_folder,
+            nome=request.POST['name'],
+            pasta_pai=parent_folder_id,
             subpastas=[],
             arquivos=[]
         )
@@ -222,7 +221,7 @@ class BookmarkFolderView(APIView):
         
         except:
             msg_error = f'O campo "folder_id" deve ser informado!'
-            return Response({'success': False, 'msg_error': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
 
 
         del data['folder_id']
@@ -237,6 +236,6 @@ class BookmarkFolderView(APIView):
         folder_id = request.data['folder_id']
 
         if BOOKMARK_FOLDER.remove_folder(folder_id, BOOKMARK):
-            return Response(status.HTTP_200_OK)
+            return Response(status.HTTP_204_NO_CONTENT)
         
         return Response({'message': f'Confira se "{folder_id}" é um ID válido e tente novamente!'}, status.HTTP_400_BAD_REQUEST)

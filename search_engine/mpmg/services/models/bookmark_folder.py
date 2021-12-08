@@ -87,11 +87,11 @@ class BookmarkFolder(ElasticModel):
         undo_queue = list()
         
         for field in data:
-            if field == 'nome':
-                updated_folder[field] = data[field]
+            if field == 'name':
+                updated_folder['nome'] = data[field]
             
-            elif field == 'pasta_pai':
-                # move folder
+            # move uma pasta
+            elif field == 'parent_folder_id':
                 old_parent_folder = folder['pasta_pai']
 
                 success = self.remove_subfolder(old_parent_folder, folder_id)
@@ -101,7 +101,7 @@ class BookmarkFolder(ElasticModel):
                 
                 undo_queue.append((self.add_subfolder, {'parent_id': old_parent_folder, 'children_id': folder_id}))
                 
-                new_parent_folder = data['pasta_pai']
+                new_parent_folder = data['parent_folder_id']
                 success = self.add_subfolder(new_parent_folder, folder_id)
 
                 if not success:
@@ -111,11 +111,11 @@ class BookmarkFolder(ElasticModel):
                 undo_queue.append((self.remove_subfolder, {'parent_id': new_parent_folder, 'children_id': folder_id}))
                 updated_folder['pasta_pai'] = new_parent_folder
             
-            elif field == 'subpastas':
-                updated_folder['subpastas'] = data['subpastas']
+            elif field == 'subfolders':
+                updated_folder['subpastas'] = data['subfolders']
                  
-            elif field == 'arquivos':
-                updated_folder['arquivos'] = data['arquivos']
+            elif field == 'files':
+                updated_folder['arquivos'] = data['files']
 
             else:
                 return False, f'Não é possível alterar o campo "{field}" na pasta!'
@@ -127,7 +127,7 @@ class BookmarkFolder(ElasticModel):
 
         response = self.es.update(index=self.index_name, 
                                         id=folder_id, 
-                                        body={"doc": updated_folder})
+                                        body={'doc': updated_folder})
 
         success = response['result'] == 'updated'
         if not success:
@@ -160,8 +160,8 @@ class BookmarkFolder(ElasticModel):
     def get(self, folder_id: str) -> Union[Dict, None]:
         try:
             response = self.es.get(index=self.index_name, id=folder_id) 
-            item = {'id': response['_id'], **response['_source']}
-            return item        
+            folder = {'id': response['_id'], **response['_source']}
+            return folder        
 
         except:
             return None
@@ -175,13 +175,11 @@ class BookmarkFolder(ElasticModel):
 
             now = datetime.now().timestamp()
             data = {
-                "arquivos": folder['arquivos'],
-                "data_modificacao": now,
-                "data_ultimo_arquivo_adicionado": now  
-
+                'arquivos': folder['arquivos'],
+                'data_modificacao': now,
             }
             
-            response = self.es.update(index=self.index_name, id=folder_id, body={"doc": data})
+            response = self.es.update(index=self.index_name, id=folder_id, body={'doc': data})
             
             return response['result'] == 'updated'
         
@@ -191,15 +189,16 @@ class BookmarkFolder(ElasticModel):
     def remove_file(self, folder_id, file_id) -> bool:
         try:
             folder = self.get(folder_id)
-
             folder['arquivos'].remove(file_id)
 
+            now = datetime.now().timestamp()
+
             data = {
-                "arquivos": folder['arquivos'],
-                "data_modificacao": datetime.now().timestamp()
+                'arquivos': folder['arquivos'],
+                'data_modificacao': now
             }
             
-            response = self.es.update(index=self.index_name, id=folder_id, body={"doc": data})
+            response = self.es.update(index=self.index_name, id=folder_id, body={'doc': data})
 
             return response['result'] == 'updated'
         
@@ -211,10 +210,11 @@ class BookmarkFolder(ElasticModel):
             parent_folder = self.get(parent_id)
             
             parent_folder['subpastas'].append(children_id)
+            now = datetime.now().timestamp()
             
             data = {
-                "subpastas": parent_folder['subpastas'],
-                "data_modificacao": datetime.now().timestamp()
+                'subpastas': parent_folder['subpastas'],
+                'data_modificacao': now
             }
             
             response = self.es.update(index=self.index_name, id=parent_id, body={"doc": data})
@@ -229,12 +229,14 @@ class BookmarkFolder(ElasticModel):
             parent_folder = self.get(parent_id)
             parent_folder['subpastas'].remove(children_id)
             
+            now = datetime.now().timestamp()
+            
             data = {
-                "subpastas": parent_folder['subpastas'],
-                "data_modificacao": datetime.now().timestamp()
+                'subpastas': parent_folder['subpastas'],
+                'data_modificacao': now
             }
 
-            response = self.es.update(index=self.index_name, id=parent_id, body={"doc": data})
+            response = self.es.update(index=self.index_name, id=parent_id, body={'doc': data})
             return response['result'] == 'updated'
         
         except:
@@ -264,7 +266,7 @@ class BookmarkFolder(ElasticModel):
         except:
             return False 
 
-    def get_folder_tree(self, root_id) -> dict:
+    def get_folder_tree(self, root_id: str) -> dict:
         folder = self.get(root_id)
 
         subpastas = []
@@ -273,3 +275,15 @@ class BookmarkFolder(ElasticModel):
 
         folder['subpastas'] = subpastas
         return folder 
+
+    def _get_all_files_id(self, folder_id: str, files: list):
+        folder = self.get(folder_id)
+        files.extend(folder['arquivos'])
+        for subfolder_id in folder['subpastas']:
+            self._get_all_files_id(subfolder_id, files)
+
+    def get_all_files_id(self, folder_id: str):
+        files = list()
+        self._get_all_files_id(folder_id, files)
+        return files 
+

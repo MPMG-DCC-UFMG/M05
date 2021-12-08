@@ -5,11 +5,13 @@ from elasticsearch_dsl.aggs import Pipeline
 from rest_framework import response
 
 from rest_framework.response import Response
+from aduna.views import bookmark
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import ElasticModel
-from mpmg.services.models import bookmark_folder
 from mpmg.services.models.bookmark_folder import BookmarkFolder
+
+from typing import Callable, Dict, Tuple, Union, List
 
 class Bookmark(ElasticModel):
     index_name = 'bookmark'
@@ -21,21 +23,23 @@ class Bookmark(ElasticModel):
         meta_fields = ['id']
         index_fields = [
             'id_pasta',
-            'id_sessao',
+            'id_usuario',
             'indice_documento',
             'id_documento',
+            'id_consulta',
+            'id_sessao',
             'nome',
-            'consulta',
-            'data_criacao'
-            'data_modificacao'
+            'data_criacao',
+            'data_modificacao',
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get_id(self, indice_documento: str, id_documento: str) -> str:
-        '''Retorna o ID de um bookmark, baseado em qual índice ele está e ID do documento que ele registra.
+    def get_id(self, id_usuario: str, indice_documento: str, id_documento: str) -> str:
+        '''Retorna o ID de um bookmark, baseado em seu ID, no índice e ID do documento que ele registra.
 
         Args:
+            - id_usuario: ID do usuário que criou o bookmark.
             - indice_documento: Índice do documento a ser salvo pelo bookmark.
             - id_documento: ID do documento a ser salvo pelo bookmark.
 
@@ -43,8 +47,8 @@ class Bookmark(ElasticModel):
             Retorna o ID de um bookmark, baseado na hash SHA-1 do índice e ID do documento que ele salva.
 
         '''
-        
-        return hashlib.sha1((indice_documento + id_documento).encode()).hexdigest()
+        key = id_usuario + indice_documento + id_documento
+        return hashlib.sha1(key.encode()).hexdigest()
 
     def save(self, dict_data: dict = None) -> Union[str, None]:
         ''' Salva o bookmark no índice. 
@@ -67,14 +71,22 @@ class Bookmark(ElasticModel):
             for field in self.index_fields:
                 dict_data[field] = getattr(self, field, '')
 
-        if BookmarkFolder().get(dict_data['id_pasta']) is None:
+        if self.bookmark_folder.get(dict_data['id_pasta']) is None:
             return None 
 
-        bookmark_id = self.get_id(dict_data['indice_documento'], dict_data['id_documento'])
+        id_usuario = dict_data['id_usuario'] 
+        indice_documento = dict_data['indice_documento'] 
+        id_documento = dict_data['id_documento']
+
+        bookmark_id = self.get_id(id_usuario, indice_documento, id_documento)
+
+        if self.get(bookmark_id):
+            return None
 
         result = self.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
-        
-        BookmarkFolder().add_file(dict_data['id_pasta'], result['_id'])
+        print(result)
+
+        self.bookmark_folder.add_file(dict_data['id_pasta'], result['_id'])
 
         return bookmark_id
 
@@ -97,21 +109,6 @@ class Bookmark(ElasticModel):
         except:
             return None
 
-    def get_by_index_and_id_documento(self, indice_documento: str, id_documento: str) -> Union[dict, None]:
-        '''Recupa um bookmark pelo indice e identificado do documento que ele registra.
-
-        Args:
-            - indice_documento: Indice do documento que o bookmark está salvando.
-            - id_documento: ID do documento sendo salvo pelo bookmark no índice `indice_documento`.
-
-        Returns:
-            Retorna a representação do bookmark em dicionário, ou None, caso contrário.
-        
-        '''
-
-        bookmark_id = self.get_id(indice_documento, id_documento)
-        return self.get(bookmark_id)
-
     def remove(self, id_bookmark: str) -> Union[bool, str]:
         ''' Remove o bookmark de ID id_bookmark.
 
@@ -131,7 +128,7 @@ class Bookmark(ElasticModel):
             return False, 'Não foi possível encontrar o bookmark!'
 
         id_pasta = bookmark['id_pasta']
-        success = BookmarkFolder().remove_file(id_pasta, id_bookmark)
+        success = self.bookmark_folder.remove_file(id_pasta, id_bookmark)
         
         if not success:
             return False, 'Não foi possível remover o bookmark de sua pasta!'
@@ -142,18 +139,26 @@ class Bookmark(ElasticModel):
         msg_error = ''
         if not success:
             msg_error = 'Não foi possível remover o bookmark!'
-            BookmarkFolder().add_file(id_pasta, id_bookmark)
+            self.bookmark_folder.add_file(id_pasta, id_bookmark)
 
         return success, msg_error
+    
+    def _undo_operations(self, undo_queue: List[Tuple[Callable, Dict]]):
+        '''Desfaz
+        
+        '''
 
-    def update(self, id_bookmark: str, data: dict) -> Union[bool, str]:
+        for undo_method, arg in undo_queue:
+            undo_method(**arg)
+
+    def update(self, bookmark_id: str, data: dict) -> Union[bool, str]:
         ''' Atualiza os campos de um bookmark. 
 
         Os únicos atualmente aceitos de serem alterados é o nome do bookmark e a pasta em que
         ele está, alterando seu ID.
 
         Args:
-            - id_bookmark: Identificador único do bookmark a ser alterado.
+            - bookmark_id: Identificador único do bookmark a ser alterado.
             - data: dicionário com os campos e valores de um dicionário a ser alterado.
 
         Returns:
@@ -166,24 +171,38 @@ class Bookmark(ElasticModel):
 
         '''
         
-        bookmark = self.get(id_bookmark)
+        bookmark = self.get(bookmark_id)
         if bookmark is None:
             return False, 'Verifique se o ID informado é válido!' 
 
         del bookmark['id']
 
+        undo_queue = list()
         updated_bookmark = bookmark.copy()
         for field in data:
 
-            if field == 'nome':
+            if field == 'name':
                 updated_bookmark[field] = data[field]
 
-            elif field == 'id_pasta':
-                old_folder_id = bookmark[field]
-                success = self.bookmark_folder.remove_file(old_folder_id, id_bookmark)
+            elif field == 'folder_id':
+                old_folder_id = bookmark['id_pasta']
+                success = self.bookmark_folder.remove_file(old_folder_id, bookmark_id)
                 if not success:
-                    return False, 'Não foi possível remover o bookmark de sua pasta antiga'
-                updated_bookmark[field] = data[field]
+                    self._undo_operations(undo_queue)
+                    return False, 'Não foi possível remover o bookmark de sua pasta antiga.'
+
+                undo_queue.append((self.bookmark_folder.add_file, {'folder_id': old_folder_id, 'file_id': bookmark_id}))
+                
+                new_folder_id = data['folder_id']
+                success = self.bookmark_folder.add_file(new_folder_id, bookmark_id)
+
+                if not success:
+                    self._undo_operations(undo_queue)
+                    return False, 'Não foi possível inserir o bookmark na nova pasta.'
+
+                undo_queue.append((self.bookmark_folder.remove_file, {'folder_id': new_folder_id, 'file_id': bookmark_id}))
+
+                updated_bookmark['id_pasta'] = data[field]
 
             else:
                 return False, f'Não é possível atualizar o campo "{field}"'
@@ -191,9 +210,19 @@ class Bookmark(ElasticModel):
         if updated_bookmark == bookmark:
             return False, 'O bookmark já está atualizado!'
 
-        response = self.es.update(index=self.index_name, id=id_bookmark, body={"doc": updated_bookmark})
+        response = self.es.update(index=self.index_name, id=bookmark_id, body={"doc": updated_bookmark})
         
         success = response['result'] == 'updated' 
-        msg_error = '' if success else 'Não foi possível atualizar o bookmark'
+        msg_error = ''
+        if not success:
+            self._undo_operations(undo_queue)
+            msg_error = 'Não foi possível atualizar o bookmark'
 
         return success, msg_error
+
+    def get_all(self, user_id: str) -> list:
+        # esse é provavelmente o método mais eficiente de recuperar 
+        results = list()
+        for bookmark_id in self.bookmark_folder.get_all_files_id(user_id):
+            results.append(self.get(bookmark_id))
+        return results
