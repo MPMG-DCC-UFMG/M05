@@ -20,21 +20,18 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
-                id_folder: bookmark.folder,
-                nome: bookmark.name,
-                index: DOC_TYPE,
-                item_id: DOC_ID,
-                consulta: QUERY
-            }
-        });
-    
-        ajax.done(function (data) {
-            if (data.success)
-                bookmark.id = data.id_bookmark;
-            
-            else 
+                folder_id: bookmark.folder,
+                name: bookmark.name,
+                doc_index: DOC_TYPE,
+                doc_id: DOC_ID,
+                query_id: QID
+            },
+            success: function (res) {
+                bookmark.id = res.bookmark_id;
+            },
+            error: function () {
                 alert('Não foi possível salvar o bookmark. Tente novamente!');
-    
+            }
         });
     } else {
         // mudando a pasta de local
@@ -44,9 +41,9 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
-                novo_nome: bookmark.name,
-                id_pasta_destino: bookmark.folder,
-                id_bookmark: bookmark.id,
+                folder_id: bookmark.folder,
+                name: bookmark.name,
+                bookmark_id: bookmark.id,
             }
         });
     }
@@ -67,7 +64,7 @@ services.remove_bookmark = function(bookmark_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            id_bookmark: bookmark_id,
+            bookmark_id: bookmark_id,
         }
     });
 }
@@ -79,16 +76,18 @@ services.start_bookmark = function(index, item_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            index: index,
-            item_id: item_id,
+            doc_index: index,
+            doc_id: item_id,
         },
-        success: function (res) {
-            bookmark.id = res.bookmark.id;
-            bookmark.folder = res.bookmark.id_folder;
-            bookmark.name = res.bookmark.nome;
-
+        success: function (data) {
+            bookmark.id = data.id;
+            bookmark.folder = data.id_folder;
+            bookmark.name = data.nome;
+            
             inject_bookmark();
             $('#bookmark-toggle-wrapper').append(create_bookmark_toggle(true));
+            
+            $('#inputName').val(bookmark.name);
         },
         error: function () {
             inject_bookmark();
@@ -97,13 +96,13 @@ services.start_bookmark = function(index, item_id) {
     });
 }
 
-services.get_bookmark = function (id_bookmark) {
+services.get_bookmark = function (bookmark_id) {
     return $.ajax({
         url: SERVICES_URL + 'bookmark',
         type: 'get',
         dataType: 'json',
         data: {
-            id_bookmark: id_bookmark,
+            bookmark_id: bookmark_id,
         },
         // async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -138,23 +137,23 @@ services.move_bookmark = function () {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            novo_nome: doc_name,
-            id_pasta_destino: move_to_folder,
-            id_bookmark: id_bookmark_to_move,
+            name: doc_name,
+            folder_id: move_to_folder,
+            bookmark_id: id_bookmark_to_move,
         }
     });
 }
 
-services.rename_bookmark = function (new_name, id_bookmark, id_folder) {
+services.rename_bookmark = function (new_name, bookmark_id, folder_id) {
     $.ajax({
         url: SERVICES_URL + 'bookmark',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            novo_nome: new_name,
-            id_pasta_destino: id_folder,
-            id_bookmark: id_bookmark,
+            name: new_name,
+            folder_id: folder_id,
+            bookmark_id: bookmark_id,
         }
     });
 }
@@ -162,26 +161,25 @@ services.rename_bookmark = function (new_name, id_bookmark, id_folder) {
 
 services.rename_folder = function(folder_id, new_name) {
     $.ajax({
-        url: SERVICES_URL + 'bookmark/folder',
+        url: SERVICES_URL + 'bookmark_folder',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             folder_id: folder_id,
-            nome: new_name,
+            name: new_name,
         }
     });
 }
 
-services.remove_folder = function(folder_id, remove_or_move_itens_inside_folder_to_parent_decision) {
+services.remove_folder = function(folder_id) {
     $.ajax({
-        url: SERVICES_URL + 'bookmark/folder',
+        url: SERVICES_URL + 'bookmark_folder',
         type: 'delete',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             folder_id: folder_id,
-            decision: remove_or_move_itens_inside_folder_to_parent_decision,
         }
     });
 }
@@ -190,13 +188,13 @@ services.create_folder = function(parent_id) {
     let folder_name = 'Nova pasta';
     
     let ajax = $.ajax({
-        url: SERVICES_URL + 'bookmark/folder',
+        url: SERVICES_URL + 'bookmark_folder',
         type: 'post',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            pasta_pai: parent_id,
-            nome: folder_name,
+            parent_folder_id: parent_id,
+            name: folder_name,
         }
     });
 
@@ -218,7 +216,7 @@ services.create_folder = function(parent_id) {
 
 services.get_bookmark_folder_tree = function() {
     let ajax = $.ajax({
-        url: SERVICES_URL + 'bookmark/folder',
+        url: SERVICES_URL + 'bookmark_folder',
         type: 'get',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -243,4 +241,32 @@ services.get_bookmark_folder_tree = function() {
 
         update_active_folder(tree.id) ;
     });
+}
+
+services.move_folder = function () {
+    if (id_folder_to_move == move_to_folder) {
+        // TODO: Não deixar também mover para nenhuma subpasta
+        alert('Você não pode mover uma pasta para ela mesma!');
+    }
+    console.log(id_folder_to_move, move_to_folder)
+
+    $('#moveFolderModal').modal('hide');
+    $.ajax({
+        url: SERVICES_URL + 'bookmark_folder',
+        type: 'put',
+        dataType: 'json',
+        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        data: {
+            folder_id: id_folder_to_move,
+            parent_folder_id: move_to_folder,
+        },
+        success: function () {
+            location.reload();
+        },
+        error: function (res) {
+            alert(res.message)
+        }
+    });
+    
+    // console.log(id_folder_to_move, move_to_folder);
 }

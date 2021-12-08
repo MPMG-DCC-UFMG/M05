@@ -1,6 +1,5 @@
 // Contém o código responsável por gerar as visualização das pastas de bookmarks
 var MAX_FOLDERS_IN_DROPDOWN = 5;
-var SERVER_ADDRESS = window.location.origin;
 
 var folder_opened_historic = [];
 var active_folder = null;
@@ -74,7 +73,7 @@ function document_context_menu(doc_id) {
 }
 
 function get_document_url(bookmark) {
-    return `${SERVER_ADDRESS}/aduna/document/${bookmark.index}/${bookmark.item_id}?query=`;
+    return `${SERVER_ADDRESS}/aduna/document/${bookmark.indice_documento}/${bookmark.id_documento}?query=`;
 }
 
 function attach_document_context_menu(doc_id) {
@@ -254,6 +253,8 @@ function create_bookmark_item(bookmark) {
         input.className = disabled_input_classes;
         link.className = '';
 
+        $('#inputName').val(input.value);
+
         services.rename_bookmark(input.value, bookmark.id, active_folder);
     }
 
@@ -323,32 +324,33 @@ function update_gallery() {
 
     let folder_items = $('#folder-items');
     let pasta = folder_tree[active_folder];
-    
+
     let back_folder_li = '';
     if(folder_opened_historic.length > 0) {
         back_folder_li = `<li class="my-1">
                             <div class="d-flex justify-content-between">
                                 <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
-                                <div id="enable-edit-all-folder-wrapper">
-                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
-                                        <i class="far fa-edit"></i> Selecionar
-                                    </button>
                                 </div>
-                                <div id="edit-all-folder-options-wrapper" class="d-none">
-                                    <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
-                                        <i class="fas fa-folder"></i> Mover
-                                    </button>
-                                    <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
-                                        <i class="fas fa-trash-alt"></i> Remover
-                                    </button>
-                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
-                                        <i class="fas fa-times"></i> Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                        <hr/>`;
-    }
+                            </li>
+                            `;
+                                // hr/>
+                                // <div id="enable-edit-all-folder-wrapper">
+                                //     <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
+                                //         <i class="far fa-edit"></i> Selecionar
+                                //     </button>
+                                // </div>
+                                // <div id="edit-all-folder-options-wrapper" class="d-none">
+                                //     <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
+                                //         <i class="fas fa-folder"></i> Mover
+                                //     </button>
+                                //     <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
+                                //         <i class="fas fa-trash-alt"></i> Remover
+                                //     </button>
+                                //     <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
+                                //         <i class="fas fa-times"></i> Cancelar
+                                //     </button>
+                                // </div>
+                            }
 
     if ((pasta.arquivos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
@@ -372,7 +374,7 @@ function update_gallery() {
 
     for (let i=0;i<pasta.arquivos.length;i++) {
         services.get_bookmark(pasta.arquivos[i]).then(response => {
-            let bookmark = response.bookmark;
+            let bookmark = response;
             folder_items.append(create_bookmark_item(bookmark));
             attach_document_context_menu(bookmark.id);
         });
@@ -509,7 +511,7 @@ function enable_edit_mode_from_context_menu() {
     enable_edit_mode(this.context)
 }
 
-function remove_folder(decision) {
+function remove_folder() {
     $('#removeFolderModal').modal('hide')
     $('#folderModal').modal('show')
     
@@ -523,8 +525,7 @@ function remove_folder(decision) {
     }
 
     update_active_folder(pasta_pai);
-    services.remove_folder(folder_to_remove, decision)
-
+    services.remove_folder(folder_to_remove)
 
     let idx = folder_opened_historic.indexOf(folder_to_remove);
     while (idx >= 0) {
@@ -601,8 +602,11 @@ function create_context_menu(context) {
     let li_edit = create_context_menu_item('fas fa-pen', 'Editar', context, enable_edit_mode_from_context_menu)
     ul.appendChild(li_edit)
 
-    let li_move = create_context_menu_item('fas fa-folder', 'Mover para', context, show_move_folder_modal);
-    ul.appendChild(li_move);
+    if (typeof DOC_ID === 'undefined') {
+        let li_move = create_context_menu_item('fas fa-folder', 'Mover para', context, show_move_folder_modal);
+        ul.appendChild(li_move);
+        li_move.className = 'mt-2'
+    }
 
     // html da opção de remover pasta que aparece no menu de contexto de uma página
     let li_remove = create_context_menu_item('fas fa-trash-alt', 'Remover', context, show_remove_folder_modal)
@@ -610,7 +614,6 @@ function create_context_menu(context) {
 
     // melhorias de layout entre as opções do menu de contexto
     li_edit.className = 'mt-2'
-    li_move.className = 'mt-2'
     li_remove.className = 'mt-2'
 
     return ul
@@ -953,6 +956,7 @@ function enable_context_menu_event(tree) {
 function save_or_update_bookmark_by_detailed_folder() {
     $('#folderModal').modal('hide');
     bookmark.folder = active_folder;
+    bookmark.name = $('#inputName').val();
     services.create_bookmark();
 }
 
@@ -996,15 +1000,14 @@ function get_remove_folder_modal_html() {
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title font-weight-bold" id="removeFolderModalLabel">O que deseja fazer com os favoritos dessa pasta?</h5>
+                            <h5 class="modal-title font-weight-bold" id="removeFolderModalLabel">Tem certeza que deseja deseja excluir a pasta com todo seu conteúdo?</h5>
                         </div>
                         <div class="modal-body d-flex justify-content-between">
                             <div class="">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                             </div>
                             <div class="">
-                                <button type="button" class="btn btn-primary" onclick="remove_folder('keep')">Mover todos para pasta acima</button>
-                                <button type="button" class="btn btn-danger" onclick="remove_folder('remove_all')">Excluir todos</button>
+                                <button type="button" class="btn btn-danger" onclick="remove_folder()">Excluir</button>
                             </div>
                         </div>
                         <!-- <div class="modal-footer d-flex justify-content-between">
@@ -1030,8 +1033,8 @@ function create_folder_modals() {
 }
 
 $(document).ready(function () {
-    create_folder_modals()
     services.get_bookmark_folder_tree()
+    create_folder_modals()
 
     // // let tree = services.retrieve_folders()
     // tree = { "name": "Favoritos de Elves", "id": 123, "children": [{ "name": "Processos", "id": 797, "children": [{ "name": "Estaduais", "id": 63, "children": [{ "name": "Minas Gerais", "id": 630, "children": [{ "name": "Municípios", "id": 6340, "children": [] }] }] }, { "name": "Federais", "id": 31, "children": [] }] }, { "name": "Diários", "id": 89, "created_at": "Apr. 2012", "children": [] }] }

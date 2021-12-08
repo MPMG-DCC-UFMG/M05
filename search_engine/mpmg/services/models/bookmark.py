@@ -84,7 +84,6 @@ class Bookmark(ElasticModel):
             return None
 
         result = self.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
-        print(result)
 
         self.bookmark_folder.add_file(dict_data['id_pasta'], result['_id'])
 
@@ -182,7 +181,7 @@ class Bookmark(ElasticModel):
         for field in data:
 
             if field == 'name':
-                updated_bookmark[field] = data[field]
+                updated_bookmark['nome'] = data[field]
 
             elif field == 'folder_id':
                 old_folder_id = bookmark['id_pasta']

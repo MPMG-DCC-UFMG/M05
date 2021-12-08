@@ -245,7 +245,7 @@ class BookmarkView(APIView):
         # pasta default onde são salvo os bookmarks do usuário
         folder_id = user_id
 
-        if 'folder_id' in request.POST:
+        if request.POST.get('folder_id'):
             folder_id = request.POST['folder_id'] 
 
         try:

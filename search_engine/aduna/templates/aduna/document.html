@@ -46,7 +46,8 @@
     {% endblock %}
     {% block script_before %}
     <script>
-        SERVICES_URL = '{{ services_url }}';
+        SERVER_ADDRESS = window.location.origin;
+        SERVICES_URL = SERVER_ADDRESS + '/services/';
         AUTH_TOKEN = '{{ auth_token }}';
         QID = '{{ qid }}';
         DOC_TYPE = '{{ doc_type }}';
@@ -54,7 +55,6 @@
         DOC_TITLE = '{{ document.titulo }}'
         PAGE = '{{ page }}';
         QUERY = '{{ query }}';
-        
         </script>
     {% endblock %}
 

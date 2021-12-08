@@ -11,10 +11,14 @@ function save_or_update_bookmark_by_dropdown() {
     bookmark.folder = $('.popover select').val();
     bookmark.name = $('.popover #inputName').val();
 
-    let idx = folders.findIndex(pasta => pasta.id === bookmark.folder);
-    if (idx >= 0)
-        folders[idx].data_ultimo_arquivo_adicionado = Date.now();
+    // let idx = folders.findIndex(pasta => pasta.id === bookmark.folder);
+    // if (idx >= 0)
+    //     folders[idx].data_ultimo_arquivo_adicionado = Date.now();
     
+    $('#inputName').val(bookmark.name);
+
+    update_active_folder(bookmark.folder);
+
     $('#bookmark-popover').popover('toggle');
     services.create_bookmark();
 }
