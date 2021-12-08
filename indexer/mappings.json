@@ -19,6 +19,9 @@
                 "data": {
                     "type": "date"
                 }, 
+                "data_indexacao": {
+                    "type": "date"
+                }, 
                 "entidade_cep": {
                     "type": "text", 
                     "fields": {
@@ -276,6 +279,9 @@
                 "data": {
                     "type": "date"
                 }, 
+                "data_indexacao": {
+                    "type": "date"
+                }, 
                 "entidade_cep": {
                     "type": "text", 
                     "fields": {
@@ -497,6 +503,9 @@
                             "ignore_above": 256
                         }
                     }
+                },
+                "data_indexacao": {
+                    "type": "date"
                 }
             }
         }
@@ -558,6 +567,9 @@
                 "data":{
                     "type": "date"
                 },
+                "data_indexacao": {
+                    "type": "date"
+                }, 
                 "entidade_pessoa":{
                     "type": "text",
                     "fields": {
