@@ -20,6 +20,7 @@ urlpatterns = [
     path('monitoring/cluster', views.ClusterStatsView.as_view(), name='monitoring_cluster'),
     path('bookmark', views.BookmarkView.as_view(), name='bookmark'),
     path('bookmark_folder', views.BookmarkFolderView.as_view(), name='bookmark_folder'),
+    path('notification', views.NotificationView.as_view(), name='notification'),
     # path('search_comparison_entity', views.CompareViewEntity.as_view(), name='search_comparison_entity'),
     # path('log_search', views.LogSearchView.as_view(), name='log_search'),
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),
