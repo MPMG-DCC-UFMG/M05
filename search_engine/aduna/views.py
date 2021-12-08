@@ -169,6 +169,7 @@ def document(request, doc_type, doc_id):
         else:
             response_content = service_response.json()
             document = response_content['document']
+            document['titulo'] = document['titulo'].strip() 
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
             context = {
