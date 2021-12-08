@@ -332,8 +332,8 @@ function update_gallery() {
                                 <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
                                 </div>
                             </li>
-                            `;
-                                // hr/>
+                            <hr/>
+                        `;
                                 // <div id="enable-edit-all-folder-wrapper">
                                 //     <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
                                 //         <i class="far fa-edit"></i> Selecionar
