@@ -150,7 +150,7 @@ class Query:
         '''
         must_clause = self._get_must_clause()
         should_clause = self._get_should_clause()
-        filter_clause = self.query_filter.get_filters_clause()
+        filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
         
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
@@ -184,9 +184,9 @@ class Query:
 
             campos_ponderados = self.weighted_fields,
 
-            instancias =  self.query_filter.instances,
-            data_inicial = self.query_filter.start_date,
-            data_final = self.query_filter.end_date,
+            instancias =  self.query_filter.instances if self.query_filter != None else [],
+            data_inicial = self.query_filter.start_date if self.query_filter != None else '',
+            data_final = self.query_filter.end_date if self.query_filter != None else '',
 
             filtros = {} if self.query_filter is None else self.query_filter.get_representation()
 
