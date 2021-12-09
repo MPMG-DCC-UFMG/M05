@@ -97,6 +97,9 @@ class BookmarkView(APIView):
                     schema:
                         type: object
                         properties:
+                            user_id:
+                                description: ID do usuário que está criando a pasta. 
+                                type: string
                             folder_id:
                                 description: ID da pasta onde será salvo o bookmark. Se esse campo não for informado, o bookmark será salvo na pasta default. 
                                 type: string
@@ -215,6 +218,8 @@ class BookmarkView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
+        user_id = request.GET['user_id']
+
         if 'bookmark_id' in request.GET:
             bookmark = Bookmark().get(request.GET['bookmark_id'])
 
@@ -230,7 +235,6 @@ class BookmarkView(APIView):
         else:
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
 
-            user_id = str(request.user.id)
             bookmarks = BOOKMARK.get_all(user_id)
             return Response(bookmarks, status=status.HTTP_200_OK)
 
@@ -240,7 +244,7 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
-        user_id = str(request.user.id)
+        user_id = request.POST['user_id']
 
         # pasta default onde são salvo os bookmarks do usuário
         folder_id = user_id
