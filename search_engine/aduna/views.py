@@ -405,3 +405,10 @@ def bookmark(request):
     }
     
     return render(request, 'aduna/bookmark.html', context)
+
+
+def recommendations(request, recommendation_type):
+    ctx = {
+
+    }
+    return render(request, 'aduna/recommendation.html', ctx)

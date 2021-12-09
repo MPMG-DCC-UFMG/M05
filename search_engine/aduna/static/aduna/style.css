@@ -175,6 +175,28 @@ mark.active{
     animation: flash-text 1s ease-in-out 0s;
 }
 
+.notification {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.notification .badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: block;
+  height: 10px;
+  width: 10px;
+  /* padding: 5px 10px; */
+  border-radius: 50%;
+  background: red;
+  color: white;
+}
+
+a#dropdownNotification.nav-link.dropdown-toggle::after {
+    display: none;
+}
 
 @keyframes flash-text {
     from{
