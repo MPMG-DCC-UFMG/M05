@@ -15,7 +15,44 @@
                         <input type="hidden" name="sid" id="sid" value="{{ sid }}">
                     </form>
                 </div>
-                <ul class="navbar-nav mr-auto">
+                <ul class="navbar-nav mr-auto d-flex align-items-center">
+                    <li id="notification" class="nav-item dropdown mr-2">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="notification">
+                                <i class="fas fa-bell text-muted"></i>
+                                <div id="notification-badge" class="badge"></div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification" style="width: 410px;">
+                            <ul class="small p-0" style="list-style: none;">
+                                <li class="font-weight-bold">
+                                    <div class="rounded border bg-light p-2">
+                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a href="recomendacoes/documentos">Visualizar</a>.</p>
+                                    </div>
+                                    <div class="d-flex justify-content-end pr-1 mt-1">
+                                        <span class="small">08/12/2021 às 12:37</span>
+                                    </div>
+                                </li>
+                                <li class="mt-2">
+                                    <div class="rounded border bg-light p-2">
+                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a href="recomendacoes/documentos">Visualizar</a>.</p>
+                                    </div>
+                                    <div class="d-flex justify-content-end pr-1 mt-1">
+                                        <span class="small">03/12/2021 às 08:15</span>
+                                    </div>
+                                </li>
+                                <li class="mt-2">
+                                    <div class="rounded border bg-light p-2">
+                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a href="recomendacoes/documentos">Visualizar</a>.</p>
+                                    </div>
+                                    <div class="d-flex justify-content-end pr-1 mt-1">
+                                        <span class="small">29/11/2021 às 19:55</span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <!-- <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a> -->
+                        </div>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user"></i>
