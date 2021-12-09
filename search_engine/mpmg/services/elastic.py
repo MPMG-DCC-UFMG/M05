@@ -1,6 +1,7 @@
 import json
 import elasticsearch
 import elasticsearch_dsl
+from elasticsearch_dsl import connections
 import requests
 import traceback
 import sys
@@ -14,6 +15,7 @@ class Elastic:
         self.ELASTIC_ADDRESS = settings.ELASTICSEARCH_DSL['default']['hosts']
         self.es = elasticsearch.Elasticsearch([self.ELASTIC_ADDRESS], timeout=120)
         self.dsl = elasticsearch_dsl
+        self.dsl_connection = connections.create_connection(hosts=[self.ELASTIC_ADDRESS], timeout=120)
         self.helpers = helpers
         
         self.all_searchable_indices = []
