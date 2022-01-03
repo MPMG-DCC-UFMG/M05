@@ -68,7 +68,7 @@ curl -XPOST http://localhost:9200/licitacoes/_clone/licitacoes-replica <br>
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}'  http://localhost:9200/licitacoes/_settings <br>
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}'  http://localhost:9200/licitacoes-replica/_settings <br>
 
-Caso prefira realizar os mesmos procedimentos acima automaticamente, execute:
+**Caso prefira realizar os mesmos procedimentos acima automaticamente, execute:**
 
 ```bash 
 ./indexing_script.sh 
