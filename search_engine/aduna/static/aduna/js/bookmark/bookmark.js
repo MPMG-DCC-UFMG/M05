@@ -46,7 +46,7 @@ function get_bookmark_html(doc_title) {
                 </div>
                 <div class="form-group">
                     <button class="btn btn-secondary" data-toggle="modal" data-target="#folderModal">Mais...</button>
-                    <button class="btn btn-secondary">Remover</button>
+                    <button class="btn btn-secondary" onclick="services.remove_bookmark(bookmark.id)">Remover</button>
                     <button class="btn btn-success" onclick="save_or_update_bookmark_by_dropdown()">Salvar</button>
                 </div>
             </div>`;
