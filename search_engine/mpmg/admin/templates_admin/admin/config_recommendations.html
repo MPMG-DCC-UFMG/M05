@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 grid-margin">
+        <div class="col-md-5 grid-margin">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title" style="text-transform: none">Documentos que serão recomendados</h4>
@@ -23,6 +23,7 @@
                                     <thead>
                                         <tr>
                                             <th width="200px">Tipo de Documento</th>
+                                            <th>Quantidade</th>
                                             <th style="text-align: center;">Recomendar?</th>
                                         </tr>
                                     </thead>
@@ -30,14 +31,17 @@
                                     
                                         <tr>
                                             <td>Diários</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                             <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
                                         </tr>
                                         <tr>
                                             <td>Processos</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                             <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
                                         </tr>
                                         <tr>
                                             <td>Licitações</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                             <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
                                         </tr>
                                     
@@ -55,7 +59,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-8 grid-margin">
+        <div class="col-md-7 grid-margin">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title" style="text-transform: none">Basear as recomendações em:</h4>
@@ -65,8 +69,9 @@
                                 <thead>
                                     <tr>
                                         <th width="200px">Origem</th>
+                                        <th>Quantidade</th>
                                         <th style="text-align: center;">Similaridade Mínima</th>
-                                        <th style="text-align: center;">Número Máximo de Recomendações</th>
+                                        <th style="text-align: center;">Top n Recomendações</th>
                                         <th style="text-align: center;">Habilitado?</th>
                                     </tr>
                                 </thead>
@@ -74,6 +79,7 @@
                                 
                                     <tr>
                                         <td>Favoritos</td>
+                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                         <td style="text-align: center;">
                                             <select>
                                                 <option value="60">60%</option>
@@ -88,6 +94,7 @@
                                     </tr>
                                     <tr>
                                         <td>Consultas</td>
+                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                         <td style="text-align: center;">
                                             <select>
                                                 <option value="60">60%</option>
@@ -102,6 +109,7 @@
                                     </tr>
                                     <tr>
                                         <td>Cliques</td>
+                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
                                         <td style="text-align: center;">
                                             <select>
                                                 <option value="60">60%</option>
