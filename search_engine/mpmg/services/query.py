@@ -70,7 +70,7 @@ class Query:
         '''
         Reconhece entidades presentes na consulta caso o atributo use_entities seja True
         '''
-        if self.use_entities or True:
+        if self.use_entities:
             entities = NER().execute(self.raw_query)
             entities_fields = list(entities.keys())
             return entities, entities_fields
