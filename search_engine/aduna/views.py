@@ -172,6 +172,7 @@ def document(request, doc_type, doc_id):
             document['titulo'] = document['titulo'].strip() 
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
+
             context = {
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
@@ -179,10 +180,11 @@ def document(request, doc_type, doc_id):
                 'services_url': settings.SERVICES_URL,
                 'doc_type': doc_type,
                 'doc_id': doc_id,
+                'user_id': request.session['user_info']['user_id'],
                 'auth_token': request.session.get('auth_token'),
             }
-            return render(request, 'aduna/document.html', context)
 
+            return render(request, 'aduna/document.html', context)
 
 def login(request):
     if request.method == 'GET':
@@ -401,7 +403,8 @@ def search_comparison_entity(request):
 def bookmark(request):
     context = {
         'services_url': settings.SERVICES_URL,
-        'auth_token': request.session.get('auth_token')
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session['user_info']['user_id']
     }
     
     return render(request, 'aduna/bookmark.html', context)

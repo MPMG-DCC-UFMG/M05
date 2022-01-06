@@ -20,6 +20,7 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
+                user_id: USER_ID,
                 folder_id: bookmark.folder,
                 name: bookmark.name,
                 doc_index: DOC_TYPE,
@@ -29,8 +30,8 @@ services.create_bookmark = function() {
             success: function (res) {
                 bookmark.id = res.bookmark_id;
             },
-            error: function () {
-                alert('Não foi possível salvar o bookmark. Tente novamente!');
+            error: function (res) {
+                console.log(res); //`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
             }
         });
     } else {
@@ -76,6 +77,7 @@ services.start_bookmark = function(index, item_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
+            user_id: USER_ID,
             doc_index: index,
             doc_id: item_id,
         },
@@ -193,6 +195,7 @@ services.create_folder = function(parent_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
+            user_id: USER_ID,
             parent_folder_id: parent_id,
             name: folder_name,
         }
@@ -219,6 +222,9 @@ services.get_bookmark_folder_tree = function() {
         url: SERVICES_URL + 'bookmark_folder',
         type: 'get',
         dataType: 'json',
+        data: {
+            user_id: USER_ID
+        },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
     });
 

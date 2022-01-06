@@ -218,25 +218,28 @@ class BookmarkView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        user_id = request.GET['user_id']
-
         if 'bookmark_id' in request.GET:
             bookmark = Bookmark().get(request.GET['bookmark_id'])
 
-        elif 'doc_index' in request.GET and 'doc_id' in request.GET:
-            user_id = str(request.user.id)
+        elif 'doc_index' in request.GET and 'doc_id' in request.GET and 'user_id' in request.GET:
             doc_index = request.GET['doc_index']
             doc_id = request.GET['doc_id']
+            user_id = request.GET['user_id']
 
             bookmark_id = BOOKMARK.get_id(user_id, doc_index, doc_id)
 
             bookmark = BOOKMARK.get(bookmark_id)
 
-        else:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
+        elif 'user_id' in request.GET:
+            user_id = request.GET['user_id']
+
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
 
             bookmarks = BOOKMARK.get_all(user_id)
             return Response(bookmarks, status=status.HTTP_200_OK)
+
+        else:
+            return Response({'message': 'Informe os campos apropriadamente!'}, status=status.HTTP_400_BAD_REQUEST)
 
         if bookmark is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -244,7 +247,11 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
-        user_id = request.POST['user_id']
+        try:
+            user_id = request.POST['user_id']
+
+        except:
+            return Response({'message': 'Informe o ID do usuário!'}, status=status.HTTP_400_BAD_REQUEST) 
 
         # pasta default onde são salvo os bookmarks do usuário
         folder_id = user_id

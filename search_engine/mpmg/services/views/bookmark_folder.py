@@ -16,11 +16,15 @@ class BookmarkFolderView(APIView):
         description: Retorna uma pasta específica, se folder_id for informado. Ou a árvore de pastas, se folder_id não for informado.
         parameters:
             - name: folder_id
-              in: query
-              description: ID da pasta a ser buscada. 
-              required: false
-              schema:
-                    type: string
+                in: query
+                description: ID da pasta a ser buscada. 
+                required: false
+                schema:
+                        type: string
+            - name: user_id
+                in: query
+                description: ID do usuário a ter a árvore de pastas recuperadas.
+                required: 
         responses:
             '200':
                 description: Retorna a representação de uma pasta ou a árvore de pastas, se folder_id não for informado.
@@ -70,6 +74,9 @@ class BookmarkFolderView(APIView):
                     schema:
                         type: object
                         properties:
+                            user_id:
+                                description: ID do usuário que está criando a pasta.
+                                type: string
                             name:
                                 description: Nome da pasta a ser criada. 
                                 type: string
@@ -187,19 +194,28 @@ class BookmarkFolderView(APIView):
             return Response(result, status=status.HTTP_200_OK)
         
         else:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
-            bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(request.user.id)
+            user_id = request.GET.get('user_id')
+            if not user_id:
+                return Response({'message': 'É necessário informar o ID da pasta ou ID do usuário a ter a árvore de pastas retornada!'}, status=status.HTTP_400_BAD_REQUEST) 
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(user_id)
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
     def post(self, request):
+        try:
+            user_id = request.POST['user_id']
+
+        except:
+            return Response({'message': 'É necessário informar o ID do criador da pasta, por meio do campo user_id!'}, status=status.HTTP_400_BAD_REQUEST)
+
         parent_folder_id = request.POST.get('parent_folder_id')
 
         if not parent_folder_id:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
-            parent_folder_id = str(request.user.id )
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            parent_folder_id = user_id
 
         data = dict(
-            criador = str(request.user.id),
+            criador = user_id,
             nome=request.POST['name'],
             pasta_pai=parent_folder_id,
             subpastas=[],
