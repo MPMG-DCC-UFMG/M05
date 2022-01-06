@@ -9,7 +9,7 @@ class Reranker():
     def __init__(self):
         self.model = self.get_sentence_model()
     
-    def get_sentence_model(self, model_path="prajjwal1/bert-tiny"):
+    def get_sentence_model(self, model_path="neuralmind/bert-base-portuguese-cased"):
         word_embedding_model = models.Transformer(model_path, max_seq_length=500)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
 

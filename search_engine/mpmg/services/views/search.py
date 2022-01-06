@@ -142,7 +142,7 @@ class SearchView(APIView):
         total_docs, total_pages, documents, response_time = self.query.execute()
 
         # reranking goes here
-        documents = self.reranker.rerank(request.GET['query'], documents)
+       documents = self.reranker.rerank(request.GET['query'], documents)
 
         end = time.time()
         wall_time = end - start
