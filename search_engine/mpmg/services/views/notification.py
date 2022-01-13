@@ -63,8 +63,7 @@ class NotificationView(APIView):
         date_visualized = request.POST.get('date_visualized', '') 
         
         if date_visualized == '':
-            date_visualized = datetime.now().strftime("%Y-%m-%d")
-
+            date_visualized = datetime.now().timestamp()
 
         success, msg_error = Notification().mark_as_visualized(notification_id, date_visualized)
         if success:

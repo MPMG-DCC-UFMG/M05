@@ -16,6 +16,7 @@ def index(request):
         return redirect('/aduna/login')
     
     context = {
+        'user_id': request.session.get('user_info')['user_id'],
         'user_name': request.session.get('user_info')['first_name'],
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
@@ -97,6 +98,7 @@ def search(request):
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -281,6 +283,7 @@ def search_comparison(request):
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -369,6 +372,7 @@ def search_comparison_entity(request):
 
         context = {
             'auth_token': request.session.get('auth_token'),
+            'user_id': request.session.get('user_info')['user_id'],
             'user_name': request.session.get('user_info')['first_name'],
             'services_url': settings.SERVICES_URL,
             'query': query,
@@ -412,6 +416,7 @@ def bookmark(request):
 
 def recommendations(request, recommendation_type):
     ctx = {
-
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session.get('user_info')['user_id'],
     }
     return render(request, 'aduna/recommendation.html', ctx)

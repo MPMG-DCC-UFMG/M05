@@ -1,5 +1,6 @@
 {% extends "./_base.html" %}
 {% load aduna_extras %}
+{% load static %}
 {% block body_tags %}class="view-as-page"{% endblock %}
 {% block content %}
     <header>
@@ -18,42 +19,14 @@
                 </div>
                 <ul class="navbar-nav mr-auto">
                     <li id="notification" class="nav-item dropdown mr-2">
-                        <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <div class="notification">
                                 <i class="fas fa-bell text-muted"></i>
-                                <div id="notification-badge" class="badge"></div>
+                                <div id="notification-badge" class="badge d-none"></div>
                             </div>
                         </a>
-                        <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification" style="width: 410px;">
-                            <ul class="small p-0" style="list-style: none;">
-                                <li class="font-weight-bold">
-                                    <div class="rounded border bg-light p-2">
-                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a
-                                                href="recomendacoes/documentos">Visualizar</a>.</p>
-                                    </div>
-                                    <div class="d-flex justify-content-end pr-1 mt-1">
-                                        <span class="small">08/12/2021 às 12:37</span>
-                                    </div>
-                                </li>
-                                <li class="mt-2">
-                                    <div class="rounded border bg-light p-2">
-                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a
-                                                href="recomendacoes/documentos">Visualizar</a>.</p>
-                                    </div>
-                                    <div class="d-flex justify-content-end pr-1 mt-1">
-                                        <span class="small">03/12/2021 às 08:15</span>
-                                    </div>
-                                </li>
-                                <li class="mt-2">
-                                    <div class="rounded border bg-light p-2">
-                                        <p class="p-0 m-0">Descobrimos novos documentos que podem te interessar! <a
-                                                href="recomendacoes/documentos">Visualizar</a>.</p>
-                                    </div>
-                                    <div class="d-flex justify-content-end pr-1 mt-1">
-                                        <span class="small">29/11/2021 às 19:55</span>
-                                    </div>
-                                </li>
+                        <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification" style="width: 410px; max-height: 450px; overflow-y: auto;">
+                            <ul class="small p-0" style="list-style: none;" id="notification-list">
                             </ul>
                             <!-- <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a> -->
                         </div>
@@ -137,6 +110,8 @@
         SERVICES_URL = '{{ services_url }}';
         QID = '{{ qid }}';
         PAGE = '{{ page }}';
+        AUTH_TOKEN = '{{ auth_token }}';
+        USER_ID = '{{ user_id }}';
     </script>
 {% endblock %}
 {% block additional_head %}
@@ -145,6 +120,8 @@
     </style>
 {% endblock %}
 {% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+
     <script>
         num_segmento_ativo = {{ document.num_segmento_ativo }};
         function scrollToSegment(id, hightlight=false){
