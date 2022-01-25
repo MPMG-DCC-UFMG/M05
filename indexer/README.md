@@ -39,14 +39,14 @@ python create_mappings.py -force_creation
 
 Isto irá apagar o índice atual (juntamente com seus dados) e criará de novo.
 
-### Indexandos os CSVs
+### Indexandos os CSVs 
 
 A pasta indices-sample possui uma amostra dos dados para serem indexados. São 100 diários oficiais de BH, 1000 licitações de obras e 2000 processos do TRF.<br>
 Com o elasticsearch em execução, rode:
 
-python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios <br>
-python elastic_indexer.py -strategy simple -index processos -d indices-sample/processos <br>
-python elastic_indexer.py -strategy simple -index licitacoes -d indices-sample/licitacoes <br>
+python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios  -model_path prajjwal1/bert-tiny<br>
+python elastic_indexer.py -strategy simple -index processos -d indices-sample/processos  -model_path prajjwal1/bert-tiny<br>
+python elastic_indexer.py -strategy simple -index licitacoes -d indices-sample/licitacoes  -model_path prajjwal1/bert-tiny<br>
 
 
 ### Criando os índices de réplica:
@@ -67,3 +67,10 @@ curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":
 curl -XPOST http://localhost:9200/licitacoes/_clone/licitacoes-replica <br>
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}'  http://localhost:9200/licitacoes/_settings <br>
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}'  http://localhost:9200/licitacoes-replica/_settings <br>
+
+**Caso prefira realizar os mesmos procedimentos acima automaticamente, execute:**
+
+```bash 
+./indexing_script.sh 
+```
+
