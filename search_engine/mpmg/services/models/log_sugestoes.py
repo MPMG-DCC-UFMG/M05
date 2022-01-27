@@ -10,7 +10,7 @@ class LogSugestoes(ElasticModel):
         index_fields = [
             'sugestao',
             'posicao',
-            'timestamp',
+            'data_criacao',
         ]
     
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
@@ -53,7 +53,7 @@ class LogSugestoes(ElasticModel):
         if start_date:
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "gte": start_date
                     }
                 }
@@ -62,7 +62,7 @@ class LogSugestoes(ElasticModel):
         if end_date:
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "lte": end_date
                     }
                 }

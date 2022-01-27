@@ -13,7 +13,7 @@ class DiarioSegmentado(ElasticModel):
             'entidade_bloco',
             'titulo',
             'subtitulo',
-            'data',
+            'data_criacao',
             'conteudo',
             'fonte',
             'num_bloco',

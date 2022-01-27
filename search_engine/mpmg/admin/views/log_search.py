@@ -37,7 +37,7 @@ class LogSearchView(admin.AdminSite):
             end_date=end_date,
             tempo=tempo,
             tempo_op=tempo_op,
-            sort={'data_hora':{'order':'desc'}}
+            sort={'data_criacao':{'order':'desc'}}
         )
 
         total_pages = (total_records // self.results_per_page) + 1
@@ -90,7 +90,7 @@ class LogSearchView(admin.AdminSite):
                 'paginas': {}
                 }
             session_detail['consultas'][item.id_consulta]['paginas'][str(item.pagina)] = {
-                'data_hora': (datetime.fromtimestamp(item.data_hora/1000)).strftime("%d/%m/%Y %H:%M:%S"),
+                'data_criacao': (datetime.fromtimestamp(item.data_criacao/1000)).strftime("%d/%m/%Y %H:%M:%S"),
                 'tempo_resposta_total': round(item.tempo_resposta_total, 2),
                 'tipos': [d.split(':')[0] for d in item.documentos],
                 'documentos': [d.split(':')[1] for d in item.documentos],

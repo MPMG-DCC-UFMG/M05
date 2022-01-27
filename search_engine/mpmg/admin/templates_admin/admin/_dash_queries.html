@@ -120,7 +120,7 @@
                       <tr>
                           <td>{{ item.text_consulta }}</td>
                           <td>{{ item.nome_usuario }}</td>
-                          <td>{{ item.data_hora|to_date|date:"d/m/Y G:i:s" }}</td>
+                          <td>{{ item.data_criacao|to_date|date:"d/m/Y G:i:s" }}</td>
                           <td>{{ item.tempo_resposta_total|floatformat:2 }}</td>
                       </tr>
                       {% endfor %}

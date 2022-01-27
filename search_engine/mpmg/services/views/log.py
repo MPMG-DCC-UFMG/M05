@@ -1,3 +1,4 @@
+from os import stat
 import time
 from datetime import datetime, timedelta
 import random
@@ -9,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from mpmg.services.models import LogSearch, LogSearchClick, LogSugestoes, Document
 from ..docstring_schema import AutoDocstringSchema
-
+from django.utils.datastructures import MultiValueDictKeyError
 
 class LogSearchView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -49,7 +50,7 @@ class LogSearchView(APIView):
             id_usuario=int(request.POST['id_usuario']),
             text_consulta=request.POST['text_consulta'],
             algoritmo=request.POST['algoritmo'],
-            data_hora=int(request.POST['data_hora']),
+            data_criacao=int(request.POST['data_criacao']),
             tempo_resposta=float(request.POST['tempo_resposta']),
             pagina=int(request.POST['pagina']),
             resultados_por_pagina=int(request.POST['resultados_por_pagina']),
@@ -120,20 +121,23 @@ class LogSearchClickView(APIView):
     '''
 
     def post(self, request):
-        response = LogSearchClick().save(dict(
-            id_documento=request.POST['item_id'],
-            id_consulta=request.POST['qid'],
-            posicao=request.POST['rank_number'],
-            tipo_documento=request.POST['item_type'],
-            pagina=request.POST['page'],
-            timestamp=int(time.time() * 1000),
-        ))
+        try:
+            response = LogSearchClick().save(dict(
+                id_documento=request.POST['item_id'],
+                id_consulta=request.POST['qid'],
+                posicao=request.POST['rank_number'],
+                tipo_documento=request.POST['item_type'],
+                pagina=request.POST['page'],
+                data_criacao=int(time.time() * 1000),
+            ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
-
+            if len(response[1]) == 0:
+                return Response({"success": True})
+            else:
+                return Response({"success": False})
+        
+        except MultiValueDictKeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class LogQuerySuggestionView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -169,23 +173,25 @@ class LogQuerySuggestionClickView(APIView):
     schema = AutoDocstringSchema()
 
     def post(self, request):
-        timestamp = int(time.time() * 1000)
-        rank_number = request.POST.get('rank_number', None)
-        suggestion = request.POST.get('suggestion', None)
-        
-        response = LogSugestoes().save(dict(
-            sugestao = suggestion,
-            posicao = rank_number,
-            timestamp = timestamp
-        ))
+        try:
+            rank_number = request.POST['rank_number']
+            suggestion = request.POST['suggestion']
+            
+            response = LogSugestoes().save(dict(
+                sugestao = suggestion,
+                posicao = rank_number,
+                data_criacao = int(time.time() * 1000)
+            ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+            if len(response[1]) == 0:
+                return Response({"success": True})
+                
+            else:
+                return Response({"success": False})
 
+        except MultiValueDictKeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-   
 
 from django.contrib.auth.models import User
 from ..elastic import Elastic
@@ -252,7 +258,7 @@ class LogDataGeneratorView():
 
                 try:
                     query_obj = Query(q,1,qid,sid,id_usuario, use_entities=False)
-                    query_obj.data_hora = query_timestamp
+                    query_obj.data_criacao = query_timestamp
                     total_docs, total_pages, documents, took = query_obj.execute()
                 except:
                     print('ERRO:', current_date, q)
@@ -277,7 +283,7 @@ class LogDataGeneratorView():
                             posicao=clicked_doc.rank_number,
                             tipo_documento=clicked_doc.type,
                             pagina=1,
-                            timestamp=(query_timestamp + random.randrange(60)*1000) # up to one minute to click in the result
+                            data_criacao=(query_timestamp + random.randrange(60)*1000) # up to one minute to click in the result
                         ))
                 
                 print(qid, q, 'vazio:',len(documents)==0, 'clicks:', num_clicks)

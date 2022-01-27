@@ -113,7 +113,7 @@ class ElasticModel(dict):
         Exemplo:
 
         query_param = {"bool":{"must":{"term":{"text_consulta":"glater"}}}}
-        sort_param = {'data_hora':{'order':'desc'}}
+        sort_param = {'data_criacao':{'order':'desc'}}
         LogSearch.results_per_page = 20
         LogSearch.getList(query=query_param, page=3, sort=sort_param)
         '''
@@ -139,9 +139,11 @@ class ElasticModel(dict):
         total_records = elastic_result.hits.total.value
         
         result_list = []
+        
+
         for item in elastic_result:
             result_list.append(cls(**dict({'id': item.meta.id}, **item.to_dict())))
-        
+
         return total_records, result_list
     
 

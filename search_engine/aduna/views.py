@@ -20,6 +20,7 @@ def index(request):
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
     }
+    
     return render(request, 'aduna/index.html', context)
 
 

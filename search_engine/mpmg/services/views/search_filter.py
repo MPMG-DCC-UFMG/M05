@@ -17,7 +17,8 @@ class SearchFilterView(APIView):
             -   name: filter_name
                 in: path
                 description: Nome do filtro que vc deseja buscar as opções. Passe "all" caso queira trazer as opções \
-                    de todos os filtros. Lembrando que ao usar "all", vc deve passar o parâmetro query também.
+                    de todos os filtros. Lembrando que ao usar "all", vc deve passar o parâmetro query também e se \
+                        usar o filtro entities também.
                 required: true
                 schema:
                     type: string

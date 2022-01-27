@@ -103,7 +103,7 @@ $(function(){
 					tab.find('.detalhe-numero-pagina').html(num_pagina);
 					tab.attr('href', '#c-'+num_consulta+'-p-'+num_pagina)
 					tab_content.attr('id', 'c-'+num_consulta+'-p-'+num_pagina)
-					tab_content.find('.detalhe-data-hora').html(response['consultas'][id_consulta]['paginas'][num_pagina]['data_hora']);
+					tab_content.find('.detalhe-data-hora').html(response['consultas'][id_consulta]['paginas'][num_pagina]['data_criacao']);
 					tab_content.find('.detalhe-tempo-resposta').html(response['consultas'][id_consulta]['paginas'][num_pagina]['tempo_resposta_total']);
 					tab_content.find('.detalhe-documentos tbody').html('');
 					// lista de resultados com info de cliques

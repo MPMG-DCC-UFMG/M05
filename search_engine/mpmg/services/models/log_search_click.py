@@ -12,7 +12,7 @@ class LogSearchClick(ElasticModel):
             'id_documento',
             'id_consulta',
             'posicao',
-            'timestamp',
+            'data_criacao',
             'tipo_documento',
             'pagina',
         ]
@@ -68,7 +68,7 @@ class LogSearchClick(ElasticModel):
 
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "gte": start_date
                     }
                 }
@@ -82,7 +82,7 @@ class LogSearchClick(ElasticModel):
 
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "lte": end_date
                     }
                 }

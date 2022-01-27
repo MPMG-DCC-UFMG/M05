@@ -95,7 +95,7 @@ class DashboardView(admin.AdminSite):
         
         # Buscas por dia
         if len(metrics.query_log) > 0:
-            queries_list = metrics.query_log.fillna('-').sort_values(by='data_hora', ascending=False).to_dict('records')
+            queries_list = metrics.query_log.fillna('-').sort_values(by='data_criacao', ascending=False).to_dict('records')
         else:
             queries_list = []
         total_queries_per_day = dict.fromkeys(days_labels, 0)

@@ -70,11 +70,11 @@ class QueryFilter:
             )
         if self.start_date != None and self.start_date != "":
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'gte': self.start_date }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'gte': self.start_date }}})
             )
         if self.end_date != None and self.end_date != "":
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'lte': self.end_date }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'lte': self.end_date }}})
             )
         for entity_field_name in self.entity_filter.keys():
             for entity_name in self.entity_filter[entity_field_name]:

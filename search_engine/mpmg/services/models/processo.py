@@ -9,7 +9,7 @@ class Processo(ElasticModel):
         meta_fields = ['id', 'rank_number', 'description', 'type', 'score']
         index_fields = [
             'titulo',
-            'data',
+            'data_criacao',
             'conteudo',
             'fonte',
             'tipo_documento',

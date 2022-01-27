@@ -12,7 +12,7 @@ class LogSearch(ElasticModel):
             'id_consulta',
             'id_usuario',
             'text_consulta',
-            'data_hora',
+            'data_criacao',
             'tempo_resposta',
             'tempo_resposta_total',
             'documentos',
@@ -90,7 +90,7 @@ class LogSearch(ElasticModel):
 
             query_param["bool"]["must"].append({
                 "range": {
-                    "data_hora": {
+                    "data_criacao": {
                         "gte": start_date
                     }
                 }
@@ -104,7 +104,7 @@ class LogSearch(ElasticModel):
 
             query_param["bool"]["must"].append({
                 "range": {
-                    "data_hora": {
+                    "data_criacao": {
                         "lte": end_date
                     }
                 }

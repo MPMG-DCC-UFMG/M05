@@ -40,7 +40,7 @@ class Query:
         self.user_id = user_id
         self.group = group
         self.query_filter = query_filter
-        self.data_hora = int(time.time()*1000)
+        self.data_criacao = int(time.time()*1000)
         self.use_entities = settings.USE_ENTITIES_IN_SEARCH
         self.results_per_page =  settings.NUM_RESULTS_PER_PAGE
         self.weighted_fields = settings.SEARCHABLE_FIELDS
@@ -88,7 +88,7 @@ class Query:
         '''
         if not self.qid:
             pre_qid = hashlib.sha1()
-            pre_qid.update(bytes(str(self.data_hora) + str(self.user_id) + self.query + self.sid, encoding='utf-8'))
+            pre_qid.update(bytes(str(self.data_criacao) + str(self.user_id) + self.query + self.sid, encoding='utf-8'))
             self.qid = pre_qid.hexdigest()
 
 
@@ -171,7 +171,7 @@ class Query:
             id_consulta = self.qid,
             id_usuario = self.user_id,
             text_consulta = self.query,
-            data_hora = self.data_hora,
+            data_criacao = self.data_criacao,
             tempo_resposta = self.response_time,
             documentos = [ i['type']+':'+i['id'] for i in sorted(self.documents, key = lambda x: x['rank_number']) ],
             pagina = self.page,

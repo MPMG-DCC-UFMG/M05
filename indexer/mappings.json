@@ -16,7 +16,7 @@
                     "type": "dense_vector",
                     "dims": 128
                 },
-                "data": {
+                "data_criacao": {
                     "type": "date"
                 }, 
                 "data_indexacao": {
@@ -276,7 +276,7 @@
                     "type": "dense_vector",
                     "dims": 128
                 },
-                "data": {
+                "data_criacao": {
                     "type": "date"
                 }, 
                 "data_indexacao": {
@@ -564,7 +564,7 @@
                         }
                     }
                 },
-                "data":{
+                "data_criacao":{
                     "type": "date"
                 },
                 "data_indexacao": {
@@ -708,7 +708,7 @@
                 "posicao": {
                     "type": "long"
                 },
-                "timestamp": {
+                "data_criacao": {
                     "type": "date"
                 }
             }
@@ -748,7 +748,7 @@
                     "type": "search_as_you_type",
                     "max_shingle_size": 3
                 },
-                "data_hora": {
+                "data_criacao": {
                     "type": "date"
                 },
                 "tempo_resposta": {

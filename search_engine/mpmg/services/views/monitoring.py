@@ -19,7 +19,7 @@ class ClusterStatsView(APIView):
         return Response(response)
 
 
-
+            
 class MetricsView(APIView):
     permission_classes = (IsAuthenticated,)
 

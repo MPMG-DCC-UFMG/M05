@@ -24,7 +24,7 @@ class Metrics:
 
         # create columns to help on grouping
         if len(query_log) > 0:
-            query_log['dia'] = query_log['data_hora'].apply(lambda v: datetime.fromtimestamp(v/1000).date().strftime('%d/%m'))
+            query_log['dia'] = query_log['data_criacao'].apply(lambda v: datetime.fromtimestamp(v/1000).date().strftime('%d/%m'))
 
             id_consultas = query_log['id_consulta'].to_list()
 
@@ -32,13 +32,18 @@ class Metrics:
             click_log = pd.DataFrame.from_dict(click_log)
             
             if len(click_log) > 0:
-                click_log['dia'] = click_log['timestamp'].apply(lambda v: datetime.fromtimestamp(v/1000).date().strftime('%d/%m'))
+                click_log['dia'] = click_log['data_criacao'].apply(lambda v: datetime.fromtimestamp(v/1000).date().strftime('%d/%m'))
                 click_log['posicao'] = pd.to_numeric(click_log['posicao']) 
             else:
                 click_log = pd.DataFrame(columns=LogSearchClick().index_fields+['dia'])
 
         else:
             click_log = pd.DataFrame(columns=LogSearchClick().index_fields+['dia'])
+
+
+        query_log.rename(columns={'data_criacao': 'query_log_data_criacao'}, inplace=True)
+        click_log.rename(columns={'data_criacao': 'click_log_data_criacao'}, inplace=True)
+        sugestion_log.rename(columns={'data_criacao': 'sugestion_log_data_criacao'}, inplace=True)
 
         return query_log, click_log, sugestion_log
     
@@ -130,7 +135,7 @@ class Metrics:
         if len(self.query_log) > 0:
             joint_df = self.query_log.set_index('id_consulta').join(self.click_log.set_index('id_consulta'), lsuffix='_query', rsuffix='_click')
             joint_df = joint_df.reset_index()
-            joint_df = joint_df[['id_sessao', 'id_consulta', 'data_hora', 'timestamp', 'dia_query']]
+            joint_df = joint_df[['id_sessao', 'id_consulta', 'query_log_data_criacao', 'click_log_data_criacao', 'dia_query']]
             
             durations_by_date = defaultdict(list)    
             session_ids = joint_df['id_sessao'].unique()
@@ -139,12 +144,12 @@ class Metrics:
                 # Por isso começo olhando a data da primeira consulta como início de sessão e pego a interação mais antiga 
                 # como data de fim de sessão, que pode estar no log de consulta ou no log de click
                 target_records = joint_df[joint_df['id_sessao'] == s]
-                target_records = target_records.sort_values(by=['data_hora', 'timestamp']).reset_index(drop=True)
+                target_records = target_records.sort_values(by=['query_log_data_criacao', 'click_log_data_criacao']).reset_index(drop=True)
 
                 dia = target_records['dia_query'][0]
-                start_timestamp = target_records.iloc[0]['data_hora']
-                end_query_timestamp = target_records.iloc[-1]['data_hora']
-                end_click_timestamp = target_records.iloc[-1]['timestamp']
+                start_timestamp = target_records.iloc[0]['query_log_data_criacao']
+                end_query_timestamp = target_records.iloc[-1]['query_log_data_criacao']
+                end_click_timestamp = target_records.iloc[-1]['click_log_data_criacao']
 
                 if start_timestamp == end_query_timestamp and math.isnan(end_click_timestamp):
                     # Não consigo ter uma data de fim de sessão nos casos em que o usuário fez uma consulta e não fez mais nada.
@@ -189,15 +194,15 @@ class Metrics:
         times = []
         for q in queries:
             target_queries = self.query_log[self.query_log['id_consulta'] == q]
-            target_queries = target_queries.sort_values(by='data_hora').reset_index(drop=True)
+            target_queries = target_queries.sort_values(by='query_log_data_criacao').reset_index(drop=True)
             dia = target_queries['dia'][0]
-            first_query = target_queries['data_hora'][0]
+            first_query = target_queries['query_log_data_criacao'][0]
 
             if len(self.click_log) > 0:
                 if q in self.click_log["id_consulta"].to_list():
                     clicks = self.click_log[self.click_log['id_consulta'] == q]
-                    clicks = clicks.sort_values(by='timestamp', ).reset_index(drop=True)
-                    first_click = clicks['timestamp'][0]
+                    clicks = clicks.sort_values(by='click_log_data_criacao', ).reset_index(drop=True)
+                    first_click = clicks['click_log_data_criacao'][0]
 
                     time_to_click = first_click - first_query
                     times.append(time_to_click)
