@@ -1,21 +1,26 @@
 from mpmg.services.models.elastic_model import ElasticModel
+from .config_recommendation import ConfigRecommendation
+from collections import defaultdict
+from ..semantic_model import SemanticModel
 
 
-class DocumentRecomendation(ElasticModel):
+class DocumentRecommendation(ElasticModel):
     index_name = 'doc_recommendations'
     
     def __init__(self, **kwargs):
-        index_name = DocumentRecomendation.index_name
+        index_name = DocumentRecommendation.index_name
         meta_fields = ['id']
         index_fields = [
             'user_id',
             'notification_id',
             'recommended_doc_index',
             'recommended_doc_id',
+            'recommended_doc_title',
             'matched_from',
-            'original_query_text',
-            'original_doc_index',
-            'original_doc_id',
+            'evidence_query_text',
+            'evidence_doc_index',
+            'evidence_doc_id',
+            'evidence_doc_title',
             'date',
             'similarity_value',
             'accepted',
@@ -40,7 +45,7 @@ class DocumentRecomendation(ElasticModel):
             dict_data = item.to_dict()
             dict_data['id'] = item.meta.id
             
-            recommendations_list.append(DocumentRecomendation(**dict_data))
+            recommendations_list.append(DocumentRecommendation(**dict_data))
         
         return recommendations_list
 
@@ -58,3 +63,147 @@ class DocumentRecomendation(ElasticModel):
             msg_error = 'Não foi possível atualizar.'
 
         return success, msg_error
+
+    
+
+    def get_users_ids_to_recommend(self):
+        '''
+        Retorna uma lista com todos os user_ids da API para fazer a recomendação.
+        Como a API não controla os usuários (quem controla é o WSO2),
+        iremos buscar os IDs consultando os logs
+        '''
+
+        users_ids = []
+        # busca todos os IDs, varrendo os índices de logs de buscas e bookmarks
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=['log_buscas', 'bookmark'])
+        search_obj = search_obj.extra(size=0) # não precisa retornar documentos, apenas a agregação
+        search_obj.aggs.bucket('ids_usuarios', 'terms', field='id_usuario.keyword')
+        elastic_result = search_obj.execute()
+        for item in elastic_result['aggregations']['ids_usuarios']['buckets']:
+            users_ids.append(item['key'])
+        
+        return users_ids
+    
+
+    def get_last_recommendation_date(self, user_id=None):
+        '''
+        Retorna um dicionário do tipo user_id:date que contém a data da última
+        recomendação de cada usuário. Os documentos candidatos devem ter data de
+        indexação posterior à data da última recomendação
+        '''
+
+        date_by_user = {}
+        # search_obj = self.elastic.dsl.Search(using=self.elastic.es, index='doc_recommendations')
+        # return date_by_user
+        return {'1': '2021-04-01', '2': '2021-05-01'}
+
+
+    
+    def get_candidate_documents(self, reference_date):
+        '''
+        Retorna uma lista de documentos candidatos para serem recomendados.
+        Os documentos devem ter a data de indexação posterior à reference_date
+
+        A quantidade de documentos e os tipos dos documentos dependem da
+        configuração salva em config_recommendation_sources.
+
+        Esta lista é usado pelo algoritmo de recomendação definido na view
+        document_recommendation
+        '''
+
+        # qtde e tipo dos documentos candidatos
+        sources = ConfigRecommendation.get_sources(active=True)
+        
+        candidates = []
+        for item in sources:
+            index_name = item['es_index_name']
+            amount = item['amount']
+            
+            search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=index_name)
+            search_obj = search_obj.query("bool", filter = [self.elastic.dsl.Q({'range': {'data_indexacao': {'gte': reference_date }}})])
+            search_obj = search_obj[0:amount]
+            elastic_result = search_obj.execute()
+
+            for item in elastic_result:
+                candidates.append({'id': item.meta.id, 'index_name':index_name, 'title': item['titulo'], 'embedding_vector': item['embedding_vector']})
+            
+        return candidates
+    
+
+    def get_evidences(self, user_id, evidence_type, evidence_index, amount):
+        '''
+        Retorna uma lista de evidências do usuário para servir como base de recomendação.
+        As evidências podem ser 3:
+            - QUERY: Texto de consultas executadas anteriormente pelo usuário
+            - CLICK: Documentos clicados pelo usuário anteriormente
+            - BOOKMARK: Documentos marcados como favoritos
+        '''
+
+        semantic_model = SemanticModel()
+        
+        user_evidences = []
+
+        # TODO: Padronizar o nome destes campos
+        if evidence_type == 'QUERY':
+            date_field = 'data_hora'
+        elif evidence_type == 'CLICK':
+            date_field = 'timestamp'
+        elif evidence_type == 'BOOKMARK':
+            date_field = 'data_criacao.keyword'
+
+        # busca as evidências do usuário
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index)
+        search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': user_id}}))
+        search_obj = search_obj.sort({date_field:{'order':'desc'}})
+        search_obj = search_obj[0:amount]
+        elastic_result = search_obj.execute()
+
+
+        # se for consulta, pega o texto da consulta e passa pelo modelo para obter o embedding
+        if evidence_type == 'QUERY':
+            for doc in elastic_result:
+                embbeded_query = semantic_model.get_dense_vector(doc['text_consulta'])
+                user_evidences.append({'id':None, 'index_name':None, 'title':None, 'query': doc['text_consulta'], 'embedding_vector': embbeded_query})
+        
+
+        # se for click, pega os IDs dos documentos clicados e faz uma nova consulta 
+        # para recuperar o embedding destes documentos
+        elif evidence_type == 'CLICK':
+            # pega o ID dos documentos clicados e o índice a qual cada um pertence
+            doc_ids_by_type = defaultdict(list)
+            for doc in elastic_result:
+                doc_type = doc['tipo_documento']
+                doc_id = doc['id_documento']
+                doc_ids_by_type[doc_type].append(doc_id)
+            # pega os embeddings dos documentos clicados através dos IDs no respectivo índice
+            for dtype, ids in doc_ids_by_type.items():
+                evidence_docs = self.elastic.dsl.Document.mget(ids, using=self.elastic.es, index=dtype)
+                for doc in evidence_docs:
+                    if doc != None:
+                        user_evidences.append({'id':doc.meta.id, 'index_name': dtype, 'title':doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
+        
+
+        # se for bookmark, pega os IDs dos documentos favoritados e faz uma nova consulta 
+        # para recuperar o embedding destes documentos
+        elif evidence_type == 'BOOKMARK':
+            # pega o ID dos documentos favoritados e o índice a qual cada um pertence
+            doc_ids_by_type = defaultdict(list)
+            for doc in elastic_result:
+                doc_type = doc['indice_documento']
+                doc_id = doc['id_documento']
+                doc_ids_by_type[doc_type].append(doc_id)
+            # pega os embeddings dos documentos favoritados através dos IDs no respectivo índice
+            for dtype, ids in doc_ids_by_type.items():
+                evidence_docs = self.elastic.dsl.Document.mget(ids, using=self.elastic.es, index=dtype)
+                for doc in evidence_docs:
+                    if doc != None:
+                        user_evidences.append({'id':doc.meta.id, 'index_name': dtype, 'title':doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
+        
+        return user_evidences
+
+
+
+
+            
+
+

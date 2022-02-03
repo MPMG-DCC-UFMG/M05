@@ -1,8 +1,10 @@
+from datetime import datetime
+import numpy as np
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.models import DocumentRecomendation
+from mpmg.services.models import DocumentRecommendation, ConfigRecommendation, Notification
 
 
 class DocumentRecommendationView(APIView):
@@ -18,7 +20,16 @@ class DocumentRecommendationView(APIView):
                     type: string
     
     post:
-        description: bla bla bla
+        description: Processa novas recomendações de documentos para os usuários
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            user_id:
+                                description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
+                                type: string
     
     put:
         description: Atualiza a recomendação indicando se o usuário aprovou ou não a recomendação em questão.
@@ -45,15 +56,108 @@ class DocumentRecommendationView(APIView):
     schema = AutoDocstringSchema()
 
     
+    def _cosine_similarity(self, doc1, doc2):
+        return np.dot(doc2, doc2)/(np.linalg.norm(doc1)*np.linalg.norm(doc2))
+    
     def get(self, request):
         user_id = request.GET['user_id']
         
-        recommendations_list = DocumentRecomendation().get_by_user(user_id=user_id)
+        recommendations_list = DocumentRecommendation().get_by_user(user_id=user_id)
         
         return Response(recommendations_list, status=status.HTTP_200_OK)
     
     
     def post(self, request):
+        user_id = request.POST.get('user_id', None)
+        today = datetime.now().strftime('%Y-%m-%d')
+
+        if user_id == None or user_id == '':
+            users_ids = DocumentRecommendation().get_users_ids_to_recommend()
+        else:
+            users_ids = [user_id]
+
+        # data da última recomendação de cada usuário
+        user_dates = DocumentRecommendation().get_last_recommendation_date()
+
+
+        # quais os tipos de evidência que devem ser usadas na recomendação
+        config_evidences = ConfigRecommendation.get_evidences(active=True)
+
+
+        for user_id in users_ids:
+
+            # usa como data de referência a data da última recomendação
+            # se o usuário não possui data, usa a semana anterior como data de referência
+            if user_id in user_dates:
+                reference_date = user_dates[user_id]
+            else:
+                reference_date = '2021-04-01'
+
+            # busca os documentos candidatos a recomendação
+            candidates = DocumentRecommendation().get_candidate_documents(reference_date)
+
+
+            
+            valid_recommendations = []
+            for evidence_item in config_evidences:
+                print(evidence_item['evidence_type'])
+                top_n = evidence_item['top_n_recommendations']
+                min_similarity = evidence_item['min_similarity']
+
+                # busca as evidências do(s) usuário(s)
+                user_evidences = DocumentRecommendation().get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
+            
+                # computa a similaridade entre os documentos candidatos e a evidência
+                similarity_ranking = []
+                for evidence_i, evidence_doc in enumerate(user_evidences):
+                    for candidate_i, candidate_doc in enumerate(candidates):
+                        similarity_score = self._cosine_similarity(candidate_doc['embedding_vector'], evidence_doc['embedding_vector'])
+                        similarity_ranking.append({'evidence_i': evidence_i, 'candidate_i': candidate_i, 'score': similarity_score})
+                similarity_ranking = list(sorted(similarity_ranking, key= lambda item: item['score'], reverse=True))
+                
+                # pega as top_n similares e verifica se são maiores ou iguais ao parâmetro min_similarity
+                similarity_ranking = similarity_ranking[:top_n]
+                for rank_item in similarity_ranking[:top_n]:
+                    score = int(rank_item['score'] * 100)
+                    candidate_i = rank_item['candidate_i']
+                    evidence_i = rank_item['evidence_i']
+
+                    print(score, min_similarity)
+                    if score >= min_similarity:
+                        valid_recommendations.append({
+                            'user_id': user_id,
+                            'notification_id': None,
+                            'recommended_doc_index': candidates[candidate_i]['index_name'],
+                            'recommended_doc_id': candidates[candidate_i]['id'],
+                            'recommended_doc_title': candidates[candidate_i]['title'],
+                            'matched_from': evidence_item['evidence_type'],
+                            'evidence_query_text': user_evidences[evidence_i]['query'],
+                            'evidence_doc_index': user_evidences[evidence_i]['index_name'],
+                            'evidence_doc_id': user_evidences[evidence_i]['id'],
+                            'evidence_doc_title': user_evidences[evidence_i]['title'],
+                            'date': today,
+                            'similarity_value': score,
+                            'accepted': None
+                        })
+                        
+
+            # se existem recomendações válidas, cria uma notificação e associa o seu ID 
+            # aos registros de recomendação antes de gravá-los
+            if len(valid_recommendations) > 0:
+                # cria a notificação
+                notification_response = Notification().create({
+                    'user_id': user_id,
+                    'message': 'Novos documentos que possam ser do seu interesse.',
+                    'type': 'RECOMMENDATION',
+                    'date': today
+                })
+                notification_id = notification_response['_id']
+
+                for recommendation in valid_recommendations:
+                    recommendation['notification_id'] = notification_id
+                    response = DocumentRecommendation().save(recommendation)
+
+
         return Response({})
     
 
@@ -61,7 +165,7 @@ class DocumentRecommendationView(APIView):
         recommendation_id = request.POST['recommendation_id']
         accepted = request.POST['accepted']
 
-        success, msg_error = DocumentRecomendation().update(recommendation_id, accepted)
+        success, msg_error = DocumentRecommendation().update(recommendation_id, accepted)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         

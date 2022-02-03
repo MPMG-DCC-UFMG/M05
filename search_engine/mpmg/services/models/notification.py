@@ -38,7 +38,6 @@ class Notification(ElasticModel):
         
         return notifications_list
 
-    
 
     def mark_as_visualized(self, notification_id, date_visualized):
         '''
@@ -55,3 +54,5 @@ class Notification(ElasticModel):
         return success, msg_error
     
     
+    def create(self, dict_data):
+        return self.elastic.es.index(index=self.index_name, body=dict_data)
