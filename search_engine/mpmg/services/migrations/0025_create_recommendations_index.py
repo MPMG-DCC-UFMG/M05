@@ -2,13 +2,13 @@
 
 from django.db import migrations
 from mpmg.services.elastic import Elastic
-
+from elasticsearch_dsl import Keyword
 
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
     m.field('user_id', 'text')
-    m.field('notification_id', 'text')
+    m.field('notification_id',  'text', fields={'keyword': Keyword()})
     m.field('recommended_doc_index', 'text')
     m.field('recommended_doc_id', 'text')
     m.field('recommended_doc_title', 'text')
