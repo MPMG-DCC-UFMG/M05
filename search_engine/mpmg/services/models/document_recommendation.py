@@ -49,7 +49,25 @@ class DocumentRecommendation(ElasticModel):
         
         return recommendations_list
 
+    def get_by_notification_id(self, notification_id):
+        '''
+        Retorna as recomendações geradas no id da notificação passada.
+        '''
+        
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)        
+        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "notification_id": notification_id }}))
+        search_obj = search_obj.sort({'date':{'order':'desc'}})
+        elastic_result = search_obj.execute()
 
+        recommendations_list = []
+        for item in elastic_result:
+            dict_data = item.to_dict()
+            dict_data['id'] = item.meta.id
+            
+            recommendations_list.append(DocumentRecommendation(**dict_data))
+        
+        return recommendations_list
+    
     def update(self, recommendation_id, accepted):
         '''
         Atualiza o campo accepted, indicando se o usuário aprovou ou não aquela recomendação.
@@ -149,11 +167,16 @@ class DocumentRecommendation(ElasticModel):
         elif evidence_type == 'CLICK':
             date_field = 'timestamp'
         elif evidence_type == 'BOOKMARK':
-            date_field = 'data_criacao.keyword'
+            date_field = 'data_criacao'
 
         # busca as evidências do usuário
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index)
         search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': user_id}}))
+
+        # print('*' * 15)
+        # print(search_obj.execute())
+        # print('*' * 15)
+
         search_obj = search_obj.sort({date_field:{'order':'desc'}})
         search_obj = search_obj[0:amount]
         elastic_result = search_obj.execute()

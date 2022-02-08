@@ -1,4 +1,5 @@
 from datetime import datetime
+from pydoc import Doc
 import numpy as np
 from rest_framework import status
 from rest_framework.views import APIView
@@ -10,12 +11,18 @@ from mpmg.services.models import DocumentRecommendation, ConfigRecommendation, N
 class DocumentRecommendationView(APIView):
     '''
     get:
-        description: Retorna a lista de recomendações de um usuário.
+        description: Retorna a lista de recomendações de um usuário. Se o ID da notificação que gerou as recomendações for passado, só elas serão retornadas.
         parameters:
             - name: user_id
               in: query
               description: ID do usuário
               required: true
+              schema:
+                    type: string
+            - name: notification_id
+              in: query
+              description: ID da notificação que gerou a recomendação.
+              required: false
               schema:
                     type: string
     
@@ -61,8 +68,13 @@ class DocumentRecommendationView(APIView):
     
     def get(self, request):
         user_id = request.GET['user_id']
-        
-        recommendations_list = DocumentRecommendation().get_by_user(user_id=user_id)
+
+        notification_id = request.GET.get('notification_id')
+        if notification_id:
+            recommendations_list = DocumentRecommendation().get_by_notification_id(notification_id=notification_id)
+
+        else:
+            recommendations_list = DocumentRecommendation().get_by_user(user_id=user_id)
         
         return Response(recommendations_list, status=status.HTTP_200_OK)
     
