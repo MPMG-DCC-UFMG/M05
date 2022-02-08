@@ -35,13 +35,19 @@ class DocumentRecommendation(ElasticModel):
         '''
         
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
-        
         search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "user_id": user_id }}))
+        
+        # faz a consulta uma vez pra pegar o total de resultados
+        parcial_result = search_obj.execute()
+        total_records = parcial_result.hits.total.value
+
+        # refaz a consulta trazendo todos os resultados
+        search_obj = search_obj[0:total_records]
         search_obj = search_obj.sort({'date':{'order':'desc'}})
-        elastic_result = search_obj.execute()
+        total_result = search_obj.execute()
 
         recommendations_list = []
-        for item in elastic_result:
+        for item in total_result:
             dict_data = item.to_dict()
             dict_data['id'] = item.meta.id
             
@@ -53,14 +59,21 @@ class DocumentRecommendation(ElasticModel):
         '''
         Retorna as recomendações geradas no id da notificação passada.
         '''
-        
+
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)        
-        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "notification_id": notification_id }}))
+        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "notification_id.keyword": notification_id }}))
+
+        # faz a consulta uma vez pra pegar o total de segmentos
+        parcial_result = search_obj.execute()
+        total_records = parcial_result.hits.total.value
+
+        # refaz a consulta trazendo todos os resultados
+        search_obj = search_obj[0:total_records]
         search_obj = search_obj.sort({'date':{'order':'desc'}})
-        elastic_result = search_obj.execute()
+        total_result = search_obj.execute()
 
         recommendations_list = []
-        for item in elastic_result:
+        for item in total_result:
             dict_data = item.to_dict()
             dict_data['id'] = item.meta.id
             
@@ -170,7 +183,8 @@ class DocumentRecommendation(ElasticModel):
             date_field = 'data_criacao'
 
         # busca as evidências do usuário
-        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index)
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index
+        )
         search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': user_id}}))
 
         # print('*' * 15)
