@@ -83,7 +83,7 @@ class DocumentNavigationView(APIView):
 
         # refaz a consulta trazendo todos os segmentos
         search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort(sort_param)
+        # search_obj = search_obj.sort(sort_param)
         elastic_result = search_obj.execute()
 
         # faz mais uma vez pra buscar os segmentos que casam com a consulta
@@ -93,7 +93,7 @@ class DocumentNavigationView(APIView):
             must_queries = [self.elastic.dsl.Q('query_string', query=query), self.elastic.dsl.Q(query_param)]
             search_obj = search_obj.query("bool", must = must_queries)#, filter = filter_queries)
             search_obj = search_obj[0:total_records]
-            search_obj = search_obj.sort(sort_param)
+            # search_obj = search_obj.sort(sort_param)
             query_result = search_obj.execute()
 
             for item in query_result:

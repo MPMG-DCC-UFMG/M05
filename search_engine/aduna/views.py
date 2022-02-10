@@ -168,9 +168,14 @@ def document(request, doc_type, doc_id):
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
                 'document': response_content['document'],
-                'navigation': navigation
+                'navigation': navigation,
+                'doc_type': doc_type,
+                'doc_id': doc_id,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
             }
             return render(request, 'aduna/document_segmented.html', context)
+
         else:
             response_content = service_response.json()
             document = response_content['document']
@@ -182,7 +187,6 @@ def document(request, doc_type, doc_id):
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
                 'query': query,
-                'services_url': settings.SERVICES_URL,
                 'doc_type': doc_type,
                 'doc_id': doc_id,
                 'user_id': request.session['user_info']['user_id'],

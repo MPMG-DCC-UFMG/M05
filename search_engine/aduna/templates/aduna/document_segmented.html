@@ -107,11 +107,16 @@
 {% endblock %}
 {% block script_before %}
     <script>
-        SERVICES_URL = '{{ services_url }}';
-        QID = '{{ qid }}';
-        PAGE = '{{ page }}';
+        SERVER_ADDRESS = window.location.origin;
+        SERVICES_URL = SERVER_ADDRESS + '/services/';
         AUTH_TOKEN = '{{ auth_token }}';
-        USER_ID = '{{ user_id }}';
+        QID = '{{ qid }}';
+        DOC_TYPE = '{{ doc_type }}';
+        DOC_ID = '{{ doc_id }}';
+        DOC_TITLE = '{{ document.titulo }}'
+        USER_ID = '{{ user_id }}'
+        PAGE = '{{ page }}';
+        QUERY = '{{ query }}';
     </script>
 {% endblock %}
 {% block additional_head %}
