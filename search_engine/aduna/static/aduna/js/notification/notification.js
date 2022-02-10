@@ -1,5 +1,5 @@
 NOTIFICATION_SERVER_ADDRESS = window.location.origin;
-NOTIFICATION_SERVICES_URL = NOTIFICATION_SERVER_ADDRESS + '/services/notification';
+NOTIFICATION_SERVICE_URL = NOTIFICATION_SERVER_ADDRESS + '/services/notification';
 
 function get_notification_url(notification_id) {
     return NOTIFICATION_SERVER_ADDRESS + `/aduna/recomendacoes?notification_id=${notification_id}`;
@@ -77,7 +77,7 @@ function parse_notifications(notifications) {
 
 function get_notifications() {
     $.ajax({
-        url: NOTIFICATION_SERVICES_URL,
+        url: NOTIFICATION_SERVICE_URL,
         type: 'get',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -85,11 +85,10 @@ function get_notifications() {
             user_id: USER_ID,
         },
         success: function (notifications) {
-            console.log(USER_ID);
             parse_notifications(notifications);
         },
         error: function (data) {
-            alert(data);
+            alert('Não foi possível obter novas notificações!');
         }
     });
 }

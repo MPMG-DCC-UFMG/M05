@@ -1,5 +1,4 @@
 from datetime import datetime
-from pydoc import Doc
 import numpy as np
 from rest_framework import status
 from rest_framework.views import APIView
@@ -50,8 +49,10 @@ class DocumentRecommendationView(APIView):
                                 description: ID da recomendação a ser alterada.
                                 type: string
                             accepted:
-                                description: true ou false indicando se o usuário aprovou.
-                                type: boolean
+                                description: true ou false indicando se o usuário aprovou ou null, caso não haja opinião.
+                                type:
+                                    - 'null'
+                                    - boolean
                         required:
                             - recommendation_id
                             - accepted
@@ -175,18 +176,26 @@ class DocumentRecommendationView(APIView):
 
     def put(self, request):
         recommendation_id = request.POST['recommendation_id']
+
         accepted = request.POST['accepted']
+        if accepted == 'True' or accepted == 'true':
+            accepted = True
+        
+        elif accepted == 'false' or accepted == 'False':
+            accepted = False
+        
+        elif accepted == '':
+            accepted = None
+
+        else:
+            return Response({'message': 'Não foi possível realizar o parsing dos parâmetros passados.'}, status.HTTP_400_BAD_REQUEST)
+
 
         success, msg_error = DocumentRecommendation().update(recommendation_id, accepted)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
+        return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
 
 class AddFakeRecommendationsView():
     '''

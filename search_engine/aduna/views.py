@@ -143,7 +143,7 @@ def document(request, doc_type, doc_id):
         request.session['user_info'] = None
         return redirect('/aduna/login')
     else:
-        query = request.GET['query']
+        query = request.GET.get('query', '')
         pessoa_filter = request.GET.getlist('pessoa', [])
         municipio_filter = request.GET.getlist('municipio', [])
         organizacao_filter = request.GET.getlist('organizacao', [])
@@ -428,11 +428,11 @@ def recommendations(request):
         'user_id': request.session.get('user_info')['user_id']
     }
 
-    if 'notification_id' in request.GET:
-        notification_id = request.GET['notification_id']
+    notification_id = request.GET.get('notification_id', '')
+    if notification_id:
         params['notification_id'] = notification_id
 
-        # Notifica que a notificação foi visualizada
+        # Informa que a notificação foi visualizada
         headers = {'Authorization': 'Token '+request.session.get('auth_token')}
         service_response = requests.put(settings.SERVICES_URL+'notification', 
                                         data={'notification_id': notification_id}, 
@@ -449,7 +449,7 @@ def recommendations(request):
     ctx = {
         'auth_token': request.session.get('auth_token'),
         'user_id': request.session.get('user_info')['user_id'],
-        'recommendations': response_content
+        'notification_id': notification_id
     }
 
     return render(request, 'aduna/recommendation.html', ctx)
