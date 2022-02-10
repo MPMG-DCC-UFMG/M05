@@ -1,5 +1,6 @@
 import re
 import requests
+import time
 from datetime import datetime
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, response
@@ -9,6 +10,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from collections import defaultdict
+
+from mpmg.services.models import notification
 
 
 def index(request):
@@ -426,12 +429,22 @@ def recommendations(request):
     }
 
     if 'notification_id' in request.GET:
-        params['notification_id'] = request.GET['notification_id']
+        notification_id = request.GET['notification_id']
+        params['notification_id'] = notification_id
 
+        # Notifica que a notificação foi visualizada
+        headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+        service_response = requests.put(settings.SERVICES_URL+'notification', 
+                                        data={'notification_id': notification_id}, 
+                                        headers=headers)
+
+        # atrasa um pouco a resposta para que haja tempo de o ES atualize o index
+        if service_response.status_code == 204:
+            time.sleep(.5)
+            
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
-    service_response = requests.get(settings.SERVICES_URL+'document_recommendation', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL + 'document_recommendation', params, headers=headers)
     response_content = service_response.json()
-
 
     ctx = {
         'auth_token': request.session.get('auth_token'),
