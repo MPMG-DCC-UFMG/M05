@@ -77,8 +77,13 @@ class NotificationView(APIView):
 
 
     def put(self, request):
-        notification_id = request.POST['notification_id']
-        date_visualized = request.POST.get('date_visualized', '') 
+        data = request.data.dict()
+
+        notification_id = data.get('notification_id')
+        if notification_id is None:
+            return Response({'message': 'Informe o ID da notificação visualizada.'}, status.HTTP_400_BAD_REQUEST)
+        
+        date_visualized = data.get('date_visualized', '') 
         
         if date_visualized == '':
             # ElasticSearch precisa que o timestamp seja em milisegundos
