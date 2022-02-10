@@ -28,8 +28,26 @@ class NotificationView(APIView):
                     type: string
     
     post:
-        description: bla bla bla
-    
+        description: Cria uma notificação.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            user_id:
+                                description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
+                                type: string
+                            message:
+                                description: Texto da notificação.
+                                type: string
+                            type:
+                                description: Informa o tipo da notificação.
+                                type: string
+                        required:
+                            - user_id
+                            - message
+                            - type
     put:
         description: Atualiza a data de visualização de uma notificação específica.
         requestBody:
@@ -73,7 +91,22 @@ class NotificationView(APIView):
         return Response(notification, status=status.HTTP_200_OK)
 
     def post(self, request):
-        return Response({})
+        today = datetime.now().strftime('%Y-%m-%d')
+
+        response = Notification().save(dict(
+            user_id = request.POST['user_id'],
+            message = request.POST['message'],
+            type = request.POST['type'],
+            date = today,
+            date_visualized = request.POST.get('date_visualized'),
+        ))
+
+        print(response)
+
+        if len(response[1]) == 0:
+            return Response(status=status.HTTP_201_CREATED)
+        
+        return Response({'message': 'Não foi possível criar a notificação. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
     def put(self, request):
