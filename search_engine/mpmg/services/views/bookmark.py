@@ -214,7 +214,7 @@ class BookmarkView(APIView):
                                     description: Mensagem de erro.
     '''
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
     def get(self, request):

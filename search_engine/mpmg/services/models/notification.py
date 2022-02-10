@@ -38,11 +38,22 @@ class Notification(ElasticModel):
         
         return notifications_list
 
+    def get_by_id(self, notification_id):
+        try:
+            data = self.elastic.es.get(index=self.index_name, id=notification_id)['_source']
+            data['id'] = notification_id
+            return Notification(**data)
+        
+        except:
+            None
 
     def mark_as_visualized(self, notification_id, date_visualized):
         '''
         Atualiza uma notificação com a data em que ela foi visualizada.
         '''
+
+        if self.get_by_id(notification_id)['date_visualized'] is not None:
+            return False, 'A notificação já foi visualizada.'
 
         response = self.elastic.es.update(index=self.index_name, id=notification_id, body={"doc": {"date_visualized": date_visualized, }})
 

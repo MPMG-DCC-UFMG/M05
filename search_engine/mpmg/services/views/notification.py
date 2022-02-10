@@ -7,14 +7,23 @@ from mpmg.services.models import Notification
 
 
 class NotificationView(APIView):
+    # TODO: Documentar as respostas da API
+
     '''
     get:
-        description: Retorna uma lista de notificações de de um usuário.
+        description: Retorna uma lista de notificações de de um usuário se o ID dele for informado ou uma notificação específica, se o id dela for passado.
+            Se os dois forem informados, o primeiro terá prevalência. 
         parameters:
             - name: user_id
               in: query
               description: ID do usuário
-              required: true
+              required: false
+              schema:
+                    type: string
+            - name: notification_id
+              in: query
+              description: ID da notificação a ser recuperada.
+              required: false
               schema:
                     type: string
     
@@ -47,12 +56,21 @@ class NotificationView(APIView):
 
 
     def get(self, request):
-        user_id = request.GET['user_id']
-        
-        notifications_list = Notification().get_by_user(user_id=user_id)
-        
-        return Response(notifications_list, status=status.HTTP_200_OK)
-    
+        user_id = request.GET.get('user_id')
+        notification_id = request.GET.get('notification_id')
+
+        if user_id is None and notification_id is None:
+            return Response({'message': 'Informe o campo user_id ou notification_id!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user_id:
+            notifications_list = Notification().get_by_user(user_id=user_id)
+            return Response(notifications_list, status=status.HTTP_200_OK)
+
+        notification = Notification().get_by_id(notification_id)
+        if notification is None:
+            return Response({'message': 'Verifique se o ID da notificação informado é válido!'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(notification, status=status.HTTP_200_OK)
 
     def post(self, request):
         return Response({})
@@ -63,7 +81,8 @@ class NotificationView(APIView):
         date_visualized = request.POST.get('date_visualized', '') 
         
         if date_visualized == '':
-            date_visualized = datetime.now().timestamp()
+            # ElasticSearch precisa que o timestamp seja em milisegundos
+            date_visualized = int(datetime.now().timestamp() * 1000)
 
         success, msg_error = Notification().mark_as_visualized(notification_id, date_visualized)
         if success:

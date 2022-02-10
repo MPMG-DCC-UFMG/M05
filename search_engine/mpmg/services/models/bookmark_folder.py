@@ -10,7 +10,6 @@ from typing import Callable, Dict, Tuple, Union, List
 class BookmarkFolder(ElasticModel):
     
     index_name = 'bookmark_folder'
-    es = Elastic().es
     
     def __init__(self, **kwargs):
         index_name = BookmarkFolder.index_name
@@ -56,14 +55,14 @@ class BookmarkFolder(ElasticModel):
         dict_data['data_criacao'] = now
         dict_data['data_modificacao'] = now
 
-        response = self.es.index(index=self.index_name, body=dict_data)
+        response = self.elastic.es.index(index=self.index_name, body=dict_data)
         
         if response['result'] != 'created':
             return '', f'Não foi possível criar a pasta "{dict_data["nome"]}"". Tente novamente!'
 
         result = self.add_subfolder(dict_data['pasta_pai'], response['_id'])
         if not result:
-            self.es.delete(index=self.index_name, id=response['_id'])
+            self.elastic.es.delete(index=self.index_name, id=response['_id'])
             return '', f'Falha ao adicionar a pasta "{dict_data["nome"]}" como subpasta da pasta de ID {dict_data["pasta_pai"]}'
 
         return response['_id'], ''
@@ -125,7 +124,7 @@ class BookmarkFolder(ElasticModel):
 
         updated_folder['data_modificacao'] = datetime.now().timestamp()
 
-        response = self.es.update(index=self.index_name, 
+        response = self.elastic.es.update(index=self.index_name, 
                                         id=folder_id, 
                                         body={'doc': updated_folder})
 
@@ -140,7 +139,7 @@ class BookmarkFolder(ElasticModel):
     # Cria a pasta raiz do usuário, se ela não tiver sido criada
     def create_default_bookmark_folder_if_necessary(self, user_id) -> None:
         try:
-            self.es.get(index=self.index_name, id=user_id)
+            self.elastic.es.get(index=self.index_name, id=user_id)
         
         except NotFoundError:
             now = datetime.now().timestamp()
@@ -155,11 +154,11 @@ class BookmarkFolder(ElasticModel):
                 arquivos=[]
             )
         
-            res = self.es.index(index=self.index_name, body=data, id=user_id)
+            res = self.elastic.es.index(index=self.index_name, body=data, id=user_id)
 
     def get(self, folder_id: str) -> Union[Dict, None]:
         try:
-            response = self.es.get(index=self.index_name, id=folder_id) 
+            response = self.elastic.es.get(index=self.index_name, id=folder_id) 
             folder = {'id': response['_id'], **response['_source']}
             return folder        
 
@@ -179,7 +178,7 @@ class BookmarkFolder(ElasticModel):
                 'data_modificacao': now,
             }
             
-            response = self.es.update(index=self.index_name, id=folder_id, body={'doc': data})
+            response = self.elastic.es.update(index=self.index_name, id=folder_id, body={'doc': data})
             
             return response['result'] == 'updated'
         
@@ -198,7 +197,7 @@ class BookmarkFolder(ElasticModel):
                 'data_modificacao': now
             }
             
-            response = self.es.update(index=self.index_name, id=folder_id, body={'doc': data})
+            response = self.elastic.es.update(index=self.index_name, id=folder_id, body={'doc': data})
 
             return response['result'] == 'updated'
         
@@ -217,7 +216,7 @@ class BookmarkFolder(ElasticModel):
                 'data_modificacao': now
             }
             
-            response = self.es.update(index=self.index_name, id=parent_id, body={"doc": data})
+            response = self.elastic.es.update(index=self.index_name, id=parent_id, body={"doc": data})
 
             return response['result'] == 'updated'
 
@@ -236,7 +235,7 @@ class BookmarkFolder(ElasticModel):
                 'data_modificacao': now
             }
 
-            response = self.es.update(index=self.index_name, id=parent_id, body={'doc': data})
+            response = self.elastic.es.update(index=self.index_name, id=parent_id, body={'doc': data})
             return response['result'] == 'updated'
         
         except:
@@ -246,12 +245,12 @@ class BookmarkFolder(ElasticModel):
         folder = self.get(tree_id)
 
         for file_id in folder['arquivos']:
-            self.es.delete(index=bookmark_handler.index_name, id=file_id)
+            self.elastic.es.delete(index=bookmark_handler.index_name, id=file_id)
 
         for subfolder_id in folder['subpastas']:
             self.remove_tree(subfolder_id)
 
-        self.es.delete(index=self.index_name, id=tree_id)
+        self.elastic.es.delete(index=self.index_name, id=tree_id)
 
     def remove_folder(self, folder_id, bookmark_handler):
         try:

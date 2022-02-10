@@ -15,7 +15,6 @@ from typing import Callable, Dict, Tuple, Union, List
 
 class Bookmark(ElasticModel):
     index_name = 'bookmark'
-    es = Elastic().es
     bookmark_folder = BookmarkFolder() 
 
     def __init__(self, **kwargs):
@@ -83,7 +82,7 @@ class Bookmark(ElasticModel):
         if self.get(bookmark_id):
             return None
 
-        result = self.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
+        result = self.elastic.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
 
         self.bookmark_folder.add_file(dict_data['id_pasta'], result['_id'])
 
@@ -101,7 +100,7 @@ class Bookmark(ElasticModel):
         '''
         
         try:
-            data = self.es.get(index=self.index_name, id=id_bookmark)['_source']        
+            data = self.elastic.es.get(index=self.index_name, id=id_bookmark)['_source']        
             data['id'] = id_bookmark
             return data
             
@@ -132,7 +131,7 @@ class Bookmark(ElasticModel):
         if not success:
             return False, 'Não foi possível remover o bookmark de sua pasta!'
 
-        response = self.es.delete(index=self.index_name, id=id_bookmark)
+        response = self.elastic.es.delete(index=self.index_name, id=id_bookmark)
         success = response['result'] == 'deleted'
 
         msg_error = ''
@@ -209,7 +208,7 @@ class Bookmark(ElasticModel):
         if updated_bookmark == bookmark:
             return False, 'O bookmark já está atualizado!'
 
-        response = self.es.update(index=self.index_name, id=bookmark_id, body={"doc": updated_bookmark})
+        response = self.elastic.es.update(index=self.index_name, id=bookmark_id, body={"doc": updated_bookmark})
         
         success = response['result'] == 'updated' 
         msg_error = ''
