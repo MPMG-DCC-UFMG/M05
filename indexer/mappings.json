@@ -663,6 +663,15 @@
     "log_clicks": {
         "mappings": {
             "properties": {
+                "id_usuario": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
                 "id_consulta": {
                     "type": "text",
                     "fields": {

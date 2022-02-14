@@ -77,6 +77,9 @@ class LogSearchClickView(APIView):
             schema:
               type: object
               properties:
+                id_usuario: 
+                  description: ID do usuário que clicou no item
+                  type: string
                 item_id:
                   description: ID do documento clicado
                   type: string
@@ -121,6 +124,7 @@ class LogSearchClickView(APIView):
 
     def post(self, request):
         response = LogSearchClick().save(dict(
+            id_usuario=request.POST['id_usuario'],
             id_documento=request.POST['item_id'],
             id_consulta=request.POST['qid'],
             posicao=request.POST['rank_number'],

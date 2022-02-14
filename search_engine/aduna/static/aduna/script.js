@@ -1,4 +1,7 @@
 function log_search_click(link){
+    console.log("UEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPPPPPPPPPPPPAAAAAAAAAAAAAAAAAAAAaaaaa");
+    console.log(USER_ID);
+    
     // var query = $('#results-container').data('executed-query');
     $.ajax({
         async: false,
@@ -7,6 +10,7 @@ function log_search_click(link){
         dataType: 'json',
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
+            id_usuario: USER_ID,
             rank_number: $(link).data('rank-number'),
             item_id: $(link).data('item-id'),
             item_type: $(link).data('item-type'),
