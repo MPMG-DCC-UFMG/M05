@@ -130,7 +130,7 @@ class DocumentRecommendation(ElasticModel):
 
 
     
-    def get_candidate_documents(self, reference_date):
+    def get_candidate_documents(self, reference_date) -> list:
         '''
         Retorna uma lista de documentos candidatos para serem recomendados.
         Os documentos devem ter a data de indexação posterior à reference_date
@@ -145,6 +145,7 @@ class DocumentRecommendation(ElasticModel):
         # qtde e tipo dos documentos candidatos
         sources = ConfigRecommendation.get_sources(active=True)
         
+        candidates_keys = set()
         candidates = []
         for item in sources:
             index_name = item['es_index_name']
@@ -156,8 +157,11 @@ class DocumentRecommendation(ElasticModel):
             elastic_result = search_obj.execute()
 
             for item in elastic_result:
-                candidates.append({'id': item.meta.id, 'index_name':index_name, 'title': item['titulo'], 'embedding_vector': item['embedding_vector']})
-            
+                key = f'{index_name}:{item.meta.id}'
+                if key not in candidates_keys:
+                    candidates.append({'id': item.meta.id, 'index_name':index_name, 'title': item['titulo'], 'embedding_vector': item['embedding_vector']})
+                    candidates_keys.add(key)
+                    
         return candidates
     
 
@@ -209,8 +213,10 @@ class DocumentRecommendation(ElasticModel):
             # pega o ID dos documentos clicados e o índice a qual cada um pertence
             doc_ids_by_type = defaultdict(list)
             for doc in elastic_result:
+                
                 doc_type = doc['tipo_documento']
                 doc_id = doc['id_documento']
+                print(f'{doc_type}:{doc_id}')
                 doc_ids_by_type[doc_type].append(doc_id)
             # pega os embeddings dos documentos clicados através dos IDs no respectivo índice
             for dtype, ids in doc_ids_by_type.items():
@@ -228,6 +234,9 @@ class DocumentRecommendation(ElasticModel):
             for doc in elastic_result:
                 doc_type = doc['indice_documento']
                 doc_id = doc['id_documento']
+
+                print(f'{doc_type}:{doc_id}')
+
                 doc_ids_by_type[doc_type].append(doc_id)
             # pega os embeddings dos documentos favoritados através dos IDs no respectivo índice
             for dtype, ids in doc_ids_by_type.items():

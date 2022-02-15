@@ -3,15 +3,9 @@ import requests
 import time
 from datetime import datetime
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, response
 from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from collections import defaultdict
-
-from mpmg.services.models import notification
 
 
 def index(request):

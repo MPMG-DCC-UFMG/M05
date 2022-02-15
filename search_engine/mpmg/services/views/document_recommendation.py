@@ -109,9 +109,8 @@ class DocumentRecommendationView(APIView):
             # busca os documentos candidatos a recomendação
             candidates = DocumentRecommendation().get_candidate_documents(reference_date)
 
-
-            
             valid_recommendations = []
+
             for evidence_item in config_evidences:
                 print(evidence_item['evidence_type'])
                 top_n = evidence_item['top_n_recommendations']
@@ -119,24 +118,41 @@ class DocumentRecommendationView(APIView):
 
                 # busca as evidências do(s) usuário(s)
                 user_evidences = DocumentRecommendation().get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
-            
+
+                print('>> ', len(user_evidences))
+                
                 # computa a similaridade entre os documentos candidatos e a evidência
                 similarity_ranking = []
-                for evidence_i, evidence_doc in enumerate(user_evidences):
-                    for candidate_i, candidate_doc in enumerate(candidates):
-                        similarity_score = self._cosine_similarity(candidate_doc['embedding_vector'], evidence_doc['embedding_vector'])
-                        similarity_ranking.append({'evidence_i': evidence_i, 'candidate_i': candidate_i, 'score': similarity_score})
-                similarity_ranking = list(sorted(similarity_ranking, key= lambda item: item['score'], reverse=True))
-                
-                # pega as top_n similares e verifica se são maiores ou iguais ao parâmetro min_similarity
-                similarity_ranking = similarity_ranking[:top_n]
-                for rank_item in similarity_ranking[:top_n]:
-                    score = int(rank_item['score'] * 100)
-                    candidate_i = rank_item['candidate_i']
-                    evidence_i = rank_item['evidence_i']
 
-                    print(score, min_similarity)
-                    if score >= min_similarity:
+                evidence_ranking = dict()
+                for evidence_i, evidence_doc in enumerate(user_evidences):
+                    if evidence_i not in evidence_ranking:
+                        evidence_ranking[evidence_i] = []
+
+                    for candidate_i, candidate_doc in enumerate(candidates):
+                        similarity_score = self._cosine_similarity(candidate_doc['embedding_vector'], evidence_doc['embedding_vector']) * 100
+                        if similarity_score >= min_similarity:
+                            evidence_ranking[evidence_i].append((candidate_i, similarity_score, evidence_i))
+                    
+                    evidence_ranking[evidence_i].sort(key = lambda item: item[1], reverse=True)
+
+                print(f'Evidence ranking: {len(evidence_ranking)}')
+                num_docs_recommended_in_evidence = 0
+                while True:
+                    candidate_rankings = []
+                    for evidence_i_candidates in evidence_ranking.values():
+                        if len(evidence_i_candidates) > 0:
+                            candidate_rankings.append(evidence_i_candidates.pop(0))
+                    candidate_rankings.sort(key = lambda item: item[1], reverse=True)
+
+                    if len(candidate_rankings) == 0:
+                        break
+
+                    for i in range(min(top_n - num_docs_recommended_in_evidence, len(candidate_rankings))):
+                        num_docs_recommended_in_evidence += 1
+                        
+                        candidate_i, score, evidence_i = candidate_rankings[i]
+
                         valid_recommendations.append({
                             'user_id': user_id,
                             'notification_id': None,
@@ -152,7 +168,16 @@ class DocumentRecommendationView(APIView):
                             'similarity_value': score,
                             'accepted': None
                         })
-                        
+
+                        del candidates[candidate_i]
+
+                        if num_docs_recommended_in_evidence == top_n:
+                            break
+
+                    if num_docs_recommended_in_evidence == top_n:
+                            break        
+                
+                print(f'Valid recommendations: {len(valid_recommendations)}')
 
             # se existem recomendações válidas, cria uma notificação e associa o seu ID 
             # aos registros de recomendação antes de gravá-los

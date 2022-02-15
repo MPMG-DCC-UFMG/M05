@@ -171,6 +171,18 @@ function create_reccomendation_line(recommendation) {
         recommendation_reason.textContent = `Porque você pesquisou por "${titleize(recommendation.evidence_query_text)}"`;
     }
 
+    else if(recommendation.matched_from == "CLICK") {
+        let doc_link = document.createElement('A');
+
+        doc_link.textContent = titleize(recommendation.evidence_doc_title);
+        doc_link.setAttribute('href', get_doc_url(recommendation.evidence_doc_index, recommendation.evidence_doc_id));
+        doc_link.setAttribute('target', '_blank');
+        
+        recommendation_reason.append('Similar ao "');
+        recommendation_reason.appendChild(doc_link);
+        recommendation_reason.append('" que você visitou');
+    }
+
     // recommendation_reason.textContent = recommendation.reason;
 
     feedback.appendChild(btn_positive_feedback);
