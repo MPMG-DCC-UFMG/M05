@@ -1,4 +1,4 @@
-from datetime import datetime
+from time import time 
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -101,8 +101,6 @@ class NotificationView(APIView):
             date_visualized = request.POST.get('date_visualized'),
         ))
 
-        print(response)
-
         if len(response[1]) == 0:
             return Response(status=status.HTTP_201_CREATED)
         
@@ -120,7 +118,7 @@ class NotificationView(APIView):
         
         if date_visualized == '':
             # ElasticSearch precisa que o timestamp seja em milisegundos
-            date_visualized = int(datetime.now().timestamp() * 1000)
+            date_visualized = int(time() * 1000)
 
         success, msg_error = Notification().mark_as_visualized(notification_id, date_visualized)
         if success:

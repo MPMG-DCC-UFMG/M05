@@ -12,3 +12,10 @@ class ConfigRecommendationsView(admin.AdminSite):
         if request.method == 'GET':
             context = dict()
             return render(request, 'admin/config_recommendations.html', context)
+
+        if request.method == 'POST':
+            print(request.POST)
+
+            print("Tá loucona, mana??")
+            context = dict()
+            return render(request, 'admin/config_recommendations.html', context)

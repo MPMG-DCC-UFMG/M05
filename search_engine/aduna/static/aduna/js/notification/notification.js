@@ -43,7 +43,7 @@ function notification2html(notification) {
     let time = document.createElement('SPAN');
     time.className = 'small';
 
-    time.textContent = notification.date;
+    time.textContent = timestamp_converter(notification.date);
 
     time_wrapper.appendChild(time);
 

@@ -15,7 +15,7 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title" style="text-transform: none">Documentos que serão recomendados</h4>
-                    <form id="regular_form" action="" method="post">
+                    <form>
                         {% csrf_token %}
                         <div class="row">
                             <div class="col">
@@ -31,18 +31,18 @@
                                     
                                         <tr>
                                             <td>Diários</td>
-                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                            <td><input style="width:100px;" type="number" id="rec_size_diario"  min="0" value="5" required/></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_diarios" autocomplete="off"></td>
                                         </tr>
                                         <tr>
                                             <td>Processos</td>
-                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                            <td><input style="width:100px;" type="number" id="rec_size_processo" min="0" value="5" required/></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_processo" autocomplete="off"></td>
                                         </tr>
                                         <tr>
                                             <td>Licitações</td>
-                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                            <td><input style="width:100px;" type="number" id="rec_size_licitacoes" min="0" value="5" required/></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_licitacoes" autocomplete="off"></td>
                                         </tr>
                                     
                                     </tbody>
@@ -52,7 +52,7 @@
                         <br>
                         <div class="row justify-content-end">
                             <div class="pr-3">
-                                <button class="btn btn-primary" type="submit">Salvar</button>
+                                <button class="btn btn-primary" onclick="update_config_rec_sources()">Salvar</button>
                             </div>
                         </div>
                     </form>
@@ -63,76 +63,79 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title" style="text-transform: none">Basear as recomendações em:</h4>
-                    <div class="row">
-                        <div class="col">
-                            <table class="table table-striped table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th width="200px">Origem</th>
-                                        <th>Quantidade</th>
-                                        <th style="text-align: center;">Similaridade Mínima</th>
-                                        <th style="text-align: center;">Top n Recomendações</th>
-                                        <th style="text-align: center;">Habilitado?</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                
-                                    <tr>
-                                        <td>Favoritos</td>
-                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                        <td style="text-align: center;">
-                                            <select>
-                                                <option value="60">60%</option>
-                                                <option value="70">70%</option>
-                                                <option value="80">80%</option>
-                                                <option value="90">90%</option>
-                                                <option value="100">100%</option>
-                                            </select>
-                                        </td>
-                                        <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
-                                        <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Consultas</td>
-                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                        <td style="text-align: center;">
-                                            <select>
-                                                <option value="60">60%</option>
-                                                <option value="70">70%</option>
-                                                <option value="80">80%</option>
-                                                <option value="90">90%</option>
-                                                <option value="100">100%</option>
-                                            </select>
-                                        </td>
-                                        <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
-                                        <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cliques</td>
-                                        <td><input style="width:100px;" type="number" name="amount" value="" /></td>
-                                        <td style="text-align: center;">
-                                            <select>
-                                                <option value="60">60%</option>
-                                                <option value="70">70%</option>
-                                                <option value="80">80%</option>
-                                                <option value="90">90%</option>
-                                                <option value="100">100%</option>
-                                            </select>
-                                        </td>
-                                        <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
-                                        <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
-                                    </tr>
-                                
-                                </tbody>
-                            </table>
+                    <form>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col">
+                                <table class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th width="200px">Origem</th>
+                                            <th>Quantidade</th>
+                                            <th style="text-align: center;">Similaridade Mínima</th>
+                                            <th style="text-align: center;">Top n Recomendações</th>
+                                            <th style="text-align: center;">Habilitado?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    
+                                        <tr>
+                                            <td>Favoritos</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
+                                            <td style="text-align: center;">
+                                                <select>
+                                                    <option value="60">60%</option>
+                                                    <option value="70">70%</option>
+                                                    <option value="80">80%</option>
+                                                    <option value="90">90%</option>
+                                                    <option value="100">100%</option>
+                                                </select>
+                                            </td>
+                                            <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Consultas</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
+                                            <td style="text-align: center;">
+                                                <select>
+                                                    <option value="60">60%</option>
+                                                    <option value="70">70%</option>
+                                                    <option value="80">80%</option>
+                                                    <option value="90">90%</option>
+                                                    <option value="100">100%</option>
+                                                </select>
+                                            </td>
+                                            <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cliques</td>
+                                            <td><input style="width:100px;" type="number" name="amount" value="" /></td>
+                                            <td style="text-align: center;">
+                                                <select>
+                                                    <option value="60">60%</option>
+                                                    <option value="70">70%</option>
+                                                    <option value="80">80%</option>
+                                                    <option value="90">90%</option>
+                                                    <option value="100">100%</option>
+                                                </select>
+                                            </td>
+                                            <td style="text-align: center;"><input type="number" name="max" style="width:50px" /></td>
+                                            <td style="text-align: center;"><input type="checkbox" checked='checked' value="" name="is_active" autocomplete="off" ></td>
+                                        </tr>
+                                    
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <br>
-                    <div class="row justify-content-end">
-                        <div class="pr-3">
-                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        <br>
+                        <div class="row justify-content-end">
+                            <div class="pr-3">
+                                <button class="btn btn-primary" onclick="update_config_rec_evidences()">Salvar</button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>

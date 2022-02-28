@@ -18,6 +18,7 @@ def create_index(apps, schema_editor):
     m.field('evidence_doc_id', 'text')
     m.field('evidence_doc_title', 'text')
     m.field('date', 'date')
+    m.field('date_visualized', 'date')
     m.field('similarity_value', 'float')
     m.field('accepted', 'boolean')
     m.save('doc_recommendations')

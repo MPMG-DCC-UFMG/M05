@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import time
 import numpy as np
 from rest_framework import status
 from rest_framework.views import APIView
@@ -53,9 +54,12 @@ class DocumentRecommendationView(APIView):
                                 type:
                                     - 'null'
                                     - boolean
+                            date_visualized:
+                                description: Inteiro representando o timestamp de quando a recomendação foi vista. Se vazio, o próprio sistema preencherá o campo.
+                                type:
+                                    - int
                         required:
                             - recommendation_id
-                            - accepted
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
@@ -82,7 +86,6 @@ class DocumentRecommendationView(APIView):
     
     def post(self, request):
         user_id = request.POST.get('user_id', None)
-        today = datetime.now().strftime('%Y-%m-%d')
 
         if user_id == None or user_id == '':
             users_ids = DocumentRecommendation().get_users_ids_to_recommend()
@@ -164,7 +167,7 @@ class DocumentRecommendationView(APIView):
                             'evidence_doc_index': user_evidences[evidence_i]['index_name'],
                             'evidence_doc_id': user_evidences[evidence_i]['id'],
                             'evidence_doc_title': user_evidences[evidence_i]['title'],
-                            'date': today,
+                            'date': int(time() * 1000),
                             'similarity_value': score,
                             'accepted': None
                         })
@@ -187,7 +190,7 @@ class DocumentRecommendationView(APIView):
                     'user_id': user_id,
                     'message': 'Novos documentos que possam ser do seu interesse.',
                     'type': 'RECOMMENDATION',
-                    'date': today
+                    'date': int(time() * 1000)
                 })
                 notification_id = notification_response['_id']
 
@@ -200,28 +203,42 @@ class DocumentRecommendationView(APIView):
     
 
     def put(self, request):
-        recommendation_id = request.POST['recommendation_id']
+        data = request.data.dict()
 
-        accepted = request.POST['accepted']
-        if accepted == 'True' or accepted == 'true':
-            accepted = True
+        recommendation_id = data['recommendation_id']
+        if 'accepted' not in data and 'date_visualized' not in data:
+            return Response({'message': 'É necessário informar o campo accepted ou date_visualized.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'accepted' in data:
+            accepted = data['accepted']
+            if accepted == 'True' or accepted == 'true':
+                accepted = True
+            
+            elif accepted == 'false' or accepted == 'False':
+                accepted = False
+            
+            elif accepted == '':
+                accepted = None
+
+            else:
+                return Response({'message': 'Não foi possível realizar o parsing dos parâmetros passados.'}, status.HTTP_400_BAD_REQUEST)
+
+            success, msg_error = DocumentRecommendation().update_feedback(recommendation_id, accepted)
+            if not success:
+                return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            
         
-        elif accepted == 'false' or accepted == 'False':
-            accepted = False
+        if 'date_visualized' in data:
+            date_visualized = data.get('date_visualized')
+            if not date_visualized:
+                date_visualized = int(time() * 1000)
+            
+            success, msg_error = DocumentRecommendation().mark_as_seen(recommendation_id, date_visualized)
+            if not success:
+                return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response(status=status.HTTP_204_NO_CONTENT)
         
-        elif accepted == '':
-            accepted = None
-
-        else:
-            return Response({'message': 'Não foi possível realizar o parsing dos parâmetros passados.'}, status.HTTP_400_BAD_REQUEST)
-
-
-        success, msg_error = DocumentRecommendation().update(recommendation_id, accepted)
-        if success:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        
-        return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
-
 class AddFakeRecommendationsView():
     '''
     CLASSE TEMPORÁRIA que adiciona recomendações para um determinado usuário

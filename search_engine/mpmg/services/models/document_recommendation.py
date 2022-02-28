@@ -1,3 +1,4 @@
+from time import time
 from mpmg.services.models.elastic_model import ElasticModel
 from .config_recommendation import ConfigRecommendation
 from collections import defaultdict
@@ -24,6 +25,7 @@ class DocumentRecommendation(ElasticModel):
             'date',
             'similarity_value',
             'accepted',
+            'date_visualized'
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
@@ -81,7 +83,7 @@ class DocumentRecommendation(ElasticModel):
         
         return recommendations_list
     
-    def update(self, recommendation_id, accepted):
+    def update_feedback(self, recommendation_id, accepted):
         '''
         Atualiza o campo accepted, indicando se o usuário aprovou ou não aquela recomendação.
         '''
@@ -95,7 +97,18 @@ class DocumentRecommendation(ElasticModel):
 
         return success, msg_error
 
-    
+    def mark_as_seen(self, recommendation_id, date_visualized):
+        '''
+        Atualiza o campo accepted, indicando se o usuário aprovou ou não aquela recomendação.
+        '''
+        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={"doc": {"date_visualized": date_visualized}})
+
+        success = response['result'] == 'updated' 
+        msg_error = ''
+        if not success:
+            msg_error = 'Não foi possível atualizar.'
+
+        return success, msg_error
 
     def get_users_ids_to_recommend(self):
         '''
