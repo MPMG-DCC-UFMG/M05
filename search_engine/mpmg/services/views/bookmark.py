@@ -247,6 +247,14 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
+        print('*' * 15)
+        print('*' * 15)
+        print('*' * 15)
+        print(request.POST)
+        print('*' * 15)
+        print('*' * 15)
+        print('*' * 15)
+
         try:
             user_id = request.POST['user_id']
 
@@ -285,6 +293,13 @@ class BookmarkView(APIView):
         return Response({'id_bookmark': bookmark_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
+        print('*' * 15)
+        print('*' * 15)
+        print('*' * 15)
+        print(request.data.dict())
+        print('*' * 15)
+        print('*' * 15)
+        print('*' * 15)
 
         data = request.data.dict()
         bookmark_id = data.get('bookmark_id')

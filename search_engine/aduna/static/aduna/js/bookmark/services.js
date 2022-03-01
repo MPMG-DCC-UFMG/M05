@@ -8,13 +8,16 @@ services.create_bookmark = function() {
     $(`#folder-option-${last_selected_folder}`).removeAttr('selected');
     $(`#folder-option-${bookmark.folder}`).attr("selected", "selected");
 
+
     if (bookmark.id == null) {
+        console.log('Cool man, I wil create: ', bookmark.id);
+
         let bookmark_icon = $('#bookmark-icon');
     
         bookmark_icon.removeClass('far');
         bookmark_icon.addClass('fas');
         
-        let ajax = $.ajax({
+        $.ajax({
             url: SERVICES_URL + 'bookmark',
             type: 'post',
             dataType: 'json',
@@ -28,7 +31,8 @@ services.create_bookmark = function() {
                 query_id: QID
             },
             success: function (res) {
-                bookmark.id = res.bookmark_id;
+                bookmark.id = res.id_bookmark;
+                console.log('Right! This is the new id: ', bookmark.id);
             },
             error: function (res) {
                 console.log(res); //`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
@@ -51,12 +55,14 @@ services.create_bookmark = function() {
 }
 
 services.remove_bookmark = function(bookmark_id) {
+    console.log('Cool man, I wil delete the element: ', bookmark_id);
+
     let bookmark_icon = $('#bookmark-icon');
 
     bookmark_icon.removeClass('fas');
     bookmark_icon.addClass('far');
 
-    // bookmark.id = null;
+    bookmark.id = null;
     // bookmark.folder = null;
 
     $.ajax({

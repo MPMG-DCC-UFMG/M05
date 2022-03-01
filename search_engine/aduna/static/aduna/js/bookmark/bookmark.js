@@ -103,6 +103,8 @@ function create_bookmark_toggle(active) {
 
         el_bookmark.active = !el_bookmark.active;
 
+        console.log(el_bookmark.active);
+        console.log(bookmark.id);
         if (el_bookmark.active)
             services.create_bookmark();
             
