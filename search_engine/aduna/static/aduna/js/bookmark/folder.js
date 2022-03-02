@@ -11,6 +11,15 @@ var folder_tree = {};
 var raw_tree = null;
 var folders = [];
 
+var folder_blacklist = []
+
+var bulk = false;
+var folders_to_move = [];
+var bookmarks_to_move = [];
+var folders_to_remove = [];
+var bookmarks_to_remove = [];
+
+
 function show_move_to_modal() {
     id_bookmark_to_move = this.context;
     
@@ -19,9 +28,13 @@ function show_move_to_modal() {
 }
 
 function show_move_folder_modal() {
+    bulk = false;
+
     id_folder_to_move = this.context;
-    
+    folder_blacklist = [id_folder_to_move];
+
     update_folder_move_tree();
+
     $(`#${this.context}-folder-name`).popover('hide');
     $('#moveFolderModal').modal('show');
 }
@@ -124,6 +137,16 @@ function disable_folder_items_selection() {
 
     $('.folder-item-content').removeClass('d-none');
     $('.folder-item-content').addClass('d-flex');
+
+    let cb_folders = $('.folder-ckeckbox');
+    for (let i = 0; i < cb_folders.length;i++)
+        if (cb_folders[i].checked)
+            cb_folders[i].checked = false; 
+
+    let cb_bookmarks = $('.bookmark-ckeckbox');
+    for (let i = 0; i < cb_bookmarks.length;i++)
+        if (cb_bookmarks[i].checked) 
+            cb_bookmarks[i].checked = false;
 }
 
 function create_folder_item(folder) {
@@ -331,31 +354,54 @@ function update_gallery() {
     let back_folder_li = '';
     if(folder_opened_historic.length > 0) {
         back_folder_li = `<li class="my-1 d-flex justify-content-between">
-                            <div class="">
-                                <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
-                            </div>
-                            <div class="">
-                                <div class="" id="enable-edit-all-folder-wrapper">
-                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
-                                    <i class="far fa-edit"></i> Selecionar
-                                    </button>
-                                </div>
-                                <div id="edit-all-folder-options-wrapper" class="d-none">
-                                    <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
-                                        <i class="fas fa-folder"></i> Mover
-                                    </button>
-                                    <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
-                                        <i class="fas fa-trash-alt"></i> Remover
-                                    </button>
-                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
-                                        <i class="fas fa-times"></i> Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                        <hr/>
-                        `;
-                    }
+            <div class="">
+                <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
+            </div>
+            <div class="">
+                <div class="" id="enable-edit-all-folder-wrapper">
+                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
+                        <i class="fas fa-tasks"></i>
+                    </button>
+                </div>
+                <div id="edit-all-folder-options-wrapper" class="d-none">
+                    <button class="btn m-0 p-0" onclick="bulk_move()">
+                        <i class="fas fa-arrows-alt"></i> Mover
+                    </button>
+                    <button class="btn m-0 p-0 ml-2" onclick="bulk_remove()">
+                        <i class="fas fa-trash-alt"></i> Remover
+                    </button>
+                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </li>
+        <hr/>
+        `;
+    } else {
+        back_folder_li = `<li class="my-1 d-flex justify-content-end">
+            <div class="">
+                <div class="" id="enable-edit-all-folder-wrapper">
+                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
+                        <i class="fas fa-tasks"></i>
+                    </button>
+                </div>
+                <div id="edit-all-folder-options-wrapper" class="d-none">
+                    <button class="btn m-0 p-0" onclick="bulk_move()">
+                        <i class="fas fa-arrows-alt"></i> Mover
+                    </button>
+                    <button class="btn m-0 p-0 ml-2" onclick="bulk_remove()">
+                        <i class="fas fa-trash-alt"></i> Remover
+                    </button>
+                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </li>
+        <hr/>
+        `;
+    }
 
     if ((pasta.arquivos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
@@ -412,6 +458,8 @@ function create_children_from_active_folder() {
 }
 
 function show_remove_folder_modal() {
+    bulk = false;
+
     folder_to_remove = this.context;
     $('#folderModal').modal('hide');
     $('#removeFolderModal').modal('show');
@@ -914,7 +962,7 @@ function parse_folder_move_tree(tree, context, depth = 0) {
     let subpastas_processadas = [];
     
     for (let i = 0; i < tree.subpastas.length; i++)
-        if (tree.subpastas[i].id != id_folder_to_move)
+        if (!folder_blacklist.includes(tree.subpastas[i].id))
             subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], context, depth + 1));
 
     return create_simple_folder(tree.nome, tree.id, true, depth, context, subpastas_processadas);
@@ -923,7 +971,6 @@ function parse_folder_move_tree(tree, context, depth = 0) {
 function update_folder_move_tree() {
     $('#move-folder').html(parse_folder_move_tree(raw_tree, 'folder'));
 }
-
 
 function folder_comparator(a, b) {
     return b.data_ultimo_arquivo_adicionado - a.data_ultimo_arquivo_adicionado;
@@ -941,12 +988,41 @@ function update_recently_folder_dropdown(folders) {
     // $('#selectFolder').html(lis);
 }
 
-// function add_new_folder_to_dropdown(folder_id, name) {
-//     if ($('#selectFolder > option').length < MAX_FOLDERS_IN_DROPDOWN) {
-//         let li = `<option id="folder-option-${folder_id}" value="${folder_id}">${name}</option>`;
-//         $('#selectFolder').append(li);
-//     }
-// }
+function bulk_move() {
+    bulk = true;
+
+    let cb_folders = $('.folder-ckeckbox');
+    for (let i = 0; i < cb_folders.length;i++)
+        if (cb_folders[i].checked) 
+            folders_to_move.push(cb_folders[i].value);
+
+    let cb_bookmarks = $('.bookmark-ckeckbox');
+    for (let i = 0; i < cb_bookmarks.length;i++)
+        if (cb_bookmarks[i].checked) 
+            bookmarks_to_move.push(cb_bookmarks[i].value);
+
+    folder_blacklist = folders_to_move;
+    update_folder_move_tree();
+    
+    $('#moveFolderModal').modal('show');
+
+}
+
+function bulk_remove() {
+    bulk = true;
+
+    let cb_bookmarks = $('.bookmark-ckeckbox');
+    for (let i = 0; i < cb_bookmarks.length;i++) 
+        if (cb_bookmarks[i].checked) 
+            services.remove_bookmark(cb_bookmarks[i].value);
+
+    let cb_folders = $('.folder-ckeckbox');
+    for (let i = 0; i < cb_folders.length;i++)
+        if (cb_folders[i].checked)
+            services.remove_folder(cb_folders[i].value);
+
+    location.reload();
+}
 
 function listify_tree(tree, list) {
     for (let i = 0; i < tree.subpastas.length; i++)

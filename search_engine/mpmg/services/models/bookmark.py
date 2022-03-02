@@ -122,16 +122,25 @@ class Bookmark(ElasticModel):
 
         bookmark = self.get(id_bookmark)
 
+        print('>>>>> ', bookmark)
+
         if bookmark is None:
             return False, 'Não foi possível encontrar o bookmark!'
 
         id_pasta = bookmark['id_pasta']
         success = self.bookmark_folder.remove_file(id_pasta, id_bookmark)
         
+        print(success)
+        
         if not success:
             return False, 'Não foi possível remover o bookmark de sua pasta!'
 
         response = self.elastic.es.delete(index=self.index_name, id=id_bookmark)
+        
+        print("~" * 10)
+        print(response)
+        print("~" * 10)
+
         success = response['result'] == 'deleted'
 
         msg_error = ''

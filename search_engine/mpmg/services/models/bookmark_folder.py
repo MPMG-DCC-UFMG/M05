@@ -187,7 +187,11 @@ class BookmarkFolder(ElasticModel):
 
     def remove_file(self, folder_id, file_id) -> bool:
         try:
+            print(folder_id, file_id)
             folder = self.get(folder_id)
+
+            print(folder)
+
             folder['arquivos'].remove(file_id)
 
             now = datetime.now().timestamp()
@@ -198,10 +202,13 @@ class BookmarkFolder(ElasticModel):
             }
             
             response = self.elastic.es.update(index=self.index_name, id=folder_id, body={'doc': data})
-
+            print('!' * 10)
+            print(response)
+            print('!' * 10)
             return response['result'] == 'updated'
         
-        except:
+        except Exception as e:
+            print(f'Remove file erro: {e}')
             return False
 
     def add_subfolder(self, parent_id, children_id):

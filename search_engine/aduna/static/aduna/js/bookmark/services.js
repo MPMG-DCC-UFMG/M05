@@ -52,19 +52,21 @@ services.create_bookmark = function() {
 }
 
 services.remove_bookmark = function(bookmark_id) {
-    let bookmark_icon = $('#bookmark-icon');
+    
+    if (typeof DOC_ID !== 'undefined') {
+        let bookmark_icon = $('#bookmark-icon');
+    
+        bookmark_icon.removeClass('fas');
+        bookmark_icon.addClass('far');
 
-    bookmark_icon.removeClass('fas');
-    bookmark_icon.addClass('far');
-
-    if (typeof DOC_ID !== 'undefined')
-        bookmark.id = null;
-    // bookmark.folder = null;
+        bookmark.id = null;        
+    }
 
     $.ajax({
         url: SERVICES_URL + 'bookmark',
         type: 'delete',
         dataType: 'json',
+        async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             bookmark_id: bookmark_id,
@@ -124,8 +126,10 @@ services.move_bookmark = function () {
         return;
     }
     
-    $('#moveBookmarkModal').modal('hide');
-    let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
+    if (!bulk)
+        $('#moveBookmarkModal').modal('hide');
+    
+        let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
 
     let idx = folder_tree[active_folder].arquivos.indexOf(id_bookmark_to_move);
     if (idx >= 0)
@@ -133,12 +137,14 @@ services.move_bookmark = function () {
 
     folder_tree[move_to_folder].arquivos.push(id_bookmark_to_move);
 
-    update_gallery();
+    if (!bulk)
+        update_gallery();
 
     $.ajax({
         url: SERVICES_URL + 'bookmark',
         type: 'put',
         dataType: 'json',
+        async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             name: doc_name,
@@ -181,6 +187,7 @@ services.remove_folder = function(folder_id) {
         url: SERVICES_URL + 'bookmark_folder',
         type: 'delete',
         dataType: 'json',
+        async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             folder_id: folder_id,
@@ -237,7 +244,6 @@ services.get_bookmark_folder_tree = function() {
         $('#bookmark-folder').append(parse_folder_tree(tree));
         $('#bookmark-move-folder').html(parse_folder_move_tree(tree,'bookmark'));
         // $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
-        console.log('>', tree);
 
         // Habilita o evento de menu de contexto
         enable_context_menu_event(tree);
@@ -255,6 +261,36 @@ services.get_bookmark_folder_tree = function() {
 }
 
 services.move_folder = function () {
+    if (move_to_folder == null) {
+        alert('Escolha uma pasta de destino!');
+        return;
+    }
+
+    if (bulk) {
+        for (let i = 0; i < bookmarks_to_move.length;i++) {
+            id_bookmark_to_move = bookmarks_to_move[i];
+            services.move_bookmark();
+            console.log('Movendo: ', id_bookmark_to_move);
+        }
+
+        for (let i = 0; i < folders_to_move.length;i++) {
+            $.ajax({
+                url: SERVICES_URL + 'bookmark_folder',
+                type: 'put',
+                dataType: 'json',
+                headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+                async: false,
+                data: {
+                    folder_id: folders_to_move[i],
+                    parent_folder_id: move_to_folder,
+                },
+            });
+        }
+
+        location.reload();
+        return;
+    }
+
     $('#moveFolderModal').modal('hide');
     
     if (id_folder_to_move == move_to_folder) {
@@ -274,7 +310,7 @@ services.move_folder = function () {
             parent_folder_id: move_to_folder,
         },
         success: function () {
-            id_folder_to_move = null;
+            folder_blacklist = [];
             location.reload();
         },
         error: function (res) {

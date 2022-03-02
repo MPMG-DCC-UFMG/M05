@@ -40,7 +40,7 @@ function get_bookmark_html(doc_title) {
                 </div>
                 <div class="form-group">
                     <label for="selectFolder">Pasta</label>
-                    <select class="folder-select" id="selectFolder">
+                    <select class="custom-select" id="selectFolder">
                     ${lis}
                     </select>
                 </div>

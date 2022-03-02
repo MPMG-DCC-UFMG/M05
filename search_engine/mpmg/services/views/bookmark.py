@@ -1,3 +1,4 @@
+from copyreg import constructor
 from datetime import date, datetime
 
 from rest_framework.views import APIView
@@ -312,14 +313,22 @@ class BookmarkView(APIView):
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+        print(msg_error)
+
         return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
+        print('-' * 15)
+        print(request.data)
+        print('-' * 15)
+
         if 'bookmark_id' not in request.data:
             return Response({'message': 'Informe o bookmark_id!'}, status.HTTP_400_BAD_REQUEST) 
 
         bookmark_id = request.data['bookmark_id']
 
+        print(type(bookmark_id))
+        
         success, msg_error = BOOKMARK.remove(bookmark_id)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
