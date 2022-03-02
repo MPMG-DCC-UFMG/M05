@@ -40,7 +40,7 @@ function get_bookmark_html(doc_title) {
                 </div>
                 <div class="form-group">
                     <label for="selectFolder">Pasta</label>
-                    <select class="custom-select" id="selectFolder">
+                    <select class="folder-select" id="selectFolder">
                     ${lis}
                     </select>
                 </div>
@@ -100,11 +100,8 @@ function create_bookmark_toggle(active) {
 
     el_bookmark.onclick = function () {
         $('#bookmark-popover').popover('toggle');
+        el_bookmark.active = bookmark.id == null ? true : false;
 
-        el_bookmark.active = !el_bookmark.active;
-
-        console.log(el_bookmark.active);
-        console.log(bookmark.id);
         if (el_bookmark.active)
             services.create_bookmark();
             

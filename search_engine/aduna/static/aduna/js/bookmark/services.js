@@ -10,8 +10,6 @@ services.create_bookmark = function() {
 
 
     if (bookmark.id == null) {
-        console.log('Cool man, I wil create: ', bookmark.id);
-
         let bookmark_icon = $('#bookmark-icon');
     
         bookmark_icon.removeClass('far');
@@ -32,10 +30,9 @@ services.create_bookmark = function() {
             },
             success: function (res) {
                 bookmark.id = res.id_bookmark;
-                console.log('Right! This is the new id: ', bookmark.id);
             },
             error: function (res) {
-                console.log(res); //`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
+                alert(`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
             }
         });
     } else {
@@ -55,14 +52,13 @@ services.create_bookmark = function() {
 }
 
 services.remove_bookmark = function(bookmark_id) {
-    console.log('Cool man, I wil delete the element: ', bookmark_id);
-
     let bookmark_icon = $('#bookmark-icon');
 
     bookmark_icon.removeClass('fas');
     bookmark_icon.addClass('far');
 
-    bookmark.id = null;
+    if (typeof DOC_ID !== 'undefined')
+        bookmark.id = null;
     // bookmark.folder = null;
 
     $.ajax({
@@ -235,10 +231,13 @@ services.get_bookmark_folder_tree = function() {
     });
 
     ajax.done(function (tree) {
+        raw_tree = tree;
+
         // Inserindo após converter o json com estrutura de pastas do usuário em HTML
         $('#bookmark-folder').append(parse_folder_tree(tree));
         $('#bookmark-move-folder').html(parse_folder_move_tree(tree,'bookmark'));
-        $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
+        // $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
+        console.log('>', tree);
 
         // Habilita o evento de menu de contexto
         enable_context_menu_event(tree);
@@ -256,13 +255,15 @@ services.get_bookmark_folder_tree = function() {
 }
 
 services.move_folder = function () {
+    $('#moveFolderModal').modal('hide');
+    
     if (id_folder_to_move == move_to_folder) {
         // TODO: Não deixar também mover para nenhuma subpasta
         alert('Você não pode mover uma pasta para ela mesma!');
+        return;
     }
-    console.log(id_folder_to_move, move_to_folder)
 
-    $('#moveFolderModal').modal('hide');
+
     $.ajax({
         url: SERVICES_URL + 'bookmark_folder',
         type: 'put',
@@ -273,6 +274,7 @@ services.move_folder = function () {
             parent_folder_id: move_to_folder,
         },
         success: function () {
+            id_folder_to_move = null;
             location.reload();
         },
         error: function (res) {

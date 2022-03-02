@@ -8,6 +8,7 @@ var move_to_folder = null;
 var id_bookmark_to_move = null;
 var id_folder_to_move = null;
 var folder_tree = {};
+var raw_tree = null;
 var folders = [];
 
 function show_move_to_modal() {
@@ -19,6 +20,8 @@ function show_move_to_modal() {
 
 function show_move_folder_modal() {
     id_folder_to_move = this.context;
+    
+    update_folder_move_tree();
     $(`#${this.context}-folder-name`).popover('hide');
     $('#moveFolderModal').modal('show');
 }
@@ -73,7 +76,7 @@ function document_context_menu(doc_id) {
 }
 
 function get_document_url(bookmark) {
-    return `${SERVER_ADDRESS}/aduna/document/${bookmark.indice_documento}/${bookmark.id_documento}?query=`;
+    return `${SERVER_ADDRESS}/aduna/document/${bookmark.indice_documento}/${bookmark.id_documento}`;
 }
 
 function attach_document_context_menu(doc_id) {
@@ -327,30 +330,32 @@ function update_gallery() {
 
     let back_folder_li = '';
     if(folder_opened_historic.length > 0) {
-        back_folder_li = `<li class="my-1">
-                            <div class="d-flex justify-content-between">
+        back_folder_li = `<li class="my-1 d-flex justify-content-between">
+                            <div class="">
                                 <p title="Clique para voltar à última pasta vista" class="m-0 p-0" onclick="back_folder()" style="cursor: pointer;"><i class="fas fa-chevron-left"></i> Voltar à pasta anterior</p>
+                            </div>
+                            <div class="">
+                                <div class="" id="enable-edit-all-folder-wrapper">
+                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
+                                    <i class="far fa-edit"></i> Selecionar
+                                    </button>
                                 </div>
-                            </li>
-                            <hr/>
+                                <div id="edit-all-folder-options-wrapper" class="d-none">
+                                    <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
+                                        <i class="fas fa-folder"></i> Mover
+                                    </button>
+                                    <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
+                                        <i class="fas fa-trash-alt"></i> Remover
+                                    </button>
+                                    <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                        <hr/>
                         `;
-                                // <div id="enable-edit-all-folder-wrapper">
-                                //     <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="enable_folder_items_selection()">
-                                //         <i class="far fa-edit"></i> Selecionar
-                                //     </button>
-                                // </div>
-                                // <div id="edit-all-folder-options-wrapper" class="d-none">
-                                //     <button class="btn m-0 p-0" onclick="enable_folder_items_selection()">
-                                //         <i class="fas fa-folder"></i> Mover
-                                //     </button>
-                                //     <button class="btn m-0 p-0 ml-2" onclick="enable_folder_items_selection()">
-                                //         <i class="fas fa-trash-alt"></i> Remover
-                                //     </button>
-                                //     <button class="btn m-0 p-0 border rounded px-2 ml-2" onclick="disable_folder_items_selection()">
-                                //         <i class="fas fa-times"></i> Cancelar
-                                //     </button>
-                                // </div>
-                            }
+                    }
 
     if ((pasta.arquivos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
@@ -703,7 +708,7 @@ function create_simple_folder(name, folder_id, opened, depth, context, children 
 
     // Criação de um listener que fecha ou abre a pasta, mostrando suas subpastas
     folder_name.onclick = () => update_folder_to_move(folder_id, context);
-
+    
     return folder;
 }
 
@@ -907,12 +912,18 @@ function parse_folder_tree(tree, depth = 0) {
 
 function parse_folder_move_tree(tree, context, depth = 0) {
     let subpastas_processadas = [];
-
+    
     for (let i = 0; i < tree.subpastas.length; i++)
-        subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], context, depth + 1));
+        if (tree.subpastas[i].id != id_folder_to_move)
+            subpastas_processadas.push(parse_folder_move_tree(tree.subpastas[i], context, depth + 1));
 
     return create_simple_folder(tree.nome, tree.id, true, depth, context, subpastas_processadas);
 }
+
+function update_folder_move_tree() {
+    $('#move-folder').html(parse_folder_move_tree(raw_tree, 'folder'));
+}
+
 
 function folder_comparator(a, b) {
     return b.data_ultimo_arquivo_adicionado - a.data_ultimo_arquivo_adicionado;
