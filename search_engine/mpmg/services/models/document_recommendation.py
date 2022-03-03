@@ -260,6 +260,16 @@ class DocumentRecommendation(ElasticModel):
         
         return user_evidences
 
+    def remove(self, recommendation_id):
+        response = self.elastic.es.delete(index=self.index_name, id=recommendation_id)        
+        success = response['result'] == 'deleted'
+
+        msg_error = ''
+        if not success:
+            msg_error = 'Não foi possível remover a recomendação!'
+            
+        return success, msg_error
+
 
 
 

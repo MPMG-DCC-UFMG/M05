@@ -12,7 +12,6 @@ class NotificationView(APIView):
     '''
     get:
         description: Retorna uma lista de notificações de de um usuário se o ID dele for informado ou uma notificação específica, se o id dela for passado.
-            Se os dois forem informados, o primeiro terá prevalência. 
         parameters:
             - name: user_id
               in: query
@@ -68,6 +67,33 @@ class NotificationView(APIView):
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
 
+    delete:
+        description: Apaga uma notificaçaõ.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            notification_id:
+                                description: ID da notificação a ser removida.
+                                type: string
+                        required:
+                            - notification_id      
+        responses:
+            '204':
+                description: A notificação foi removida com sucesso.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
     '''
     
     schema = AutoDocstringSchema()
@@ -80,25 +106,23 @@ class NotificationView(APIView):
         if user_id is None and notification_id is None:
             return Response({'message': 'Informe o campo user_id ou notification_id!'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if notification_id:
+            notification = Notification().get_by_id(notification_id)
+            if notification is None:
+                return Response({'message': 'Verifique se o ID da notificação informado é válido!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(notification, status=status.HTTP_200_OK)
+
         if user_id:
             notifications_list = Notification().get_by_user(user_id=user_id)
             return Response(notifications_list, status=status.HTTP_200_OK)
 
-        notification = Notification().get_by_id(notification_id)
-        if notification is None:
-            return Response({'message': 'Verifique se o ID da notificação informado é válido!'}, status=status.HTTP_404_NOT_FOUND)
-
-        return Response(notification, status=status.HTTP_200_OK)
-
     def post(self, request):
-        today = datetime.now().strftime('%Y-%m-%d')
-
         response = Notification().save(dict(
             user_id = request.POST['user_id'],
             message = request.POST['message'],
             type = request.POST['type'],
-            date = today,
-            date_visualized = request.POST.get('date_visualized'),
+            date = int(time() * 1000),
+            date_visualized = None,
         ))
 
         if len(response[1]) == 0:
@@ -126,8 +150,18 @@ class NotificationView(APIView):
         
         return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request):
+        data = request.data.dict()
 
-
+        notification_id = data.get('notification_id')
+        if notification_id is None:
+            return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
+        
+        success, msg_error = Notification().remove(notification_id)
+        if success:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AddFakeNotificationsView():
     '''

@@ -248,14 +248,6 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
 
     def post(self, request):
-        print('*' * 15)
-        print('*' * 15)
-        print('*' * 15)
-        print(request.POST)
-        print('*' * 15)
-        print('*' * 15)
-        print('*' * 15)
-
         try:
             user_id = request.POST['user_id']
 
@@ -294,14 +286,6 @@ class BookmarkView(APIView):
         return Response({'id_bookmark': bookmark_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
-        print('*' * 15)
-        print('*' * 15)
-        print('*' * 15)
-        print(request.data.dict())
-        print('*' * 15)
-        print('*' * 15)
-        print('*' * 15)
-
         data = request.data.dict()
         bookmark_id = data.get('bookmark_id')
         if not bookmark_id:
@@ -318,17 +302,13 @@ class BookmarkView(APIView):
         return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        print('-' * 15)
-        print(request.data)
-        print('-' * 15)
-
         if 'bookmark_id' not in request.data:
             return Response({'message': 'Informe o bookmark_id!'}, status.HTTP_400_BAD_REQUEST) 
 
         bookmark_id = request.data['bookmark_id']
 
         print(type(bookmark_id))
-        
+
         success, msg_error = BOOKMARK.remove(bookmark_id)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)

@@ -67,3 +67,13 @@ class Notification(ElasticModel):
     
     def create(self, dict_data):
         return self.elastic.es.index(index=self.index_name, body=dict_data)
+
+    def remove(self, notification_id):
+        response = self.elastic.es.delete(index=self.index_name, id=notification_id)        
+        success = response['result'] == 'deleted'
+
+        msg_error = ''
+        if not success:
+            msg_error = 'Não foi possível remover a notificação!'
+            
+        return success, msg_error
