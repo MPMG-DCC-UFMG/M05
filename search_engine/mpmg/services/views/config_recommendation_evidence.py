@@ -71,16 +71,20 @@ class ConfigRecommendationEvidenceView(APIView):
         conf_rec_ev = ConfigRecommendationEvidence()
 
         error = dict()
+        all_successfull = True
         for evidence_type in data:
             config = data[evidence_type]
             success, msg_error = conf_rec_ev.update(config, evidence_type=evidence_type)
+
+            if not success:
+                all_successfull = False 
 
             error[evidence_type] = {
                 'success': success,
                 'message': msg_error 
             }
 
-        if len(error) == 0:
+        if all_successfull:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
@@ -99,7 +103,7 @@ class ConfigRecommendationEvidenceView(APIView):
             if evidence is None:
                 return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 
-            success, msg_error = ConfigRecommendationEvidence().delete(evidence_id, evidence_type)
+            success, msg_error = conf_rec_ev.delete(evidence_id, evidence_type)
             if success:
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

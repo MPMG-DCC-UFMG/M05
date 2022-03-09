@@ -23,6 +23,7 @@ urlpatterns = [
     path('notification', views.NotificationView.as_view(), name='notification'),
     path('document_recommendation', views.DocumentRecommendationView.as_view(), name='document_recommendation'),
     path('config_recommendation/evidences', views.ConfigRecommendationEvidenceView.as_view(), name='config_recommendation_evidence'),
+    path('config_recommendation/sources', views.ConfigRecommendationSourceView.as_view(), name='config_recommendation_source'),
     # path('search_comparison_entity', views.CompareViewEntity.as_view(), name='search_comparison_entity'),
     # path('log_search', views.LogSearchView.as_view(), name='log_search'),
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),

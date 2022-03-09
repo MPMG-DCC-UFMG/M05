@@ -1,4 +1,3 @@
-from urllib import response
 from mpmg.services.models import ElasticModel
 
 class ConfigRecommendationEvidence(ElasticModel):

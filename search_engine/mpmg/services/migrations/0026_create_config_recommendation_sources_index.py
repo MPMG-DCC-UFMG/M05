@@ -2,13 +2,14 @@
 
 from django.db import migrations
 from mpmg.services.elastic import Elastic
+from elasticsearch_dsl import Keyword
 
 
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
     m.field('ui_name', 'text')
-    m.field('es_index_name', 'text')
+    m.field('es_index_name', 'text', fields={'keyword': Keyword()})
     m.field('amount', 'integer')
     m.field('active', 'boolean')
     m.save('config_recommendation_sources')
