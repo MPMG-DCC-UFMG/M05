@@ -2,13 +2,14 @@
 
 from django.db import migrations
 from mpmg.services.elastic import Elastic
+from elasticsearch_dsl import Keyword
 
 
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
     m.field('ui_name', 'text')
-    m.field('evidence_type', 'text')
+    m.field('evidence_type', 'text', fields={'keyword': Keyword()})
     m.field('es_index_name', 'text')
     m.field('amount', 'integer')
     m.field('min_similarity', 'integer')
@@ -18,9 +19,9 @@ def create_index(apps, schema_editor):
 
 def insert_data(apps, schema_editor):
     elastic = Elastic()
-    elastic.es.index(index='config_recommendation_evidences', id=1, body={'ui_name': 'Favoritos', 'evidence_type': 'BOOKMARK', 'es_index_name': 'bookmark', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
-    elastic.es.index(index='config_recommendation_evidences', id=2, body={'ui_name': 'Consultas', 'evidence_type': 'QUERY', 'es_index_name': 'log_buscas', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
-    elastic.es.index(index='config_recommendation_evidences', id=3, body={'ui_name': 'Cliques', 'evidence_type': 'CLICK', 'es_index_name': 'log_clicks', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
+    elastic.es.index(index='config_recommendation_evidences', id=1, body={'ui_name': 'Favoritos', 'evidence_type': 'bookmark', 'es_index_name': 'bookmark', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
+    elastic.es.index(index='config_recommendation_evidences', id=2, body={'ui_name': 'Consultas', 'evidence_type': 'query', 'es_index_name': 'log_buscas', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
+    elastic.es.index(index='config_recommendation_evidences', id=3, body={'ui_name': 'Cliques', 'evidence_type': 'click', 'es_index_name': 'log_clicks', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
 
 class Migration(migrations.Migration):
 

@@ -168,7 +168,7 @@ function create_reccomendation_line(recommendation) {
 
     let recommendation_reason = document.createElement('SMALL');
 
-    if (recommendation.matched_from == "BOOKMARK") {
+    if (recommendation.matched_from == "bookmark") {
         let doc_link = document.createElement('A');
 
         doc_link.textContent = titleize(recommendation.evidence_doc_title);
@@ -180,11 +180,11 @@ function create_reccomendation_line(recommendation) {
         recommendation_reason.append('" que você favoritou');
     }
 
-    else if (recommendation.matched_from == "QUERY") {
+    else if (recommendation.matched_from == "query") {
         recommendation_reason.textContent = `Porque você pesquisou por "${titleize(recommendation.evidence_query_text)}"`;
     }
 
-    else if(recommendation.matched_from == "CLICK") {
+    else if(recommendation.matched_from == "click") {
         let doc_link = document.createElement('A');
 
         doc_link.textContent = titleize(recommendation.evidence_doc_title);

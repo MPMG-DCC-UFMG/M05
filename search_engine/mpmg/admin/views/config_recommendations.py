@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 class ConfigRecommendationsView(admin.AdminSite):
 
@@ -16,6 +16,5 @@ class ConfigRecommendationsView(admin.AdminSite):
         if request.method == 'POST':
             print(request.POST)
 
-            print("Tá loucona, mana??")
             context = dict()
             return render(request, 'admin/config_recommendations.html', context)

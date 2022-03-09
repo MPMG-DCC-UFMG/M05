@@ -182,9 +182,9 @@ class DocumentRecommendation(ElasticModel):
         '''
         Retorna uma lista de evidências do usuário para servir como base de recomendação.
         As evidências podem ser 3:
-            - QUERY: Texto de consultas executadas anteriormente pelo usuário
-            - CLICK: Documentos clicados pelo usuário anteriormente
-            - BOOKMARK: Documentos marcados como favoritos
+            - query: Texto de consultas executadas anteriormente pelo usuário
+            - click: Documentos clicados pelo usuário anteriormente
+            - bookmark: Documentos marcados como favoritos
         '''
 
         semantic_model = SemanticModel()
@@ -192,11 +192,11 @@ class DocumentRecommendation(ElasticModel):
         user_evidences = []
 
         # TODO: Padronizar o nome destes campos
-        if evidence_type == 'QUERY':
+        if evidence_type == 'query':
             date_field = 'data_hora'
-        elif evidence_type == 'CLICK':
+        elif evidence_type == 'click':
             date_field = 'timestamp'
-        elif evidence_type == 'BOOKMARK':
+        elif evidence_type == 'bookmark':
             date_field = 'data_criacao'
 
         # busca as evidências do usuário
@@ -214,7 +214,7 @@ class DocumentRecommendation(ElasticModel):
 
 
         # se for consulta, pega o texto da consulta e passa pelo modelo para obter o embedding
-        if evidence_type == 'QUERY':
+        if evidence_type == 'query':
             for doc in elastic_result:
                 embbeded_query = semantic_model.get_dense_vector(doc['text_consulta'])
                 user_evidences.append({'id':None, 'index_name':None, 'title':None, 'query': doc['text_consulta'], 'embedding_vector': embbeded_query})
@@ -222,7 +222,7 @@ class DocumentRecommendation(ElasticModel):
 
         # se for click, pega os IDs dos documentos clicados e faz uma nova consulta 
         # para recuperar o embedding destes documentos
-        elif evidence_type == 'CLICK':
+        elif evidence_type == 'click':
             # pega o ID dos documentos clicados e o índice a qual cada um pertence
             doc_ids_by_type = defaultdict(list)
             for doc in elastic_result:
@@ -241,7 +241,7 @@ class DocumentRecommendation(ElasticModel):
 
         # se for bookmark, pega os IDs dos documentos favoritados e faz uma nova consulta 
         # para recuperar o embedding destes documentos
-        elif evidence_type == 'BOOKMARK':
+        elif evidence_type == 'bookmark':
             # pega o ID dos documentos favoritados e o índice a qual cada um pertence
             doc_ids_by_type = defaultdict(list)
             for doc in elastic_result:

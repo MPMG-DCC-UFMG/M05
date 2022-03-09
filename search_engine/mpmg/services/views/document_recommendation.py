@@ -63,6 +63,33 @@ class DocumentRecommendationView(APIView):
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
+
+    delete:
+        description: Apaga uma recomendação.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            recommendation_id:
+                                description: ID da recomendação a ser removida.
+                                type: string
+                        required:
+                            - notification_id      
+        responses:
+            '204':
+                description: A notificação foi removida com sucesso.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
     '''
 
     schema = AutoDocstringSchema()
@@ -89,6 +116,7 @@ class DocumentRecommendationView(APIView):
 
         if user_id == None or user_id == '':
             users_ids = DocumentRecommendation().get_users_ids_to_recommend()
+
         else:
             users_ids = [user_id]
 
@@ -106,6 +134,7 @@ class DocumentRecommendationView(APIView):
             # se o usuário não possui data, usa a semana anterior como data de referência
             if user_id in user_dates:
                 reference_date = user_dates[user_id]
+                
             else:
                 reference_date = '2021-04-01'
 
@@ -115,15 +144,12 @@ class DocumentRecommendationView(APIView):
             valid_recommendations = []
 
             for evidence_item in config_evidences:
-                print(evidence_item['evidence_type'])
                 top_n = evidence_item['top_n_recommendations']
                 min_similarity = evidence_item['min_similarity']
 
                 # busca as evidências do(s) usuário(s)
                 user_evidences = DocumentRecommendation().get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
 
-                print('>> ', len(user_evidences))
-                
                 # computa a similaridade entre os documentos candidatos e a evidência
                 similarity_ranking = []
 
@@ -238,7 +264,20 @@ class DocumentRecommendationView(APIView):
                 return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
             
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request):
+        data = request.data.dict()
+
+        recommendation_id = data.get('recommendation_id')
+        if recommendation_id is None:
+            return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
         
+        success, msg_error = DocumentRecommendation().remove(recommendation_id)
+        if success:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class AddFakeRecommendationsView():
     '''
     CLASSE TEMPORÁRIA que adiciona recomendações para um determinado usuário
@@ -279,7 +318,7 @@ class AddFakeRecommendationsView():
         
         
         # insere as novas recomendações
-        matched_from = ['QUERY', 'BOOKMARK', 'CLICK', 'BOOKMARK', 'BOOKMARK', 'QUERY', 'BOOKMARK', 'CLICK', 'QUERY', 'QUERY']
+        matched_from = ['query', 'bookmark', 'click', 'bookmark', 'bookmark', 'query', 'bookmark', 'click', 'query', 'query']
         queries = ['maria', '', '', '', '', 'covid', '', '', 'dengue', 'chuvas']
         for i, item in enumerate(rec_docs):
             doc_id, doc_type = item
@@ -290,8 +329,8 @@ class AddFakeRecommendationsView():
                 'recommended_doc_id': doc_type,
                 'matched_from': matched_from[i],
                 'original_query_text': queries[i],
-                'original_doc_index': ref_docs[i][1] if matched_from[i] != 'QUERY' else '',
-                'original_doc_id': ref_docs[i][0] if matched_from[i] != 'QUERY' else '',
+                'original_doc_index': ref_docs[i][1] if matched_from[i] != 'query' else '',
+                'original_doc_id': ref_docs[i][0] if matched_from[i] != 'query' else '',
                 'date': '2021-01-01',
                 'similarity_value': '0.80',
                 'accepted': '',

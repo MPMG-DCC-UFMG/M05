@@ -12,3 +12,5 @@ from .bookmark_folder import *
 from .bookmark import *
 from .notification import *
 from .document_recommendation import *
+from .config_recommendation import *
+from .config_recommendation_evidence import *

@@ -12,7 +12,7 @@ class ConfigRecommendation:
     
 
     @classmethod
-    def get_sources(cls, active=None):
+    def get_sources(self, active=None):
         '''
         Retorna a lista de fontes de recomendação. Cada fonte contém:
             ui_name - nome da fonte a ser exibida para o usuário
@@ -20,9 +20,9 @@ class ConfigRecommendation:
             amount - qtde máxima de documentos que devem ser selecionados
             active - se a fonte está ativa para ser usada ou não
         '''
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RECOMMENDATION_SOURCES)
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.INDEX_CONFIG_RECOMMENDATION_SOURCES)
         if active != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": active }}))
+            search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "active": active }}))
         elastic_result = search_obj.execute()
         
         sources = []
@@ -33,12 +33,12 @@ class ConfigRecommendation:
     
     
     @classmethod
-    def update_sources(cls):
+    def update_sources(self):
         return None
     
 
     @classmethod
-    def get_evidences(cls, active=None):
+    def get_evidences(self, active=None):
         '''
         Retorna a lista de evidências para recomendação. Cada item da lista contém:
             ui_name - Nome da evidência a ser exibida para o usuário
@@ -49,9 +49,9 @@ class ConfigRecommendation:
             top_n_recommendations - Qtde de documentos que devem ser recomendados ao combinar com aquela evidência
             active - Se a evidência deve ser considerada no algoritmo de recomendação
         '''
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RECOMMENDATION_EVIDENCES)
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.INDEX_CONFIG_RECOMMENDATION_EVIDENCES)
         if active != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": active }}))
+            search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "active": active }}))
         elastic_result = search_obj.execute()
         
         evidences = []
@@ -62,5 +62,17 @@ class ConfigRecommendation:
     
 
     @classmethod
-    def update_evidences(cls):
-        return None
+    def update_evidences(self, evidence_type, config):
+        elastic_result = self.elastic.dsl.Search(using=self.elastic.es, index=self.INDEX_CONFIG_RECOMMENDATION_EVIDENCES) \
+                    .filter('term', evidence_type__keyword = evidence_type) \
+                    .execute() \
+                    .to_dict()
+
+        elastic_result = elastic_result['hits']['hits']
+        if len(elastic_result) > 0:
+            evidence = elastic_result[0]['_source']
+            evidence['id'] = elastic_result[0]['_id']
+
+            print(evidence)
+
+        return None 
