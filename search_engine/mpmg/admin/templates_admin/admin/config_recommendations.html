@@ -28,23 +28,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    
-                                        <tr>
-                                            <td>Diários</td>
-                                            <td><input style="width:100px;" type="number" id="rec_size_diario"  min="0" value="5" required/></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_diarios_active" autocomplete="off"></td>
+                                        {% for conf_rec_src in conf_rec_sources  %}
+                                        <tr class="rec_confs" config="{{conf_rec_src.es_index_name}}" id="rec_{{conf_rec_src.es_index_name}}">
+                                            <td>{{ conf_rec_src.ui_name }}</td>
+                                            <td><input style="width:100px;" type="number" class="rec_size" id="rec_size_{{conf_rec_src.es_index_name}}"  min="0" value="{{ conf_rec_src.amount }}" required/></td>
+                                            <td style="text-align: center;"><input type="checkbox" class="rec_active" {% if conf_rec_src.active %} checked {% endif %} id="rec_{{conf_rec_src.es_index_name}}_active" autocomplete="off"></td>
                                         </tr>
-                                        <tr>
-                                            <td>Processos</td>
-                                            <td><input style="width:100px;" type="number" id="rec_size_processo" min="0" value="5" required/></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_processo_active" autocomplete="off"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Licitações</td>
-                                            <td><input style="width:100px;" type="number" id="rec_size_licitacoes" min="0" value="5" required/></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked id="rec_licitacoes_active" autocomplete="off"></td>
-                                        </tr>
-                                    
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
@@ -78,36 +68,18 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>Favoritos</td>
-                                            <td><input style="width:100px;" type="number" min="0" value="5" id="ev_bookmark_amount" name="bookmark_amount" value="" /></td>
+                                        {% for conf_rec_evidence in conf_rec_evidences %}
+                                        <tr class="ev_confs" config="{{conf_rec_evidence.evidence_type}}" id="ev_{{ conf_rec_evidence.evidence_type }}">
+                                            <td>{{ conf_rec_evidence.ui_name }}</td>
+                                            <td><input style="width:100px;" class="ev_amount" type="number" min="0" value="5" id="ev_{{conf_rec_evidence.evidence_type}}_amount" value="{{ conf_rec_evidence.amount }}" /></td>
                                             <td style="text-align: center;">
-                                                <input type="range" value="75" id="ev_bookmark_min_sim" name="bookmark_min_sim" min="0" max="100">
-                                                <label for="bookmark_min_sim" id="lbl_ev_bookmark_min_sim">75%</label>
+                                                <input type="range" class="ev_min_sim" value="{{ conf_rec_evidence.min_similarity }}" id="ev_{{ conf_rec_evidence.evidence_type }}_min_sim" min="0" max="100">
+                                                <label for="ev_{{conf_rec_evidence.evidence_type}}_min_sim" id="lbl_ev_{{conf_rec_evidence.evidence_type}}_min_sim">{{ conf_rec_evidence.min_similarity }}%</label>
                                             </td>
-                                            <td style="text-align: center;"><input type="number" min="0" value="5" id="ev_bookmark_top_n" name="bookmark_top_n" style="width:50px" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' id="ev_bookmark_active" name="bookmark_active"></td>
+                                            <td style="text-align: center;"><input type="number" class="ev_top_n" min="0" value="{{ conf_rec_evidence.top_n_recommendations }}" id="ev_{{conf_rec_evidence.evidence_type}}_top_n" style="width:50px" /></td>
+                                            <td style="text-align: center;"><input type="checkbox" class="ev_active" {% if conf_rec_evidence.active %} checked {% endif %} id="ev_{{conf_rec_evidence.evidence_type}}_active"></td>
                                         </tr>
-                                        <tr>
-                                            <td>Consultas</td>
-                                            <td><input style="width:100px;" type="number" min="0" value="5" id="ev_query_amount" name="query_amount" value="" /></td>
-                                            <td style="text-align: center;">
-                                                <input type="range" value="75" id="ev_query_min_sim" name="query_min_sim" min="0" max="100">
-                                                <label for="query_min_sim" id="lbl_ev_query_min_sim">75%</label>
-                                            </td>
-                                            <td style="text-align: center;"><input type="number" min="0" value="5" id="ev_query_top_n" name="query_top_n" style="width:50px" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' id="ev_query_active" name="query_active"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Cliques</td>
-                                            <td><input style="width:100px;" type="number" min="0" value="5" id="ev_click_amount" name="click_amount" value="" /></td>
-                                            <td style="text-align: center;">
-                                                <input type="range" value="75" id="ev_click_min_sim" name="click_min_sim" min="0" max="100">
-                                                <label for="click_min_sim" id="lbl_ev_click_min_sim">75%</label>
-                                            </td>
-                                            <td style="text-align: center;"><input type="number" min="0" value="5" id="ev_click_top_n" name="click_top_n" style="width:50px" /></td>
-                                            <td style="text-align: center;"><input type="checkbox" checked='checked' id="ev_click_active" name="click_active"></td>
-                                        </tr>
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
@@ -124,4 +96,7 @@
         </div>
     </div>
 </div>
+<script>
+    var EVIDENCE_TYPES = {{evidence_types | safe }};
+</script>
 {% endblock%}

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.models import DocumentRecommendation, ConfigRecommendation, Notification
+from mpmg.services.models import DocumentRecommendation, ConfigRecommendationEvidence, Notification
 
 
 class DocumentRecommendationView(APIView):
@@ -93,7 +93,7 @@ class DocumentRecommendationView(APIView):
     '''
 
     schema = AutoDocstringSchema()
-
+    config_rec_evidences = ConfigRecommendationEvidence()
     
     def _cosine_similarity(self, doc1, doc2):
         return np.dot(doc2, doc2)/(np.linalg.norm(doc1)*np.linalg.norm(doc2))
@@ -125,8 +125,12 @@ class DocumentRecommendationView(APIView):
 
 
         # quais os tipos de evidência que devem ser usadas na recomendação
-        config_evidences = ConfigRecommendation.get_evidences(active=True)
-
+        config_evidences, _ = self.config_rec_evidences.get(active=True)
+        
+        print('-' * 10)
+        print('Config revidences:')
+        print(config_evidences)
+        print('-' * 10)
 
         for user_id in users_ids:
 

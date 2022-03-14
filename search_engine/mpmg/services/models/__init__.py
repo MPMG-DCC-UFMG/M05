@@ -13,6 +13,5 @@ from .bookmark_folder import BookmarkFolder
 from .bookmark import Bookmark
 from .notification import Notification
 from .document_recommendation import DocumentRecommendation
-from .config_recommendation import ConfigRecommendation
 from .config_recommendation_evidence import ConfigRecommendationEvidence
 from .config_recommendation_source import ConfigRecommendationSource

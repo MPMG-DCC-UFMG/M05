@@ -1,13 +1,13 @@
-from time import time
 from mpmg.services.models.elastic_model import ElasticModel
-from .config_recommendation import ConfigRecommendation
+from .config_recommendation_source import ConfigRecommendationSource
 from collections import defaultdict
 from ..semantic_model import SemanticModel
 
 
 class DocumentRecommendation(ElasticModel):
     index_name = 'doc_recommendations'
-    
+    config_rec_sources = ConfigRecommendationSource()
+
     def __init__(self, **kwargs):
         index_name = DocumentRecommendation.index_name
         meta_fields = ['id']
@@ -156,7 +156,7 @@ class DocumentRecommendation(ElasticModel):
         '''
 
         # qtde e tipo dos documentos candidatos
-        sources = ConfigRecommendation.get_sources(active=True)
+        sources, _ = self.config_rec_sources.get(active=True)
         
         candidates_keys = set()
         candidates = []
