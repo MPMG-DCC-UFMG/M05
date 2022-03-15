@@ -1,4 +1,4 @@
-from os import stat
+from time import sleep
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -60,10 +60,34 @@ class ConfigRecommendationSourceView(APIView):
 
         return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
 
+    def _parse_data(self, data: dict):
+        parsed_data = dict()
+        for key, val in data.items():
+            if '[' in key:
+                s_key = key[:-1].split('[')
+                index_name, attrib  = s_key[0], s_key[1]
+
+                if index_name not in parsed_data:
+                    parsed_data[index_name] = dict()
+                
+                if type(val) is str:
+                    if val == 'false':
+                        val = False
+                    
+                    elif val == 'true':
+                        val = True 
+                    
+                    else:
+                        val = int(val)
+                    
+                parsed_data[index_name][attrib] = val
+                
+        return parsed_data
+
     def put(self, request):
         data = request.data
         if type(data) is not dict:
-            data = data.dict()
+            data = self._parse_data(data.dict())
         
         conf_rec_source = ConfigRecommendationSource()
 
@@ -82,6 +106,8 @@ class ConfigRecommendationSourceView(APIView):
             }
 
         if all_successfull:
+            # para que o usuário atualize a página com os dados já atualizados
+            sleep(.9)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(error, status=status.HTTP_400_BAD_REQUEST)

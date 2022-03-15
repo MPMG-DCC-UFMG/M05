@@ -14,6 +14,9 @@ class ConfigRecommendationsView(admin.AdminSite):
 
         evidence_types = list(ev['evidence_type'] for ev in conf_rec_evidences)
 
+        conf_rec_sources.sort(key = lambda item: item['ui_name'])
+        conf_rec_evidences.sort(key = lambda item: item['ui_name'])
+
         context = {
             'conf_rec_sources': conf_rec_sources,
             'conf_rec_evidences': conf_rec_evidences,

@@ -71,7 +71,7 @@
                                         {% for conf_rec_evidence in conf_rec_evidences %}
                                         <tr class="ev_confs" config="{{conf_rec_evidence.evidence_type}}" id="ev_{{ conf_rec_evidence.evidence_type }}">
                                             <td>{{ conf_rec_evidence.ui_name }}</td>
-                                            <td><input style="width:100px;" class="ev_amount" type="number" min="0" value="5" id="ev_{{conf_rec_evidence.evidence_type}}_amount" value="{{ conf_rec_evidence.amount }}" /></td>
+                                            <td><input style="width:100px;" class="ev_amount" type="number" min="0" id="ev_{{conf_rec_evidence.evidence_type}}_amount" value="{{ conf_rec_evidence.amount }}" /></td>
                                             <td style="text-align: center;">
                                                 <input type="range" class="ev_min_sim" value="{{ conf_rec_evidence.min_similarity }}" id="ev_{{ conf_rec_evidence.evidence_type }}_min_sim" min="0" max="100">
                                                 <label for="ev_{{conf_rec_evidence.evidence_type}}_min_sim" id="lbl_ev_{{conf_rec_evidence.evidence_type}}_min_sim">{{ conf_rec_evidence.min_similarity }}%</label>
@@ -98,5 +98,11 @@
 </div>
 <script>
     var EVIDENCE_TYPES = {{evidence_types | safe }};
+    var SERVER_ADDRESS = window.location.origin;
+    var SERVICES_URL = SERVER_ADDRESS + '/services/';
+
+    var CONF_REC_SRC;
+    var CONF_REC_EV;
+
 </script>
 {% endblock%}
