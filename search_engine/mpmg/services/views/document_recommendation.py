@@ -25,9 +25,65 @@ class DocumentRecommendationView(APIView):
               required: false
               schema:
                     type: string
-    
+        responses:
+            '200':
+                description: Retorna uma lista de recomendações.
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    id:
+                                        type: integer
+                                        description: ID da recomendação.
+                                    user_id:
+                                        type: string
+                                        description: ID do usuário que recebeu a recomendação.
+                                    notification_id: 
+                                        type: string
+                                        description: ID da notificação que a recomendação está associada.
+                                    recommended_doc_index:
+                                        type: string
+                                        description: Índice do documento recomendado.
+                                    recommended_doc_id:
+                                        type: string
+                                        description: ID do documento recomendado.
+                                    recommended_doc_title:
+                                        type: string
+                                        description: Título do documento recomendado.
+                                    matched_from:
+                                        type: string
+                                        description: De onde a recomendação foi baseada, podendo ser click, bookmark ou query. 
+                                    evidence_query_text:
+                                        type: string
+                                        description: Se a origem da recomendação foi uma consulta, ela aparecerá aqui.
+                                    evidence_doc_index:
+                                        type: string
+                                        description: Se a origem da recomendação foi um favorito, será o índice do documento favoritado.
+                                    evidence_doc_id: 
+                                        type: string
+                                        description: Se a origem da recomendação foi um favorito, será o ID do documento favoritado.
+                                    evidence_doc_title:
+                                        type: string
+                                        description: Se a origem da recomendação foi um favorito, será o título do documento favoritado.
+                                    date: 
+                                        type: integer
+                                        description: Timestamp de quando a recomendação foi feita.
+                                    similarity_value:
+                                        type: number
+                                        description: O quão similar é o documento recomendado e os que serviram de base para a recomendação.
+                                    accepted: 
+                                        type: boolean
+                                        nullable: true
+                                        description: Informa se o usuário aceitou ou não a recomendação.
+                                    date_visualized: 
+                                        type: integer
+                                        nullable: true
+                                        description: Timestamp de quando o usuário visualizou a
     post:
-        description: Processa novas recomendações de documentos para os usuários
+        description: Processa novas recomendações de documentos para um usuário específico ou todos.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -37,9 +93,12 @@ class DocumentRecommendationView(APIView):
                             user_id:
                                 description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
                                 type: string
-    
+        responses:
+            '201':
+                description: As recomendações foram feitas para o usuário específico ou todos.
+
     put:
-        description: Atualiza a recomendação indicando se o usuário aprovou ou não a recomendação em questão.
+        description: Atualiza o status de uma recomendação para visualizado e/ou se o usuário a aprovou.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -50,12 +109,11 @@ class DocumentRecommendationView(APIView):
                                 description: ID da recomendação a ser alterada.
                                 type: string
                             accepted:
-                                description: true ou false indicando se o usuário aprovou ou null, caso não haja opinião.
-                                type:
-                                    - 'null'
-                                    - boolean
+                                description: booleando indicando se o usuário aprovou a recomendação. Caso não haja opinião, passar o campo em branco.
+                                type: boolean
+                                nullable: true
                             date_visualized:
-                                description: Inteiro representando o timestamp de quando a recomendação foi vista. Se vazio, o próprio sistema preencherá o campo.
+                                description: Inteiro representando o timestamp de quando a recomendação foi vista. Se em branco, o próprio sistema preencherá o campo.
                                 type:
                                     - int
                         required:
@@ -76,7 +134,7 @@ class DocumentRecommendationView(APIView):
                                 description: ID da recomendação a ser removida.
                                 type: string
                         required:
-                            - notification_id      
+                            - recommendation_id      
         responses:
             '204':
                 description: A notificação foi removida com sucesso.
@@ -113,24 +171,21 @@ class DocumentRecommendationView(APIView):
     
     def post(self, request):
         user_id = request.POST.get('user_id', None)
+        document_recommendation =  DocumentRecommendation()
+        notification = Notification()
 
         if user_id == None or user_id == '':
-            users_ids = DocumentRecommendation().get_users_ids_to_recommend()
+            users_ids = document_recommendation.get_users_ids_to_recommend()
 
         else:
             users_ids = [user_id]
 
         # data da última recomendação de cada usuário
-        user_dates = DocumentRecommendation().get_last_recommendation_date()
+        user_dates = document_recommendation.get_last_recommendation_date()
 
 
         # quais os tipos de evidência que devem ser usadas na recomendação
         config_evidences, _ = self.config_rec_evidences.get(active=True)
-        
-        print('-' * 10)
-        print('Config revidences:')
-        print(config_evidences)
-        print('-' * 10)
 
         for user_id in users_ids:
 
@@ -143,7 +198,7 @@ class DocumentRecommendationView(APIView):
                 reference_date = '2021-04-01'
 
             # busca os documentos candidatos a recomendação
-            candidates = DocumentRecommendation().get_candidate_documents(reference_date)
+            candidates = document_recommendation.get_candidate_documents(reference_date)
 
             valid_recommendations = []
 
@@ -152,7 +207,7 @@ class DocumentRecommendationView(APIView):
                 min_similarity = evidence_item['min_similarity']
 
                 # busca as evidências do(s) usuário(s)
-                user_evidences = DocumentRecommendation().get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
+                user_evidences = document_recommendation.get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
 
                 # computa a similaridade entre os documentos candidatos e a evidência
                 similarity_ranking = []
@@ -169,7 +224,6 @@ class DocumentRecommendationView(APIView):
                     
                     evidence_ranking[evidence_i].sort(key = lambda item: item[1], reverse=True)
 
-                print(f'Evidence ranking: {len(evidence_ranking)}')
                 num_docs_recommended_in_evidence = 0
                 while True:
                     candidate_rankings = []
@@ -210,13 +264,11 @@ class DocumentRecommendationView(APIView):
                     if num_docs_recommended_in_evidence == top_n:
                             break        
                 
-                print(f'Valid recommendations: {len(valid_recommendations)}')
-
             # se existem recomendações válidas, cria uma notificação e associa o seu ID 
             # aos registros de recomendação antes de gravá-los
             if len(valid_recommendations) > 0:
                 # cria a notificação
-                notification_response = Notification().create({
+                notification_response = notification.create({
                     'user_id': user_id,
                     'message': 'Novos documentos que possam ser do seu interesse.',
                     'type': 'RECOMMENDATION',
@@ -226,12 +278,11 @@ class DocumentRecommendationView(APIView):
 
                 for recommendation in valid_recommendations:
                     recommendation['notification_id'] = notification_id
-                    response = DocumentRecommendation().save(recommendation)
+                    document_recommendation.save(recommendation)
 
 
-        return Response({})
+        return Response(status=status.HTTP_201_CREATED)
     
-
     def put(self, request):
         data = request.data.dict()
 
