@@ -16,7 +16,7 @@ class NotificationView(APIView):
             - name: user_id
               in: query
               description: ID do usuário
-              required: false
+              required: true
               schema:
                     type: string
             - name: notification_id
@@ -25,7 +25,35 @@ class NotificationView(APIView):
               required: false
               schema:
                     type: string
-    
+        responses:
+            '200':
+                description: Retorna uma notifição ou uma lista dela.
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                        description: ID da notificação.
+                                    user_id:
+                                        type: string
+                                        description: ID do usário a quem a notificação se destina.
+                                    message:
+                                        type: string
+                                        description: Texto da notificação.
+                                    type:
+                                        type: string
+                                        description: Tipo da notificação, por enquanto, somente "RECOMMENDATION".
+                                    date:
+                                        type: integer
+                                        description: Timestamp de quando a notificação foi criada.
+                                    date_visualized:
+                                        type: integer
+                                        description: Timestamp de quando a notificação foi vista.
+                                        nullable: true
     post:
         description: Cria uma notificação.
         requestBody:
@@ -35,7 +63,7 @@ class NotificationView(APIView):
                         type: object
                         properties:
                             user_id:
-                                description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
+                                description: ID do usuário a quem se destina a notificação.
                                 type: string
                             message:
                                 description: Texto da notificação.
@@ -47,6 +75,28 @@ class NotificationView(APIView):
                             - user_id
                             - message
                             - type
+        responses:
+            '201':
+                description: A notificação foi criada com sucesso.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                notification_id: 
+                                    type: string
+                                    description: ID da notificação crida.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
     put:
         description: Atualiza a data de visualização de uma notificação específica.
         requestBody:
@@ -59,16 +109,35 @@ class NotificationView(APIView):
                                 description: ID da notificação a ser alterada.
                                 type: string
                             date_visualized:
-                                description: Data da visualização no formato Y-m-d. Se não for informado será usada a data corrente.
+                                description: Timestamp da visualização da notificação. Se não for informado, o sistema obterá automaticamente com base no tempo atual.
                                 type: string
                         required:
                             - notification_id
         responses:
             '204':
-                description: As alterações a serem feitas foram executadas com sucesso.
-
+                description: As alterações foram executadas com sucesso.
+            '400':
+                description: O ID da notificação não foi informado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
     delete:
-        description: Apaga uma notificaçaõ.
+        description: Apaga uma notificação.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -117,7 +186,7 @@ class NotificationView(APIView):
             return Response(notifications_list, status=status.HTTP_200_OK)
 
     def post(self, request):
-        response = Notification().save(dict(
+        notification_id, msg_error = Notification().save(dict(
             user_id = request.POST['user_id'],
             message = request.POST['message'],
             type = request.POST['type'],
@@ -125,10 +194,10 @@ class NotificationView(APIView):
             date_visualized = None,
         ))
 
-        if len(response[1]) == 0:
-            return Response(status=status.HTTP_201_CREATED)
+        if notification_id:
+            return Response({'notification_id': notification_id}, status=status.HTTP_201_CREATED)
         
-        return Response({'message': 'Não foi possível criar a notificação. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
     def put(self, request):
@@ -148,7 +217,7 @@ class NotificationView(APIView):
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
         data = request.data.dict()
