@@ -9,7 +9,188 @@ from mpmg.services.models import ConfigRecommendationEvidence
 from ..docstring_schema import AutoDocstringSchema
 
 class ConfigRecommendationEvidenceView(APIView):
-    # schema = AutoDocstringSchema()
+    '''
+    get:
+        description: Retorna a lista de configuração de evidências, podendo ser filtradas por ativas, ou uma configuração de evidência específica, se o ID ou tipo da evidência for informado.
+        parameters:
+            - name: evidence_id
+              in: query
+              description: ID da evidência a ser recuperada.
+              required: false
+              schema:
+                    type: string
+            - name: evidence_type
+              in: query
+              description: Tipo da evidência a ser buscada.
+              required: false
+              schema:
+                    type: string
+            - name: active
+              in: query
+              description: Se a lista retorna só possui elementos ativos.
+              required: false
+              schema:
+                    type: string
+        responses:
+            '200':
+                description: Retorna uma configuração de evidência ou uma lista dela.
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                        description: ID do tipo de evidência.
+                                    ui_name:
+                                        type: string
+                                        description: Nome amigável que aparecerá ao usuário representando o tipo da evidência.
+                                    evidence_type:
+                                        type: string
+                                        description: Tipo da evidência.
+                                    es_index_name:
+                                        type: string
+                                        description: Índice onde documentos representantes do tipo da evidência serão buscados.
+                                    amount:
+                                        type: integer
+                                        description: Quantidade de documentos representantes do tipo de evidência que será buscado no índice correspondente.
+                                    min_similarity:
+                                        type: number
+                                        description: Similaridade mínima entre um possível documento a ser recomendados e os documentos representantes do tipo de evidência para ser considerado válido.
+                                    top_n_recommendations:
+                                        type: integer
+                                        description: Tamanho do ranking de documentos recomendados para o tipo de evidência.
+                                    active:
+                                        type: boolean
+                                        description: Se o tipo de evidência deve ou não ser considerado para gerar recomendações.
+    post:
+        description: Cria um novo tipo de evidência.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            ui_name:
+                                type: string
+                                description: Nome amigável do tipo de evidência.
+                            evidence_type:
+                                type: string
+                                description: Tipo da evidência.
+                            es_index_name:
+                                type: string
+                                description: Índice corresponde ao tipo de evidência.
+                            amount:
+                                type: integer
+                                description: Quantidade de documentos representantes do tipo de evidência que será buscado no índice correspondente.
+                            min_similarity:
+                                type: number
+                                description: Similaridade mínima entre um possível documento a ser recomendados e os documentos representantes do tipo de evidência para ser considerado válido.
+                            top_n_recommendations:
+                                type: integer
+                                description: Tamanho do ranking de documentos recomendados para o tipo de evidência.
+                            active:
+                                type: boolean
+                                description: Se o tipo de evidência deve ou não ser considerado para gerar recomendações.
+                        required:
+                            - ui_name
+                            - evidence_type
+                            - es_index_name
+                            - amount
+                            - min_similarity
+                            - top_n_recommendations
+                            - active
+        responses:
+            '201':
+                description: O tipo de evidência foi criado com sucesso.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                evidence_id: 
+                                    type: string
+                                    description: ID do tipo de evidência criada.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    put:
+        description: Atualiza determinado tipo de evidência. Para alterar uma evidência, passe um dicionário cuja chave seja o tipo de evidência e o valor é um dicionário com seus atributos alterados.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            evidence_type:
+                                description: Dicionário onde a chave é o tipo da evidência e o valor é um dicionário com os campos a serem alterados.
+                                type: object                            
+                        required:
+                            - evidence_type
+        responses:
+            '204':
+                description: As alterações foram executadas com sucesso.
+            '400':
+                description: Algum campo foi informado incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+    delete:
+        description: Apaga um tipo de evidência por seu ID ou tipo, um dos dois precisa ser enviado.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            evidence_id:
+                                type: string    
+                                description: ID do tipo de evidência a ser removido.
+                            evidence_type:
+                                type: string
+                                description: Tipo do tipo de evidência a ser removido.
+        responses:
+            '204':
+                description: Deleção com sucesso.
+            '400':
+                description: Nenhum dos campos foi enviado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Menciona a necessidade de informar pelo menos um dos campos válido.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    '''
+
+    schema = AutoDocstringSchema()
 
     def get(self, request):
         evidence_id = request.GET.get('evidence_id')
@@ -110,6 +291,7 @@ class ConfigRecommendationEvidenceView(APIView):
             }
 
         if all_successfull:
+            # para dar tempo de o índice ter sido atualizado
             sleep(.9)
             return Response(status=status.HTTP_204_NO_CONTENT)
 

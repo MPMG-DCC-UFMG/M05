@@ -7,7 +7,6 @@ from mpmg.services.models import Notification
 
 
 class NotificationView(APIView):
-    # TODO: Documentar as respostas da API
 
     '''
     get:

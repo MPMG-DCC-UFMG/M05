@@ -8,7 +8,166 @@ from mpmg.services.models import ConfigRecommendationSource
 from ..docstring_schema import AutoDocstringSchema
 
 class ConfigRecommendationSourceView(APIView):
-    # schema = AutoDocstringSchema()
+    '''
+    get:
+        description: Retorna a lista de configuração de sources, podendo ser filtradas por ativas, ou uma configuração de source específica, se o ID ou índice do source for informado.
+        parameters:
+            - name: source_id
+              in: query
+              description: ID do source a ser recuperada.
+              required: false
+              schema:
+                    type: string
+            - name: index_name
+              in: query
+              description: Índice que a source remete.
+              required: false
+              schema:
+                    type: string
+            - name: active
+              in: query
+              description: Se a lista retorna só possui elementos ativos.
+              required: false
+              schema:
+                    type: string
+        responses:
+            '200':
+                description: Retorna uma configuração de evidência ou uma lista dela.
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                        description: ID da source.
+                                    ui_name:
+                                        type: string
+                                        description: Nome amigável que aparecerá ao usuário representando a source.
+                                    es_index_name:
+                                        type: string
+                                        description: Índice que a source remente.
+                                    amount:
+                                        type: integer
+                                        description: Quantidade de documentos do índice que será buscado.
+                                    active:
+                                        type: boolean
+                                        description: Se a source deve ou não ser considerado para gerar recomendações.
+    post:
+        description: Cria uma nova source.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            ui_name:
+                                type: string
+                                description: Nome amigável que aparecerá ao usuário representando a source.
+                            es_index_name:
+                                type: string
+                                description: Índice que a source remente.
+                            amount:
+                                type: integer
+                                description: Quantidade de documentos do índice que será buscado.
+                            active:
+                                type: boolean
+                                description: Se a source deve ou não ser considerado para gerar recomendações.
+                        required:
+                            - ui_name
+                            - es_index_name
+                            - amount
+                            - active
+        responses:
+            '201':
+                description: A source foi criada com sucesso.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                source_id: 
+                                    type: string
+                                    description: ID da source criada.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    put:
+        description: Atualiza determinada source. Para alterar uma source, passe um dicionário cuja chave seja o nome do índice que ela está atribuída e o valor é um dicionário com seus atributos alterados.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            index_name:
+                                description: Dicionário onde a chave é o índice que a source está associada e o valor é um dicionário com os campos a serem alterados.
+                                type: object                            
+                        required:
+                            - index_name
+        responses:
+            '204':
+                description: As alterações foram executadas com sucesso.
+            '400':
+                description: Algum campo foi informado incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+    delete:
+        description: Apaga uma source por seu ID ou índice associado, um dos dois precisa ser enviado.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            source_id:
+                                type: string    
+                                description: ID da source a ser removida.
+                            index_name:
+                                type: string
+                                description: Índice associado ao source a ser removido.
+        responses:
+            '204':
+                description: Deleção com sucesso.
+            '400':
+                description: Nenhum dos campos foi enviado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Menciona a necessidade de informar pelo menos um dos campos válido.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    '''
+    schema = AutoDocstringSchema()
 
     def get(self, request):
         source_id = request.GET.get('source_id')
