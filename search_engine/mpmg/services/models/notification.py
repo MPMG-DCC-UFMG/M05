@@ -47,6 +47,18 @@ class Notification(ElasticModel):
         except:
             None
 
+    def save(self, dict_data=None):
+        if dict_data == None:
+            dict_data = {}
+            for field in self.index_fields:
+                dict_data[field] = getattr(self, field, '')
+        
+        response = self.elastic.es.index(index=self.index_name, body=dict_data)
+        if response['result'] != 'created':
+            return None, 'Não foi possível criar a configuração. Tente novamente!'
+
+        return response['_id'], ''
+
     def mark_as_visualized(self, notification_id, date_visualized):
         '''
         Atualiza uma notificação com a data em que ela foi visualizada.
