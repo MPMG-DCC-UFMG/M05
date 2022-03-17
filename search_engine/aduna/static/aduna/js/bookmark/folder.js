@@ -11,7 +11,7 @@ var folder_tree = {};
 var raw_tree = null;
 var folders = [];
 
-var folder_blacklist = []
+var folder_blacklist = [];
 
 var bulk = false;
 var folders_to_move = [];
@@ -549,6 +549,12 @@ function create_children(parent_id, children_id, folder_name) {
         id: children_id,
         nome: folder_name,
     });
+
+    // if (typeof DOC_ID !== 'undefined') {
+    //     raw_tree = services.get_folder_tree();
+    //     $('#bookmark-move-folder').html(parse_folder_move_tree(raw_tree,'bookmark'));
+    //     $('#move-folder').html(parse_folder_move_tree(raw_tree, 'folder'));
+    // }
 }
 
 function create_children_from_context_menu() {
@@ -856,6 +862,13 @@ function create_folder(name, folder_id, opened, depth, children = []) {
         input.className = disabled_input_classes;
 
         services.rename_folder(folder_id, input.value);
+
+        if (typeof DOC_ID === 'undefined') {
+            raw_tree = services.get_folder_tree();
+            $('#move-folder').html(parse_folder_move_tree(raw_tree, 'folder'));
+            folder_blacklist = [];
+            $('#bookmark-move-folder').html(parse_folder_move_tree(raw_tree,'bookmark'));
+        }
 
         let idx = folders.findIndex(pasta => pasta.id === folder_id);
         if (idx >= 0) {

@@ -226,38 +226,49 @@ services.create_folder = function(parent_id) {
     });
 }
 
-services.get_bookmark_folder_tree = function() {
-    let ajax = $.ajax({
+services.get_folder_tree = function()  {
+    let tree;
+    $.ajax({
         url: SERVICES_URL + 'bookmark_folder',
         type: 'get',
         dataType: 'json',
+        async: false,
         data: {
             user_id: USER_ID
         },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        success: function (data) {
+            tree = data;
+        },
+        error: function (res) {
+            alert(res.message);
+        }
     });
 
-    ajax.done(function (tree) {
-        raw_tree = tree;
+    return tree;
+}
 
-        // Inserindo após converter o json com estrutura de pastas do usuário em HTML
-        $('#bookmark-folder').append(parse_folder_tree(tree));
-        $('#bookmark-move-folder').html(parse_folder_move_tree(tree,'bookmark'));
-        // $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
+services.get_bookmark_folder_tree = function() {
+    tree = services.get_folder_tree();
+    raw_tree = tree;
 
-        // Habilita o evento de menu de contexto
-        enable_context_menu_event(tree);
+    // Inserindo após converter o json com estrutura de pastas do usuário em HTML
+    $('#bookmark-folder').append(parse_folder_tree(tree));
+    $('#bookmark-move-folder').html(parse_folder_move_tree(tree,'bookmark'));
+    // $('#move-folder').html(parse_folder_move_tree(tree, 'folder'));
 
-        dictify_tree(tree);
+    // Habilita o evento de menu de contexto
+    enable_context_menu_event(tree);
 
-        if (typeof DOC_ID !== 'undefined')
-            listify_tree(tree, folders);
+    dictify_tree(tree);
 
-        // // define que o pasta raiz é a pasta ativa, por default
-        // active_folder = tree.id;
+    if (typeof DOC_ID !== 'undefined')
+        listify_tree(tree, folders);
 
-        update_active_folder(tree.id) ;
-    });
+    // // define que o pasta raiz é a pasta ativa, por default
+    // active_folder = tree.id;
+
+    update_active_folder(tree.id) ;
 }
 
 services.move_folder = function () {
