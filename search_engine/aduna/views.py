@@ -1,12 +1,9 @@
 import re
 import requests
+import time
 from datetime import datetime
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, response
 from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from collections import defaultdict
 
@@ -16,6 +13,7 @@ def index(request):
         return redirect('/aduna/login')
     
     context = {
+        'user_id': request.session.get('user_info')['user_id'],
         'user_name': request.session.get('user_info')['first_name'],
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
@@ -98,6 +96,7 @@ def search(request):
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -139,7 +138,7 @@ def document(request, doc_type, doc_id):
         request.session['user_info'] = None
         return redirect('/aduna/login')
     else:
-        query = request.GET['query']
+        query = request.GET.get('query', '')
         pessoa_filter = request.GET.getlist('pessoa', [])
         municipio_filter = request.GET.getlist('municipio', [])
         organizacao_filter = request.GET.getlist('organizacao', [])
@@ -164,20 +163,32 @@ def document(request, doc_type, doc_id):
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
                 'document': response_content['document'],
-                'navigation': navigation
+                'navigation': navigation,
+                'doc_type': doc_type,
+                'doc_id': doc_id,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
             }
             return render(request, 'aduna/document_segmented.html', context)
+
         else:
             response_content = service_response.json()
             document = response_content['document']
+            document['titulo'] = document['titulo'].strip() 
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
+
             context = {
                 'user_name': request.session.get('user_info')['first_name'],
-                'document': document
+                'document': document,
+                'query': query,
+                'doc_type': doc_type,
+                'doc_id': doc_id,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
             }
-            return render(request, 'aduna/document.html', context)
 
+            return render(request, 'aduna/document.html', context)
 
 def login(request):
     if request.method == 'GET':
@@ -274,6 +285,7 @@ def search_comparison(request):
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -362,6 +374,7 @@ def search_comparison_entity(request):
 
         context = {
             'auth_token': request.session.get('auth_token'),
+            'user_id': request.session.get('user_info')['user_id'],
             'user_name': request.session.get('user_info')['first_name'],
             'services_url': settings.SERVICES_URL,
             'query': query,
@@ -392,3 +405,50 @@ def search_comparison_entity(request):
         print(response_content['entities'])
         
         return render(request, 'aduna/search_comparison_entity.html', context)
+
+def bookmark(request):
+    if not request.session.get('auth_token'):
+        return redirect('/aduna/login')
+    
+    context = {
+        'services_url': settings.SERVICES_URL,
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session['user_info']['user_id']
+    }
+    
+    return render(request, 'aduna/bookmark.html', context)
+
+
+def recommendations(request):
+    if not request.session.get('auth_token'):
+        return redirect('/aduna/login')
+
+    params = {
+        'user_id': request.session.get('user_info')['user_id']
+    }
+
+    notification_id = request.GET.get('notification_id', '')
+    if notification_id:
+        params['notification_id'] = notification_id
+
+        # Informa que a notificação foi visualizada
+        headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+        service_response = requests.put(settings.SERVICES_URL+'notification', 
+                                        data={'notification_id': notification_id}, 
+                                        headers=headers)
+
+        # atrasa um pouco a resposta para que haja tempo de o ES atualize o index
+        if service_response.status_code == 204:
+            time.sleep(.5)
+            
+    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+    service_response = requests.get(settings.SERVICES_URL + 'document_recommendation', params, headers=headers)
+    response_content = service_response.json()
+
+    ctx = {
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session.get('user_info')['user_id'],
+        'notification_id': notification_id
+    }
+
+    return render(request, 'aduna/recommendation.html', ctx)

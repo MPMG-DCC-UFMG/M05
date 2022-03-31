@@ -15,6 +15,10 @@
     </head>
     <body {% block body_tags %}{% endblock %}>
         {% block content %}{% endblock %}
+
+        <!-- seção com modais inseridas dinamicamente, como para criação de bookmarks dinamicamente para cada página -->
+        <div class="modals"></div>
+
         {% block script_before %}{% endblock %}
         <script src="{% static 'aduna/jquery-3.4.1.min.js' %}"></script>
         <script src="{% static 'aduna/popper.min.js' %}"></script>

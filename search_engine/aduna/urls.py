@@ -13,4 +13,6 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
     path('erro', views.erro, name='erro'),
+    path('bookmark', views.bookmark, name='bookmark'),
+    path('recomendacoes', views.recommendations, name='recommendations'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

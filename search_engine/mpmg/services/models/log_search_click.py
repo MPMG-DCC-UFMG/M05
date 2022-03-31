@@ -9,6 +9,7 @@ class LogSearchClick(ElasticModel):
         index_name = LogSearchClick.index_name
         meta_fields = ['id']
         index_fields = [
+            'id_usuario',
             'id_documento',
             'id_consulta',
             'posicao',

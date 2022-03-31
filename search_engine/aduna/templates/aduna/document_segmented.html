@@ -1,5 +1,6 @@
 {% extends "./_base.html" %}
 {% load aduna_extras %}
+{% load static %}
 {% block body_tags %}class="view-as-page"{% endblock %}
 {% block content %}
     <header>
@@ -17,12 +18,27 @@
                     </form>
                 </div>
                 <ul class="navbar-nav mr-auto">
+                    <li id="notification" class="nav-item dropdown mr-2">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="notification">
+                                <i class="fas fa-bell text-muted"></i>
+                                <div id="notification-badge" class="badge d-none"></div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification" style="width: 360px; max-height: 400px; overflow-y: auto;">
+                            <ul class="small p-0" style="list-style: none;" id="notification-list">
+                            </ul>
+                            <!-- <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a> -->
+                        </div>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user"></i>
                             {{ user_name }}
                         </a>
                         <div class="dropdown-menu" aria-labelledby="dropdown07">
+                            <a class="dropdown-item" href="/aduna/recomendacoes"><i class="fas fa-lightbulb"></i> Recomendações</a>
+                            <a class="dropdown-item" href="/aduna/bookmark"><i class="fas fa-star"></i> Favoritos</a>
                             <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
                         </div>
                     </li>
@@ -56,7 +72,11 @@
             <div id="doc-navbar-toggle"><i class="fas fa-bars"></i></div>
         </nav>
         <div class="page nav-active">
-            <h1><center>{{ document.titulo }}</center></h1>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="m-0"><center>{{ document.titulo }}</center></h1>
+                <div class="bookmark">
+                </div>
+            </div>
             <h2><center>{{ document.data }}</center></h2>
             <br><br><br>
             {% for segmento in document.segmentos %}
@@ -92,9 +112,16 @@
 {% endblock %}
 {% block script_before %}
     <script>
-        SERVICES_URL = '{{ services_url }}';
+        SERVER_ADDRESS = window.location.origin;
+        SERVICES_URL = SERVER_ADDRESS + '/services/';
+        AUTH_TOKEN = '{{ auth_token }}';
         QID = '{{ qid }}';
+        DOC_TYPE = '{{ doc_type }}';
+        DOC_ID = '{{ doc_id }}';
+        DOC_TITLE = '{{ document.titulo }}'
+        USER_ID = '{{ user_id }}'
         PAGE = '{{ page }}';
+        QUERY = '{{ query }}';
     </script>
 {% endblock %}
 {% block additional_head %}
@@ -103,6 +130,11 @@
     </style>
 {% endblock %}
 {% block script_after %}
+    <script src="{% static 'aduna/js/bookmark/folder.js' %}"></script>
+    <script src="{% static 'aduna/js/bookmark/services.js' %}"></script>
+    <script src="{% static 'aduna/js/bookmark/bookmark.js' %}"></script>
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+
     <script>
         num_segmento_ativo = {{ document.num_segmento_ativo }};
         function scrollToSegment(id, hightlight=false){

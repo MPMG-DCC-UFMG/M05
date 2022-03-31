@@ -9,6 +9,7 @@ function log_search_click(link){
         dataType: 'json',
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
+            id_usuario: USER_ID,
             rank_number: $(link).data('rank-number'),
             item_id: $(link).data('item-id'),
             item_type: $(link).data('item-type'),
@@ -143,3 +144,20 @@ $(window).bind('scroll', function() {
 $(document).ready(function() {
     $("body").tooltip({ selector: '[data-toggle=tooltip]' });
 });
+
+function pad_time(time) {
+    return time >= 10 ? time : '0' + time;
+}
+
+function timestamp_converter(timestamp) {
+    let date = new Date(timestamp);
+
+    let days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    let months = ['Jan', 'Fev', 'Mar', 'Abr', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    let cur_date = new Date();
+
+    let year = cur_date.getFullYear() != date.getFullYear() ? date.getFullYear() : '';
+
+    return `${days[date.getDay()]}, ${pad_time(date.getDate())} de ${months[date.getMonth()]} ${year} - ${pad_time(date.getHours())}h${pad_time(date.getMinutes())}`;
+}
