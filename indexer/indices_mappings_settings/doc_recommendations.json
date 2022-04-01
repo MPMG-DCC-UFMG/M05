@@ -1,0 +1,53 @@
+{
+    "mappings" : {
+        "properties" : {
+            "accepted" : {
+                "type" : "boolean"
+            },
+            "date" : {
+                "type" : "date"
+            },
+            "date_visualized" : {
+                "type" : "date"
+            },
+            "evidence_doc_id" : {
+                "type" : "text"
+            },
+            "evidence_doc_index" : {
+                "type" : "text"
+            },
+            "evidence_doc_title" : {
+                "type" : "text"
+            },
+            "evidence_query_text" : {
+                "type" : "text"
+            },
+            "matched_from" : {
+                "type" : "text"
+            },
+            "notification_id" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword"
+                    }
+                }
+            },
+            "recommended_doc_id" : {
+                "type" : "text"
+            },
+            "recommended_doc_index" : {
+                "type" : "text"
+            },
+            "recommended_doc_title" : {
+                "type" : "text"
+            },
+            "similarity_value" : {
+                "type" : "float"
+            },
+            "user_id" : {
+                "type" : "text"
+            }
+        }
+    }
+}
