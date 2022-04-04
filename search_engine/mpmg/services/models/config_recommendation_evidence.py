@@ -7,18 +7,18 @@ class ConfigRecommendationEvidence(ElasticModel):
         index_name = ConfigRecommendationEvidence.index_name
         meta_fields = ['id']
         index_fields = [
-            'ui_name',
-            'evidence_type',
-            'es_index_name',
-            'amount',
-            'min_similarity',
-            'top_n_recommendations',
-            'active',
+            'nome',
+            'tipo_evidencia',
+            'nome_indice',
+            'quantidade',
+            'similaridade_min',
+            'top_n_recomendacoes',
+            'ativo',
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get(self, evidence_id = None, evidence_type = None, active = None):
+    def get(self, evidence_id = None, tipo_evidencia = None, ativo = None):
         msg_error = ''
         if evidence_id:
             try:
@@ -30,9 +30,9 @@ class ConfigRecommendationEvidence(ElasticModel):
                 msg_error = 'Não encontrado!'
                 return None, msg_error
 
-        elif evidence_type:
+        elif tipo_evidencia:
             elastic_result = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name) \
-                .filter('term', evidence_type__keyword = evidence_type) \
+                .filter('term', evidence_type__keyword = tipo_evidencia) \
                 .execute() \
                 .to_dict()
 
@@ -43,14 +43,14 @@ class ConfigRecommendationEvidence(ElasticModel):
                 return evidence, msg_error
             
             else:
-                msg_error = f'Não foi encontrado nenhuma evidência do tipo "{evidence_type}"'
+                msg_error = f'Não foi encontrado nenhuma evidência do tipo "{tipo_evidencia}"'
                 return None, msg_error 
 
         else:
             search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
         
-            if active is not None:
-                search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "active": active }}))
+            if ativo:
+                search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "ativo": ativo }}))
             
             elastic_result = search_obj.execute()
             
@@ -78,12 +78,12 @@ class ConfigRecommendationEvidence(ElasticModel):
         
         return success, msg_error
 
-    def update(self, config, evidence_id = None, evidence_type = None):
+    def update(self, config, evidence_id = None, tipo_evidencia = None):
         if evidence_id:
             return self._update(config, evidence_id)
 
-        elif evidence_type:
-            evidence, msg_error = self.get(evidence_type=evidence_type)
+        elif tipo_evidencia:
+            evidence, msg_error = self.get(tipo_evidencia=tipo_evidencia)
             if evidence is None:
                 return False, msg_error
 
@@ -91,7 +91,7 @@ class ConfigRecommendationEvidence(ElasticModel):
             return self._update(config, evidence_id) 
 
         else:
-            return False, 'É necessário informar "evidence_type" ou "evidence_id"'
+            return False, 'É necessário informar "tipo_evidencia" ou "evidence_id"'
 
     def save(self, dict_data: dict = None):
         if dict_data == None:
@@ -105,9 +105,9 @@ class ConfigRecommendationEvidence(ElasticModel):
 
         return response['_id'], ''
 
-    def delete(self, evidence_id = None, evidence_type = None):
-        if evidence_type:
-            evidence, msg_error = self.get(evidence_type=evidence_type)
+    def delete(self, evidence_id = None, tipo_evidencia = None):
+        if tipo_evidencia:
+            evidence, msg_error = self.get(tipo_evidencia=tipo_evidencia)
             if evidence is None:
                 return False, msg_error
             
@@ -126,5 +126,5 @@ class ConfigRecommendationEvidence(ElasticModel):
             return True, '' 
 
         else:
-            msg_error = 'É necessário informar "evidence_type" ou "evidence_id" válidos!'
+            msg_error = 'É necessário informar "tipo_evidencia" ou "evidence_id" válidos!'
             return False, msg_error

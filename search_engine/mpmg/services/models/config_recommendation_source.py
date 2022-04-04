@@ -10,15 +10,15 @@ class ConfigRecommendationSource(ElasticModel):
         index_name =  ConfigRecommendationSource.index_name
         meta_fields =  ['id']
         index_fields = [
-            'ui_name',
-            'es_index_name',
-            'amount',
-            'active',
+            'nome',
+            'nome_indice',
+            'quantidade',
+            'ativo',
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get(self, source_id = None, index_name = None, active = None):
+    def get(self, source_id = None, index_name = None, ativo = None):
         msg_error = ''
         if source_id:
             try:
@@ -48,8 +48,8 @@ class ConfigRecommendationSource(ElasticModel):
             
         else:
             search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
-            if active is not None:
-                search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "active": active }}))
+            if ativo is not None:
+                search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "ativo": ativo }}))
             elastic_result = search_obj.execute()
             
             sources = []

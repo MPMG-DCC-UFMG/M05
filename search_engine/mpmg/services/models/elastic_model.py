@@ -72,13 +72,15 @@ class ElasticModel(dict):
             for field in self.index_fields:
                 dict_data[field] = getattr(self, field, '')
         
-        response = self.elastic.helpers.bulk(Elastic().es, [{
-            "_index": self.index_name,
-            "_source": dict_data,
-        }])
-        
-        return response
-    
+        response = self.elastic.es.index(index=self.index_name, body=dict_data)
+        if response['result'] != 'created':
+            return None
+
+        return response['_id']
+
+    def delete(self, item_id: str) -> bool:
+        response = self.elastic.es.delete(index=self.index_name, id=item_id)        
+        return response['result'] == 'deleted'
 
     @classmethod
     def get(cls, doc_id):

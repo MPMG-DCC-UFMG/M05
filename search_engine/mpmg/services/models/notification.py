@@ -8,25 +8,25 @@ class Notification(ElasticModel):
         index_name = Notification.index_name
         meta_fields = ['id']
         index_fields = [
-            'user_id',
-            'message',
-            'type',
-            'date',
-            'date_visualized',
+            'id_usuario',
+            'mensagem',
+            'tipo',
+            'data_criacao',
+            'data_visualizacao',
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
     
 
-    def get_by_user(self, user_id):
+    def get_by_user(self, id_usuario):
         '''
         Retorna uma lista de notificações do usuário.
         '''
         
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
         
-        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "user_id": user_id }}))
-        search_obj = search_obj.sort({'date':{'order':'desc'}})
+        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "id_usuario": id_usuario }}))
+        search_obj = search_obj.sort({'data_criacao':{'order':'desc'}})
         elastic_result = search_obj.execute()
 
         notifications_list = []
@@ -47,45 +47,19 @@ class Notification(ElasticModel):
         except:
             None
 
-    def save(self, dict_data=None):
-        if dict_data == None:
-            dict_data = {}
-            for field in self.index_fields:
-                dict_data[field] = getattr(self, field, '')
-        
-        response = self.elastic.es.index(index=self.index_name, body=dict_data)
-        if response['result'] != 'created':
-            return None, 'Não foi possível criar a configuração. Tente novamente!'
-
-        return response['_id'], ''
-
-    def mark_as_visualized(self, notification_id, date_visualized):
+    def mark_as_visualized(self, notification_id, data_visualizacao):
         '''
         Atualiza uma notificação com a data em que ela foi visualizada.
         '''
 
-        if self.get_by_id(notification_id)['date_visualized'] is not None:
+        if self.get_by_id(notification_id)['data_visualizacao'] is not None:
             return False, 'A notificação já foi visualizada.'
 
-        response = self.elastic.es.update(index=self.index_name, id=notification_id, body={"doc": {"date_visualized": date_visualized, }})
+        response = self.elastic.es.update(index=self.index_name, id=notification_id, body={"doc": {"data_visualizacao": data_visualizacao, }})
 
         success = response['result'] == 'updated' 
         msg_error = ''
         if not success:
             msg_error = 'Não foi possível atualizar.'
 
-        return success, msg_error
-    
-    
-    def create(self, dict_data):
-        return self.elastic.es.index(index=self.index_name, body=dict_data)
-
-    def remove(self, notification_id):
-        response = self.elastic.es.delete(index=self.index_name, id=notification_id)        
-        success = response['result'] == 'deleted'
-
-        msg_error = ''
-        if not success:
-            msg_error = 'Não foi possível remover a notificação!'
-            
         return success, msg_error

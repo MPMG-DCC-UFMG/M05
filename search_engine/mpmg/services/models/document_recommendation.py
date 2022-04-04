@@ -12,32 +12,32 @@ class DocumentRecommendation(ElasticModel):
         index_name = DocumentRecommendation.index_name
         meta_fields = ['id']
         index_fields = [
-            'user_id',
-            'notification_id',
-            'recommended_doc_index',
-            'recommended_doc_id',
-            'recommended_doc_title',
+            'id_usuario',
+            'id_notificacao',
+            'indice_doc_recomendado',
+            'id_doc_recomendado',
+            'titulo_doc_recomendado',
             'matched_from',
-            'evidence_query_text',
-            'evidence_doc_index',
-            'evidence_doc_id',
-            'evidence_doc_title',
-            'date',
-            'similarity_value',
-            'accepted',
-            'date_visualized'
+            'evidencia_texto_consulta',
+            'evidencia_indice_doc',
+            'evidencia_id_doc',
+            'evidencia_titulo_doc',
+            'data_criacao',
+            'similaridade',
+            'aprovado',
+            'data_visualizacao'
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
     
 
-    def get_by_user(self, user_id):
+    def get_by_user(self, id_usuario):
         '''
         Retorna a lista de recomendações do usuário.
         '''
         
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
-        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "user_id": user_id }}))
+        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "id_usuario": id_usuario }}))
         
         # faz a consulta uma vez pra pegar o total de resultados
         parcial_result = search_obj.execute()
@@ -45,7 +45,7 @@ class DocumentRecommendation(ElasticModel):
 
         # refaz a consulta trazendo todos os resultados
         search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort({'date':{'order':'desc'}})
+        search_obj = search_obj.sort({'data_criacao':{'order':'desc'}})
         total_result = search_obj.execute()
 
         recommendations_list = []
@@ -57,13 +57,13 @@ class DocumentRecommendation(ElasticModel):
         
         return recommendations_list
 
-    def get_by_notification_id(self, notification_id):
+    def get_by_notification_id(self, id_notificacao):
         '''
         Retorna as recomendações geradas no id da notificação passada.
         '''
 
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)        
-        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "notification_id.keyword": notification_id }}))
+        search_obj = search_obj.query(self.elastic.dsl.Q({"term": { "id_notificacao.keyword": id_notificacao }}))
 
         # faz a consulta uma vez pra pegar o total de segmentos
         parcial_result = search_obj.execute()
@@ -71,7 +71,7 @@ class DocumentRecommendation(ElasticModel):
 
         # refaz a consulta trazendo todos os resultados
         search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort({'date':{'order':'desc'}})
+        search_obj = search_obj.sort({'data_criacao':{'order':'desc'}})
         total_result = search_obj.execute()
 
         recommendations_list = []
@@ -83,12 +83,12 @@ class DocumentRecommendation(ElasticModel):
         
         return recommendations_list
     
-    def update_feedback(self, recommendation_id, accepted):
+    def update_feedback(self, recommendation_id, aprovado):
         '''
-        Atualiza o campo accepted, indicando se o usuário aprovou ou não aquela recomendação.
+        Atualiza o campo aprovado, indicando se o usuário aprovou ou não aquela recomendação.
         '''
 
-        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={"doc": {"accepted": accepted, }})
+        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={"doc": {"aprovado": aprovado, }})
 
         success = response['result'] == 'updated' 
         msg_error = ''
@@ -97,11 +97,11 @@ class DocumentRecommendation(ElasticModel):
 
         return success, msg_error
 
-    def mark_as_seen(self, recommendation_id, date_visualized):
+    def mark_as_seen(self, recommendation_id, data_visualizacao):
         '''
-        Atualiza o campo accepted, indicando se o usuário aprovou ou não aquela recomendação.
+        Atualiza o campo aprovado, indicando se o usuário aprovou ou não aquela recomendação.
         '''
-        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={"doc": {"date_visualized": date_visualized}})
+        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={"doc": {"data_visualizacao": data_visualizacao}})
 
         success = response['result'] == 'updated' 
         msg_error = ''
@@ -129,9 +129,9 @@ class DocumentRecommendation(ElasticModel):
         return users_ids
     
 
-    def get_last_recommendation_date(self, user_id=None):
+    def get_last_recommendation_date(self, id_usuario=None):
         '''
-        Retorna um dicionário do tipo user_id:date que contém a data da última
+        Retorna um dicionário do tipo id_usuario:data_criacao que contém a data da última
         recomendação de cada usuário. Os documentos candidatos devem ter data de
         indexação posterior à data da última recomendação
         '''
@@ -178,7 +178,7 @@ class DocumentRecommendation(ElasticModel):
         return candidates
     
 
-    def get_evidences(self, user_id, evidence_type, evidence_index, amount):
+    def get_evidences(self, id_usuario, evidence_type, evidence_index, amount):
         '''
         Retorna uma lista de evidências do usuário para servir como base de recomendação.
         As evidências podem ser 3:
@@ -202,7 +202,7 @@ class DocumentRecommendation(ElasticModel):
         # busca as evidências do usuário
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index
         )
-        search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': user_id}}))
+        search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': id_usuario}}))
 
         # print('*' * 15)
         # print(search_obj.execute())

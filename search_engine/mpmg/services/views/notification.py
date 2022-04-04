@@ -12,13 +12,13 @@ class NotificationView(APIView):
     get:
         description: Retorna uma lista de notificações de de um usuário se o ID dele for informado ou uma notificação específica, se o id dela for passado.
         parameters:
-            - name: user_id
+            - name: id_usuario
               in: query
               description: ID do usuário
               required: true
               schema:
                     type: string
-            - name: notification_id
+            - name: id_notificacao
               in: query
               description: ID da notificação a ser recuperada.
               required: false
@@ -37,7 +37,7 @@ class NotificationView(APIView):
                                     id:
                                         type: string
                                         description: ID da notificação.
-                                    user_id:
+                                    id_usuario:
                                         type: string
                                         description: ID do usário a quem a notificação se destina.
                                     message:
@@ -49,7 +49,7 @@ class NotificationView(APIView):
                                     date:
                                         type: integer
                                         description: Timestamp de quando a notificação foi criada.
-                                    date_visualized:
+                                    data_visualizacao:
                                         type: integer
                                         description: Timestamp de quando a notificação foi vista.
                                         nullable: true
@@ -61,7 +61,7 @@ class NotificationView(APIView):
                     schema:
                         type: object
                         properties:
-                            user_id:
+                            id_usuario:
                                 description: ID do usuário a quem se destina a notificação.
                                 type: string
                             message:
@@ -71,7 +71,7 @@ class NotificationView(APIView):
                                 description: Informa o tipo da notificação.
                                 type: string
                         required:
-                            - user_id
+                            - id_usuario
                             - message
                             - type
         responses:
@@ -82,7 +82,7 @@ class NotificationView(APIView):
                         schema:
                             type: object
                             properties: 
-                                notification_id: 
+                                id_notificacao: 
                                     type: string
                                     description: ID da notificação crida.
             '500':
@@ -104,14 +104,14 @@ class NotificationView(APIView):
                     schema:
                         type: object
                         properties:
-                            notification_id:
+                            id_notificacao:
                                 description: ID da notificação a ser alterada.
                                 type: string
-                            date_visualized:
+                            data_visualizacao:
                                 description: Timestamp da visualização da notificação. Se não for informado, o sistema obterá automaticamente com base no tempo atual.
                                 type: string
                         required:
-                            - notification_id
+                            - id_notificacao
         responses:
             '204':
                 description: As alterações foram executadas com sucesso.
@@ -143,11 +143,11 @@ class NotificationView(APIView):
                     schema:
                         type: object
                         properties:
-                            notification_id:
+                            id_notificacao:
                                 description: ID da notificação a ser removida.
                                 type: string
                         required:
-                            - notification_id      
+                            - id_notificacao      
         responses:
             '204':
                 description: A notificação foi removida com sucesso.
@@ -168,33 +168,33 @@ class NotificationView(APIView):
 
 
     def get(self, request):
-        user_id = request.GET.get('user_id')
-        notification_id = request.GET.get('notification_id')
+        id_usuario = request.GET.get('id_usuario')
+        id_notificacao = request.GET.get('id_notificacao')
 
-        if user_id is None and notification_id is None:
-            return Response({'message': 'Informe o campo user_id ou notification_id!'}, status=status.HTTP_400_BAD_REQUEST)
+        if id_usuario is None and id_notificacao is None:
+            return Response({'message': 'Informe o campo id_usuario ou id_notificacao!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if notification_id:
-            notification = Notification().get_by_id(notification_id)
+        if id_notificacao:
+            notification = Notification().get_by_id(id_notificacao)
             if notification is None:
                 return Response({'message': 'Verifique se o ID da notificação informado é válido!'}, status=status.HTTP_404_NOT_FOUND)
             return Response(notification, status=status.HTTP_200_OK)
 
-        if user_id:
-            notifications_list = Notification().get_by_user(user_id=user_id)
+        if id_usuario:
+            notifications_list = Notification().get_by_user(id_usuario=id_usuario)
             return Response(notifications_list, status=status.HTTP_200_OK)
 
     def post(self, request):
-        notification_id, msg_error = Notification().save(dict(
-            user_id = request.POST['user_id'],
-            message = request.POST['message'],
-            type = request.POST['type'],
-            date = int(time() * 1000),
-            date_visualized = None,
+        id_notificacao, msg_error = Notification().save(dict(
+            id_usuario = request.POST['id_usuario'],
+            mensagem = request.POST['mensagem'],
+            tipo = request.POST['tipo'],
+            data_criacao = int(time() * 1000),
+            data_visualizacao = None,
         ))
 
-        if notification_id:
-            return Response({'notification_id': notification_id}, status=status.HTTP_201_CREATED)
+        if id_notificacao:
+            return Response({'id_notificacao': id_notificacao}, status=status.HTTP_201_CREATED)
         
         return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -202,17 +202,17 @@ class NotificationView(APIView):
     def put(self, request):
         data = request.data.dict()
 
-        notification_id = data.get('notification_id')
-        if notification_id is None:
+        id_notificacao = data.get('id_notificacao')
+        if id_notificacao is None:
             return Response({'message': 'Informe o ID da notificação visualizada.'}, status.HTTP_400_BAD_REQUEST)
         
-        date_visualized = data.get('date_visualized', '') 
+        data_visualizacao = data.get('data_visualizacao', '') 
         
-        if date_visualized == '':
+        if data_visualizacao == '':
             # ElasticSearch precisa que o timestamp seja em milisegundos
-            date_visualized = int(time() * 1000)
+            data_visualizacao = int(time() * 1000)
 
-        success, msg_error = Notification().mark_as_visualized(notification_id, date_visualized)
+        success, msg_error = Notification().mark_as_visualized(id_notificacao, data_visualizacao)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         
@@ -221,11 +221,11 @@ class NotificationView(APIView):
     def delete(self, request):
         data = request.data.dict()
 
-        notification_id = data.get('notification_id')
-        if notification_id is None:
+        id_notificacao = data.get('id_notificacao')
+        if id_notificacao is None:
             return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
         
-        success, msg_error = Notification().remove(notification_id)
+        success, msg_error = Notification().remove(id_notificacao)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         
@@ -243,26 +243,26 @@ class AddFakeNotificationsView():
     
     2. Execute:
         from mpmg.services.views.notification import AddFakeNotificationsView
-        AddFakeNotificationsView().execute(1) # 1 é o user_id, altere de acordo
+        AddFakeNotificationsView().execute(1) # 1 é o id_usuario, altere de acordo
     '''
 
-    def execute(self, user_id):
+    def execute(self, id_usuario):
         from ..elastic import Elastic
         elastic = Elastic()
         
         # antes de inserir, deleta as existentes
         search_obj = elastic.dsl.Search(using=elastic.es, index='notifications')
-        search_obj = search_obj.query(elastic.dsl.Q({"term": { "user_id": user_id }}))
+        search_obj = search_obj.query(elastic.dsl.Q({"term": { "id_usuario": id_usuario }}))
         search_obj.delete()
 
         
         # insere 5 novas notificações
         for i in range(5):
             body = {
-                'user_id': user_id,
+                'id_usuario': id_usuario,
                 'message': 'Texto da notificação '+str(i+1),
                 'type': 'DOC_RECOMMENDATION',
                 'date': '2021-0'+str(i+1)+'-01',
-                'date_visualized': None if i in [3,4] else '2021-0'+str(i+1)+'-02',
+                'data_visualizacao': None if i in [3,4] else '2021-0'+str(i+1)+'-02',
             }
             elastic.es.index(index='notifications', body=body)
