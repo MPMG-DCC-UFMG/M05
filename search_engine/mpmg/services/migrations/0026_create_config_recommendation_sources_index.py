@@ -8,17 +8,17 @@ from elasticsearch_dsl import Keyword
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('ui_name', 'text')
-    m.field('es_index_name', 'text', fields={'keyword': Keyword()})
-    m.field('amount', 'integer')
-    m.field('active', 'boolean')
+    m.field('nome', 'text')
+    m.field('nome_indice', 'text', fields={'keyword': Keyword()})
+    m.field('quantidade', 'integer')
+    m.field('ativo', 'boolean')
     m.save('config_recommendation_sources')
 
 def insert_data(apps, schema_editor):
     elastic = Elastic()
-    elastic.es.index(index='config_recommendation_sources', id=1, body={'ui_name': 'Diários', 'es_index_name': 'diarios_segmentado', 'amount':1000, 'active': True})
-    elastic.es.index(index='config_recommendation_sources', id=2, body={'ui_name': 'Processos', 'es_index_name': 'processos', 'amount':1000, 'active': True})
-    elastic.es.index(index='config_recommendation_sources', id=3, body={'ui_name': 'Licitações', 'es_index_name': 'licitacoes', 'amount':1000, 'active': True})
+    elastic.es.index(index='config_recommendation_sources', id=1, body={'nome': 'Diários', 'nome_indice': 'diarios_segmentado', 'quantidade':1000, 'ativo': True})
+    elastic.es.index(index='config_recommendation_sources', id=2, body={'nome': 'Processos', 'nome_indice': 'processos', 'quantidade':1000, 'ativo': True})
+    elastic.es.index(index='config_recommendation_sources', id=3, body={'nome': 'Licitações', 'nome_indice': 'licitacoes', 'quantidade':1000, 'ativo': True})
     
 
 class Migration(migrations.Migration):

@@ -8,21 +8,23 @@ from elasticsearch_dsl import Keyword
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('ui_name', 'text')
-    m.field('evidence_type', 'text', fields={'keyword': Keyword()})
-    m.field('es_index_name', 'text')
-    m.field('amount', 'integer')
-    m.field('min_similarity', 'integer')
-    m.field('top_n_recommendations', 'integer')
-    m.field('active', 'boolean')
+    m.field('nome', 'text')
+    m.field('tipo_evidencia', 'text', fields={'keyword': Keyword()})
+    m.field('nome_indice', 'text')
+    m.field('quantidade', 'integer')
+    m.field('similaridade_minima', 'integer')
+    m.field('top_n_recomendacoes', 'integer')
+    m.field('ativo', 'boolean')
     m.save('config_recommendation_evidences')
 
 def insert_data(apps, schema_editor):
     elastic = Elastic()
-    elastic.es.index(index='config_recommendation_evidences', id=1, body={'ui_name': 'Favoritos', 'evidence_type': 'bookmark', 'es_index_name': 'bookmark', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
-    elastic.es.index(index='config_recommendation_evidences', id=2, body={'ui_name': 'Consultas', 'evidence_type': 'query', 'es_index_name': 'log_buscas', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
-    elastic.es.index(index='config_recommendation_evidences', id=3, body={'ui_name': 'Cliques', 'evidence_type': 'click', 'es_index_name': 'log_clicks', 'amount':5, 'min_similarity': 60, 'top_n_recommendations': 5, 'active': True})
-
+    elastic.es.index(index='config_recommendation_evidences', id=1, body={
+                     'nome': 'Favoritos', 'tipo_evidencia': 'bookmark', 'nome_indice': 'bookmark', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
+    elastic.es.index(index='config_recommendation_evidences', id=2, body={
+                     'nome': 'Consultas', 'tipo_evidencia': 'query', 'nome_indice': 'log_buscas', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
+    elastic.es.index(index='config_recommendation_evidences', id=3, body={
+                     'nome': 'Cliques', 'tipo_evidencia': 'click', 'nome_indice': 'log_clicks', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
 class Migration(migrations.Migration):
 
     dependencies = [

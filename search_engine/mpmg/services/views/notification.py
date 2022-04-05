@@ -1,10 +1,11 @@
-from time import time 
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.models import Notification
+from time import time
 
+from mpmg.services.models import Notification
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from ..docstring_schema import AutoDocstringSchema
 
 class NotificationView(APIView):
 
@@ -40,13 +41,13 @@ class NotificationView(APIView):
                                     id_usuario:
                                         type: string
                                         description: ID do usário a quem a notificação se destina.
-                                    message:
+                                    texto:
                                         type: string
                                         description: Texto da notificação.
-                                    type:
+                                    tipo:
                                         type: string
                                         description: Tipo da notificação, por enquanto, somente "RECOMMENDATION".
-                                    date:
+                                    data_criacao:
                                         type: integer
                                         description: Timestamp de quando a notificação foi criada.
                                     data_visualizacao:
@@ -64,16 +65,16 @@ class NotificationView(APIView):
                             id_usuario:
                                 description: ID do usuário a quem se destina a notificação.
                                 type: string
-                            message:
+                            texto:
                                 description: Texto da notificação.
                                 type: string
-                            type:
+                            tipo:
                                 description: Informa o tipo da notificação.
                                 type: string
                         required:
                             - id_usuario
-                            - message
-                            - type
+                            - texto
+                            - tipo
         responses:
             '201':
                 description: A notificação foi criada com sucesso.
@@ -163,9 +164,8 @@ class NotificationView(APIView):
                                     description: Mensagem de erro.
 
     '''
-    
-    schema = AutoDocstringSchema()
 
+    schema = AutoDocstringSchema()
 
     def get(self, request):
         id_usuario = request.GET.get('id_usuario')
@@ -186,18 +186,17 @@ class NotificationView(APIView):
 
     def post(self, request):
         id_notificacao, msg_error = Notification().save(dict(
-            id_usuario = request.POST['id_usuario'],
-            mensagem = request.POST['mensagem'],
-            tipo = request.POST['tipo'],
-            data_criacao = int(time() * 1000),
-            data_visualizacao = None,
+            id_usuario=request.POST['id_usuario'],
+            texto=request.POST['texto'],
+            tipo=request.POST['tipo'],
+            data_criacao=int(time() * 1000),
+            data_visualizacao=None,
         ))
 
         if id_notificacao:
             return Response({'id_notificacao': id_notificacao}, status=status.HTTP_201_CREATED)
-        
-        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request):
         data = request.data.dict()
@@ -205,17 +204,18 @@ class NotificationView(APIView):
         id_notificacao = data.get('id_notificacao')
         if id_notificacao is None:
             return Response({'message': 'Informe o ID da notificação visualizada.'}, status.HTTP_400_BAD_REQUEST)
-        
-        data_visualizacao = data.get('data_visualizacao', '') 
-        
+
+        data_visualizacao = data.get('data_visualizacao', '')
+
         if data_visualizacao == '':
-            # ElasticSearch precisa que o timestamp seja em milisegundos
+            # FIXME: Usar um método padronizado para obter o timestamp
             data_visualizacao = int(time() * 1000)
 
-        success, msg_error = Notification().mark_as_visualized(id_notificacao, data_visualizacao)
+        success, msg_error = Notification().mark_as_visualized(
+            id_notificacao, data_visualizacao)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
@@ -224,45 +224,9 @@ class NotificationView(APIView):
         id_notificacao = data.get('id_notificacao')
         if id_notificacao is None:
             return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
-        
+
         success, msg_error = Notification().remove(id_notificacao)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class AddFakeNotificationsView():
-    '''
-    CLASSE TEMPORÁRIA que adiciona notificações para um determinado usuário
-    para a execução de testes. Remova-a quando não for mais necessário
-    
-    Para executá-la siga os passos abaixo:
-
-    1. Entre no shell do django: 
-        python manage.py shell
-    
-    2. Execute:
-        from mpmg.services.views.notification import AddFakeNotificationsView
-        AddFakeNotificationsView().execute(1) # 1 é o id_usuario, altere de acordo
-    '''
-
-    def execute(self, id_usuario):
-        from ..elastic import Elastic
-        elastic = Elastic()
-        
-        # antes de inserir, deleta as existentes
-        search_obj = elastic.dsl.Search(using=elastic.es, index='notifications')
-        search_obj = search_obj.query(elastic.dsl.Q({"term": { "id_usuario": id_usuario }}))
-        search_obj.delete()
-
-        
-        # insere 5 novas notificações
-        for i in range(5):
-            body = {
-                'id_usuario': id_usuario,
-                'message': 'Texto da notificação '+str(i+1),
-                'type': 'DOC_RECOMMENDATION',
-                'date': '2021-0'+str(i+1)+'-01',
-                'data_visualizacao': None if i in [3,4] else '2021-0'+str(i+1)+'-02',
-            }
-            elastic.es.index(index='notifications', body=body)

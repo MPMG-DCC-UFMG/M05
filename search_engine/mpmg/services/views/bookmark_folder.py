@@ -1,10 +1,8 @@
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-
 from mpmg.services.models import BookmarkFolder
 from mpmg.services.models.bookmark import Bookmark
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
 
@@ -15,13 +13,13 @@ class BookmarkFolderView(APIView):
     get:
         description: Retorna uma pasta específica, se folder_id for informado. Ou a árvore de pastas, se folder_id não for informado.
         parameters:
-            - name: folder_id
+            - name: id
                 in: query
                 description: ID da pasta a ser buscada. 
                 required: false
                 schema:
                         type: string
-            - name: user_id
+            - name: id_usuario
                 in: query
                 description: ID do usuário a ter a árvore de pastas recuperadas.
                 required: 
@@ -53,14 +51,14 @@ class BookmarkFolderView(APIView):
                                     description: ID da pasta pai, que esta pasta está contida. 
                                 subpastas:
                                     type: array
-                                    description: Lista de arquivos. Está lista será de IDs, se folder_id for 
+                                    description: Lista de favoritos. Está lista será de IDs, se folder_id for 
                                         informado ou será objetos representando as subpastas da pasta.
                                     oneOf:
                                         - type: string
                                         - type: object
-                                arquivos:
+                                favoritos:
                                     type: array
-                                    description: Lista de arquivos da pasta.
+                                    description: Lista de favoritos da pasta.
                                     items:
                                         type: string 
             '400':
@@ -74,13 +72,13 @@ class BookmarkFolderView(APIView):
                     schema:
                         type: object
                         properties:
-                            user_id:
+                            id_usuario:
                                 description: ID do usuário que está criando a pasta.
                                 type: string
-                            name:
+                            nome:
                                 description: Nome da pasta a ser criada. 
                                 type: string
-                            parent_folder_id:
+                            pasta_pai:
                                 description: ID da pasta que a pasta a ser criada será colocada. Se o campo não for
                                         informado, a pasta será criada na pasta default.
                                 type: string
@@ -203,29 +201,29 @@ class BookmarkFolderView(APIView):
 
     def post(self, request):
         try:
-            user_id = request.POST['user_id']
+            id_usuario = request.POST['id_usuario']
 
         except:
-            return Response({'message': 'É necessário informar o ID do criador da pasta, por meio do campo user_id!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'É necessário informar o ID do criador da pasta, por meio do campo id_usuario!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        parent_folder_id = request.POST.get('parent_folder_id')
+        pasta_pai = request.POST.get('pasta_pai')
 
-        if not parent_folder_id:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
-            parent_folder_id = user_id
+        if not pasta_pai:
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
+            pasta_pai = id_usuario
 
         data = dict(
-            criador = user_id,
+            criador = id_usuario,
             nome=request.POST['name'],
-            pasta_pai=parent_folder_id,
+            pasta_pai=pasta_pai,
             subpastas=[],
             arquivos=[]
         )
 
-        folder_id, msg_error = BOOKMARK_FOLDER.save(data)
+        folder_id = BOOKMARK_FOLDER.save(data)
         
         if not bool(folder_id):
-            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'folder_id': None}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'folder_id': folder_id}, status=status.HTTP_201_CREATED)        
 

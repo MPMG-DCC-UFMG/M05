@@ -1,25 +1,25 @@
-from os import stat
 from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from mpmg.services.models import *
-from ..docstring_schema import AutoDocstringSchema
 from elasticsearch.exceptions import NotFoundError
+from mpmg.services.models import *
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from ..docstring_schema import AutoDocstringSchema
+
 
 class DocumentView(APIView):
     '''
     get:
       description: Busca o conteúdo completo de um documento específico.
       parameters:
-        - name: doc_id
+        - name: id_documento
             in: query
             description: ID do documento
             required: true
             schema:
                 type: string
-        - name: doc_type
+        - name: tipo_documento
             in: query
             description: Tipo do documento
             schema:
@@ -34,15 +34,15 @@ class DocumentView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        doc_type = request.GET['doc_type']
-        doc_id = request.GET['doc_id']
+        tipo_documento = request.GET['tipo_documento']
+        id_documento = request.GET['id_documento']
 
         # instancia a classe apropriada e busca o registro no índice
-        index_model_class_name = settings.SEARCHABLE_INDICES['regular'][doc_type]
+        index_model_class_name = settings.SEARCHABLE_INDICES['regular'][tipo_documento]
         index_class = eval(index_model_class_name)
 
         try:
-            document = index_class.get(doc_id)
+            document = index_class.get(id_documento)
 
             data = {
                 'document': document

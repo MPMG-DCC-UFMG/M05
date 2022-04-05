@@ -1,13 +1,13 @@
 from datetime import datetime
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 from mpmg.services.models import Bookmark
 from mpmg.services.views.bookmark_folder import BOOKMARK, BOOKMARK_FOLDER
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
+
 
 class BookmarkView(APIView):
     '''
@@ -15,27 +15,27 @@ class BookmarkView(APIView):
         description: Busca o conteúdo de um bookmark por meio de seu ID único, pelo índice e ID do documento que ele salva ou, se nenhum desses campos forem informado,
             retorna a lista de todos bookmarks do usuário.
         parameters:
-            - name: bookmark_id
+            - name: id
               in: query
               description: ID do bookmark. 
               required: false
               schema:
                     type: string
-            - name: user_id
+            - name: id_usuario
               in: query
               description: ID do usuário que criou o bookmark.
               required: false
               schema:
                     type: string
-            - name: doc_index
+            - name: indice_documento
               in: query
-              description: Índice do documento salvo pelo bookmark. Use isso junto com doc_id para checar se um documento já possui bookmark.
+              description: Índice do documento salvo pelo bookmark. Use isso junto com id_documento para checar se um documento já possui bookmark.
               required: false
               schema:
                     type: string
-            - name: doc_id
+            - name: id_documento
               in: query
-              description: ID do documento salvo pelo bookmark. Use isso junto com doc_index para checar se um documento já possui bookmark.
+              description: ID do documento salvo pelo bookmark. Use isso junto com indice_documento para checar se um documento já possui bookmark.
               required: false
               schema:
                     type: string
@@ -96,29 +96,34 @@ class BookmarkView(APIView):
                     schema:
                         type: object
                         properties:
-                            user_id:
-                                description: ID do usuário que está criando a pasta. 
+                            id_usuario:
+                                description: ID do usuário que está criando o favorito. 
                                 type: string
-                            folder_id:
+                            id_pasta:
                                 description: ID da pasta onde será salvo o bookmark. Se esse campo não for informado, o bookmark será salvo na pasta default. 
                                 type: string
-                            doc_index:
+                            indice_documento:
                                 description: Índice do documento salvo pelo bookmark.
                                 type: string
-                            doc_id:
+                            id_documento:
                                 description: ID do documento salvo pelo bookmark.
                                 type: string
-                            query_id:
+                            id_consulta:
                                 description: ID da consulta.
                                 type: string
-                            name:
+                            id_sessao:
+                                description: TODO: (deixar ou não esse parâmetro?) ID da sessao.
+                                type: string
+                            nome:
                                 description: Nome do bookmark.
                                 type: string
                         required:
-                            - doc_index
-                            - doc_id
-                            - query_id
-                            - name
+                            - id_usuario
+                            - indice_documento
+                            - id_documento
+                            - id_consulta
+                            - id_sessao
+                            - nome
         responses:
             '201':
                 description: O bookmark foi criado com sucesso.
@@ -127,7 +132,7 @@ class BookmarkView(APIView):
                         schema:
                             type: object
                             properties: 
-                                bookmark_id: 
+                                id_bookmark: 
                                     type: string
                                     description: ID do bookmark.
             '400':
@@ -159,17 +164,32 @@ class BookmarkView(APIView):
                     schema:
                         type: object
                         properties:
-                            bookmark_id:
+                            id_bookmark:
                                 description: ID do bookmark a ser alterado.
                                 type: string
-                            folder_id:
+                            id_pasta:
                                 description: Nova pasta do bookmark, para onde ele será movido. 
                                 type: string
-                            name:
+                            id_usuario:
+                                description: ID do usuário. 
+                                type: string
+                            indice_documento:
+                                description: Índice do documento salvo pelo bookmark.
+                                type: string
+                            id_documento:
+                                description: ID do documento salvo pelo bookmark.
+                                type: string
+                            id_consulta:
+                                description: ID da consulta.
+                                type: string
+                            id_sessao:
+                                description: ID da sessao.
+                                type: string
+                            nome:
                                 description: Novo nome do bookmark.
                                 type: string
                         required:
-                            - bookmark_id
+                            - id_bookmark
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
@@ -193,11 +213,11 @@ class BookmarkView(APIView):
                     schema:
                         type: object
                         properties:
-                            bookmark_id:
+                            id_bookmark:
                                 description: ID do bookmark a ser removido.
                                 type: string
                         required:
-                            - bookmark_id      
+                            - id_bookmark      
         responses:
             '204':
                 description: O bookmark foi removido com sucesso.
@@ -217,24 +237,24 @@ class BookmarkView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        if 'bookmark_id' in request.GET:
-            bookmark = Bookmark().get(request.GET['bookmark_id'])
+        if 'id_bookmark' in request.GET:
+            bookmark = Bookmark().get(request.GET['id_bookmark'])
 
-        elif 'doc_index' in request.GET and 'doc_id' in request.GET and 'user_id' in request.GET:
-            doc_index = request.GET['doc_index']
-            doc_id = request.GET['doc_id']
-            user_id = request.GET['user_id']
+        elif 'indice_documento' in request.GET and 'id_documento' in request.GET and 'id_usuario' in request.GET:
+            indice_documento = request.GET['indice_documento']
+            id_documento = request.GET['id_documento']
+            id_usuario = request.GET['id_usuario']
 
-            bookmark_id = BOOKMARK.get_id(user_id, doc_index, doc_id)
+            id_bookmark = BOOKMARK.get_id(id_usuario, indice_documento, id_documento)
 
-            bookmark = BOOKMARK.get(bookmark_id)
+            bookmark = BOOKMARK.get(id_bookmark)
 
-        elif 'user_id' in request.GET:
-            user_id = request.GET['user_id']
+        elif 'id_usuario' in request.GET:
+            id_usuario = request.GET['id_usuario']
 
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
 
-            bookmarks = BOOKMARK.get_all(user_id)
+            bookmarks = BOOKMARK.get_all(id_usuario)
             return Response(bookmarks, status=status.HTTP_200_OK)
 
         else:
@@ -247,13 +267,13 @@ class BookmarkView(APIView):
 
     def post(self, request):
         try:
-            user_id = request.POST['user_id']
+            id_usuario = request.POST['id_usuario']
 
         except:
             return Response({'message': 'Informe o ID do usuário!'}, status=status.HTTP_400_BAD_REQUEST) 
 
         # pasta default onde são salvo os bookmarks do usuário
-        folder_id = user_id
+        folder_id = id_usuario
 
         if request.POST.get('folder_id'):
             folder_id = request.POST['folder_id'] 
@@ -262,14 +282,14 @@ class BookmarkView(APIView):
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
 
             now = datetime.now().timestamp()
-            bookmark_id = BOOKMARK.save(dict(
+            id_bookmark = BOOKMARK.save(dict(
                 id_pasta=folder_id,
-                id_usuario=user_id,
-                indice_documento=request.POST['doc_index'],
-                id_documento=request.POST['doc_id'],
-                id_consulta=request.POST['query_id'],
+                id_usuario=id_usuario,
+                indice_documento=request.POST['indice_documento'],
+                id_documento=request.POST['id_documento'],
+                id_consulta=request.POST['id_consulta'],
                 id_sessao=request.session.session_key,
-                nome=request.POST['name'],
+                nome=request.POST['nome'],
                 data_criacao=now,
                 data_modificacao=now
             )) 
@@ -278,36 +298,34 @@ class BookmarkView(APIView):
             msg_error = 'Informe corretamente os campos de criação de bookmark!'
             return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST) 
 
-        if bookmark_id is None:
+        if id_bookmark is None:
             return Response({"message": 'Não foi possível criar o bookmark. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({'id_bookmark': bookmark_id}, status=status.HTTP_201_CREATED)        
+        return Response({'id_bookmark': id_bookmark}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
+        # FIXME: Nem sempre o tipo request.data possui um método dict!
+
         data = request.data.dict()
-        bookmark_id = data.get('bookmark_id')
-        if not bookmark_id:
-            return Response({'message': 'É necessário informar o campo bookmark_id!'}, status=status.HTTP_400_BAD_REQUEST)
+        id_bookmark = data.get('id_bookmark')
+        if not id_bookmark:
+            return Response({'message': 'É necessário informar o campo id_bookmark!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        del data['bookmark_id']
+        del data['id_bookmark']
 
-        success, msg_error = BOOKMARK.update(bookmark_id, data)
+        success, msg_error = BOOKMARK.update(id_bookmark, data)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
-
-        print(msg_error)
 
         return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        if 'bookmark_id' not in request.data:
-            return Response({'message': 'Informe o bookmark_id!'}, status.HTTP_400_BAD_REQUEST) 
+        if 'id_bookmark' not in request.data:
+            return Response({'message': 'Informe o id_bookmark!'}, status.HTTP_400_BAD_REQUEST) 
 
-        bookmark_id = request.data['bookmark_id']
+        id_bookmark = request.data['id_bookmark']
 
-        print(type(bookmark_id))
-
-        success, msg_error = BOOKMARK.remove(bookmark_id)
+        success, msg_error = BOOKMARK.remove(id_bookmark)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         

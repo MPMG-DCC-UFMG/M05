@@ -1,31 +1,29 @@
-from time import sleep
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 from mpmg.services.models import ConfigRecommendationEvidence
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
+
 
 class ConfigRecommendationEvidenceView(APIView):
     '''
     get:
         description: Retorna a lista de configuração de evidências, podendo ser filtradas por ativas, ou uma configuração de evidência específica, se o ID ou tipo da evidência for informado.
         parameters:
-            - name: evidence_id
+            - name: id_evidencia
               in: query
               description: ID da evidência a ser recuperada.
               required: false
               schema:
                     type: string
-            - name: evidence_type
+            - name: tipo_evidencia
               in: query
               description: Tipo da evidência a ser buscada.
               required: false
               schema:
                     type: string
-            - name: active
+            - name: ativo
               in: query
               description: Se a lista retorna só possui elementos ativos.
               required: false
@@ -44,25 +42,25 @@ class ConfigRecommendationEvidenceView(APIView):
                                     id:
                                         type: string
                                         description: ID do tipo de evidência.
-                                    ui_name:
+                                    nome:
                                         type: string
                                         description: Nome amigável que aparecerá ao usuário representando o tipo da evidência.
-                                    evidence_type:
+                                    tipo_evidencia:
                                         type: string
                                         description: Tipo da evidência.
-                                    es_index_name:
+                                    nome_indice:
                                         type: string
                                         description: Índice onde documentos representantes do tipo da evidência serão buscados.
-                                    amount:
+                                    quantidade:
                                         type: integer
                                         description: Quantidade de documentos representantes do tipo de evidência que será buscado no índice correspondente.
-                                    min_similarity:
+                                    similaridade_min:
                                         type: number
                                         description: Similaridade mínima entre um possível documento a ser recomendados e os documentos representantes do tipo de evidência para ser considerado válido.
-                                    top_n_recommendations:
+                                    top_n_recomendacoes:
                                         type: integer
                                         description: Tamanho do ranking de documentos recomendados para o tipo de evidência.
-                                    active:
+                                    ativo:
                                         type: boolean
                                         description: Se o tipo de evidência deve ou não ser considerado para gerar recomendações.
     post:
@@ -73,35 +71,35 @@ class ConfigRecommendationEvidenceView(APIView):
                     schema:
                         type: object
                         properties:
-                            ui_name:
+                            nome:
                                 type: string
                                 description: Nome amigável do tipo de evidência.
-                            evidence_type:
+                            tipo_evidencia:
                                 type: string
                                 description: Tipo da evidência.
-                            es_index_name:
+                            nome_indice:
                                 type: string
                                 description: Índice corresponde ao tipo de evidência.
-                            amount:
+                            quantidade:
                                 type: integer
                                 description: Quantidade de documentos representantes do tipo de evidência que será buscado no índice correspondente.
-                            min_similarity:
+                            similaridade_min:
                                 type: number
                                 description: Similaridade mínima entre um possível documento a ser recomendados e os documentos representantes do tipo de evidência para ser considerado válido.
-                            top_n_recommendations:
+                            top_n_recommendacoes:
                                 type: integer
                                 description: Tamanho do ranking de documentos recomendados para o tipo de evidência.
-                            active:
+                            ativo:
                                 type: boolean
                                 description: Se o tipo de evidência deve ou não ser considerado para gerar recomendações.
                         required:
-                            - ui_name
-                            - evidence_type
-                            - es_index_name
-                            - amount
-                            - min_similarity
-                            - top_n_recommendations
-                            - active
+                            - nome
+                            - tipo_evidencia
+                            - nome_indice
+                            - quantidade
+                            - similaridade_min
+                            - top_n_recommendacoes
+                            - ativo
         responses:
             '201':
                 description: O tipo de evidência foi criado com sucesso.
@@ -110,7 +108,7 @@ class ConfigRecommendationEvidenceView(APIView):
                         schema:
                             type: object
                             properties: 
-                                evidence_id: 
+                                id_evidencia: 
                                     type: string
                                     description: ID do tipo de evidência criada.
             '500':
@@ -132,11 +130,11 @@ class ConfigRecommendationEvidenceView(APIView):
                     schema:
                         type: object
                         properties:
-                            evidence_type:
-                                description: Dicionário onde a chave é o tipo da evidência e o valor é um dicionário com os campos a serem alterados.
+                            tipo_evidencia:
+                                description: (TODO: adicionar a possibilidade de fazer por ID) Dicionário onde a chave é o tipo da evidência e o valor é um dicionário com os campos a serem alterados.
                                 type: object                            
                         required:
-                            - evidence_type
+                            - tipo_evidencia
         responses:
             '204':
                 description: As alterações foram executadas com sucesso.
@@ -158,12 +156,9 @@ class ConfigRecommendationEvidenceView(APIView):
                     schema:
                         type: object
                         properties:
-                            evidence_id:
+                            id_evidencia:
                                 type: string    
-                                description: ID do tipo de evidência a ser removido.
-                            evidence_type:
-                                type: string
-                                description: Tipo do tipo de evidência a ser removido.
+                                description: ID do tipo de evidência a ser removievidence_idvido.
         responses:
             '204':
                 description: Deleção com sucesso.
@@ -175,7 +170,7 @@ class ConfigRecommendationEvidenceView(APIView):
                             type: object
                             properties: 
                                 message: 
-                                    type: string
+                                    type: stringevidence_id
                                     description: Menciona a necessidade de informar pelo menos um dos campos válido.
             '500':
                 description: Houve algum(ns) erro(s) interno durante o processamento.
@@ -193,13 +188,13 @@ class ConfigRecommendationEvidenceView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        evidence_id = request.GET.get('evidence_id')
-        evidence_type = request.GET.get('evidence_type')
+        id_evidencia = request.GET.get('id_evidencia')
+        tipo_evidencia = request.GET.get('tipo_evidencia')
 
         conf_rec_ev = ConfigRecommendationEvidence()
 
-        if evidence_id or evidence_type:
-            evidence, msg_error = conf_rec_ev.get(evidence_id, evidence_type)
+        if id_evidencia or tipo_evidencia:
+            evidence, msg_error = conf_rec_ev.get(id_evidencia, tipo_evidencia)
             if evidence is None:
                 return Response({'message': msg_error}, status=status.HTTP_404_NOT_FOUND)
             
@@ -225,12 +220,12 @@ class ConfigRecommendationEvidenceView(APIView):
         
         try:
             ev_repr = dict(
-                ui_name = data['ui_name'],
-                evidence_type = data['evidence_type'],
-                es_index_name = data['es_index_name'],
-                amount = data['amount'],
-                min_similarity = data['min_similarity'],
-                top_n_recommendations = data['top_n_recommendations'],
+                nome = data['nome'],
+                tipo_evidencia = data['tipo_evidencia'],
+                nome_indice = data['nome_indice'],
+                quantidade = data['quantidade'],
+                similaridade_min = data['similaridade_min'],
+                top_n_recommendacoes = data['top_n_recommendacoes'],
                 active = data['active'],
             )
         except:
@@ -238,10 +233,10 @@ class ConfigRecommendationEvidenceView(APIView):
 
         
         conf_rec_ev = ConfigRecommendationEvidence()
-        evidence_id, msg_error = conf_rec_ev.save(ev_repr)
+        id_evidencia, msg_error = conf_rec_ev.save(ev_repr)
 
-        if evidence_id:
-            return Response({'evidence_id': evidence_id}, status=status.HTTP_201_CREATED)
+        if id_evidencia:
+            return Response({'id_evidencia': id_evidencia}, status=status.HTTP_201_CREATED)
 
         return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -278,21 +273,19 @@ class ConfigRecommendationEvidenceView(APIView):
 
         error = dict()
         all_successfull = True
-        for evidence_type in data:
-            config = data[evidence_type]
-            success, msg_error = conf_rec_ev.update(config, evidence_type=evidence_type)
+        for tipo_evidencia in data:
+            config = data[tipo_evidencia]
+            success, msg_error = conf_rec_ev.update(config, tipo_evidencia=tipo_evidencia)
 
             if not success:
                 all_successfull = False 
 
-            error[evidence_type] = {
+            error[tipo_evidencia] = {
                 'success': success,
                 'message': msg_error 
             }
 
         if all_successfull:
-            # para dar tempo de o índice ter sido atualizado
-            sleep(.9)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
@@ -302,18 +295,19 @@ class ConfigRecommendationEvidenceView(APIView):
         if type(data) is not dict:
             data = data.dict()
 
-        evidence_id = data.get('evidence_id')
-        evidence_type = data.get('evidence_type')
+        id_evidencia = data.get('id_evidencia')
+        tipo_evidencia = data.get('tipo_evidencia')
 
         conf_rec_ev = ConfigRecommendationEvidence()
-        if evidence_id or evidence_type:
-            evidence, msg_error = conf_rec_ev.get(evidence_id, evidence_type)
+        if id_evidencia or tipo_evidencia:
+            evidence, msg_error = conf_rec_ev.get(id_evidencia, tipo_evidencia)
             if evidence is None:
                 return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 
-            success, msg_error = conf_rec_ev.delete(evidence_id, evidence_type)
+            success, msg_error = conf_rec_ev.delete(id_evidencia, tipo_evidencia)
             if success:
                 return Response(status=status.HTTP_204_NO_CONTENT)
+            
             return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({'message': 'É necessário informar "evidence_id" ou "evidence_type"!'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'É necessário informar "id_evidencia" ou "tipo_evidencia"!'}, status=status.HTTP_400_BAD_REQUEST)

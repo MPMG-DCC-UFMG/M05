@@ -1,6 +1,5 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
-
 class Licitacao(ElasticModel):
     index_name = 'licitacoes'
 
@@ -19,6 +18,5 @@ class Licitacao(ElasticModel):
             'entidade_municipio',
             'entidade_local',
         ]
-        
+
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    

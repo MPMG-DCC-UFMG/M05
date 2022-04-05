@@ -1,9 +1,7 @@
-from time import sleep
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 from mpmg.services.models import ConfigRecommendationSource
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
 
@@ -12,19 +10,19 @@ class ConfigRecommendationSourceView(APIView):
     get:
         description: Retorna a lista de configuração de sources, podendo ser filtradas por ativas, ou uma configuração de source específica, se o ID ou índice do source for informado.
         parameters:
-            - name: source_id
+            - name: id_fonte
               in: query
               description: ID do source a ser recuperada.
               required: false
               schema:
                     type: string
-            - name: index_name
+            - name: nome_indice
               in: query
               description: Índice que a source remete.
               required: false
               schema:
                     type: string
-            - name: active
+            - name: ativo
               in: query
               description: Se a lista retorna só possui elementos ativos.
               required: false
@@ -43,16 +41,16 @@ class ConfigRecommendationSourceView(APIView):
                                     id:
                                         type: string
                                         description: ID da source.
-                                    ui_name:
+                                    nome:
                                         type: string
                                         description: Nome amigável que aparecerá ao usuário representando a source.
-                                    es_index_name:
+                                    nome_indice:
                                         type: string
                                         description: Índice que a source remente.
-                                    amount:
+                                    quantidade:
                                         type: integer
                                         description: Quantidade de documentos do índice que será buscado.
-                                    active:
+                                    ativo:
                                         type: boolean
                                         description: Se a source deve ou não ser considerado para gerar recomendações.
     post:
@@ -63,23 +61,23 @@ class ConfigRecommendationSourceView(APIView):
                     schema:
                         type: object
                         properties:
-                            ui_name:
+                            nome:
                                 type: string
                                 description: Nome amigável que aparecerá ao usuário representando a source.
-                            es_index_name:
+                            nome_indice:
                                 type: string
                                 description: Índice que a source remente.
-                            amount:
+                            quantidade:
                                 type: integer
                                 description: Quantidade de documentos do índice que será buscado.
-                            active:
+                            ativo:
                                 type: boolean
                                 description: Se a source deve ou não ser considerado para gerar recomendações.
                         required:
-                            - ui_name
-                            - es_index_name
-                            - amount
-                            - active
+                            - nome
+                            - nome_indice
+                            - quantidade
+                            - ativo
         responses:
             '201':
                 description: A source foi criada com sucesso.
@@ -88,7 +86,7 @@ class ConfigRecommendationSourceView(APIView):
                         schema:
                             type: object
                             properties: 
-                                source_id: 
+                                id_fonte: 
                                     type: string
                                     description: ID da source criada.
             '500':
@@ -110,11 +108,11 @@ class ConfigRecommendationSourceView(APIView):
                     schema:
                         type: object
                         properties:
-                            index_name:
+                            nome_indice:
                                 description: Dicionário onde a chave é o índice que a source está associada e o valor é um dicionário com os campos a serem alterados.
                                 type: object                            
                         required:
-                            - index_name
+                            - nome_indice
         responses:
             '204':
                 description: As alterações foram executadas com sucesso.
@@ -136,10 +134,10 @@ class ConfigRecommendationSourceView(APIView):
                     schema:
                         type: object
                         properties:
-                            source_id:
+                            id_fonte:
                                 type: string    
                                 description: ID da source a ser removida.
-                            index_name:
+                            nome_indice:
                                 type: string
                                 description: Índice associado ao source a ser removido.
         responses:
@@ -170,32 +168,31 @@ class ConfigRecommendationSourceView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        source_id = request.GET.get('source_id')
-        index_name = request.GET.get('index_name')
+        id_fonte = request.GET.get('id_fonte')
+        nome_indice = request.GET.get('nome_indice')
 
         conf_rec_source = ConfigRecommendationSource()
 
-        if source_id or index_name:
-            source, msg_error = conf_rec_source.get(source_id, index_name)
+        if id_fonte or nome_indice:
+            source, msg_error = conf_rec_source.get(id_fonte, nome_indice)
 
             if source is None:
                 return Response({'message': msg_error}, status=status.HTTP_404_NOT_FOUND)
 
             return Response(source, status=status.HTTP_200_OK)
 
-        active = request.GET.get('active')
-        if active is not None:
-            if active == 'false':
-                active = False
-        
-            elif active == 'true':
-                active = True
-        
-            else:
-                active = False
+        ativo = request.GET.get('ativo')
+        if ativo is not None:
+            if ativo == 'false':
+                ativo = False
 
-        
-        sources, _ = conf_rec_source.get(active=active)
+            elif ativo == 'true':
+                ativo = True
+
+            else:
+                ativo = False
+
+        sources, _ = conf_rec_source.get(ativo=ativo)
         return Response(sources, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -203,93 +200,91 @@ class ConfigRecommendationSourceView(APIView):
 
         try:
             source_repr = dict(
-                ui_name = data['ui_name'],
-                es_index_name = data['es_index_name'],
-                amount = data['amount'],
-                active = data['active'],
+                nome=data['nome'],
+                nome_indice=data['nome_indice'],
+                quantidade=data['quantidade'],
+                ativo=data['ativo'],
             )
         except:
             return Response({'message': 'Informe todos os campos corretamente!'}, status=status.HTTP_400_BAD_REQUEST)
 
         conf_rec_source = ConfigRecommendationSource()
-        source_id, msg_error = conf_rec_source.save(source_repr)
+        id_fonte, msg_error = conf_rec_source.save(source_repr)
 
-        if source_id:
-            return Response({'source_id': source_id}, status=status.HTTP_201_CREATED)
+        if id_fonte:
+            return Response({'id_fonte': id_fonte}, status=status.HTTP_201_CREATED)
 
-        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _parse_data(self, data: dict):
         parsed_data = dict()
         for key, val in data.items():
             if '[' in key:
                 s_key = key[:-1].split('[')
-                index_name, attrib  = s_key[0], s_key[1]
+                nome_indice, attrib = s_key[0], s_key[1]
 
-                if index_name not in parsed_data:
-                    parsed_data[index_name] = dict()
-                
+                if nome_indice not in parsed_data:
+                    parsed_data[nome_indice] = dict()
+
                 if type(val) is str:
                     if val == 'false':
                         val = False
-                    
+
                     elif val == 'true':
-                        val = True 
-                    
+                        val = True
+
                     else:
                         val = int(val)
-                    
-                parsed_data[index_name][attrib] = val
-                
+
+                parsed_data[nome_indice][attrib] = val
+
         return parsed_data
 
     def put(self, request):
         data = request.data
         if type(data) is not dict:
             data = self._parse_data(data.dict())
-        
+
         conf_rec_source = ConfigRecommendationSource()
 
         error = dict()
         all_successfull = True
-        for index_name in data:
-            config = data[index_name]
-            success, msg_error = conf_rec_source.update(config, index_name=index_name)
+        for nome_indice in data:
+            config = data[nome_indice]
+            success, msg_error = conf_rec_source.update(
+                config, nome_indice=nome_indice)
 
             if not success:
                 all_successfull = False
 
-            error[index_name] = {
+            error[nome_indice] = {
                 'success': success,
-                'message': msg_error 
+                'message': msg_error
             }
 
         if all_successfull:
-            # para que o usuário atualize a página com os dados já atualizados
-            sleep(.9)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
-
 
     def delete(self, request):
         data = request.data
         if type(data) is not dict:
             data = data.dict()
 
-        source_id = data.get('source_id')
-        index_name = data.get('index_name')
+        id_fonte = data.get('id_fonte')
+        nome_indice = data.get('nome_indice')
 
         conf_rec_source = ConfigRecommendationSource()
 
-        if source_id or index_name:
-            source, msg_error = conf_rec_source.get(source_id, index_name)
+        if id_fonte or nome_indice:
+            source, msg_error = conf_rec_source.get(id_fonte, nome_indice)
             if source is None:
                 return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 
-            success, msg_error = conf_rec_source.delete(source_id, index_name)
+            success, msg_error = conf_rec_source.delete(id_fonte, nome_indice)
             if success:
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({'message': 'É necessário informar "source_id" ou "index_name"!'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'É necessário informar "id_fonte" ou "nome_indice"!'}, status=status.HTTP_400_BAD_REQUEST)

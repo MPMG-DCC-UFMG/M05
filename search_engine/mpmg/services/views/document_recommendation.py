@@ -1,11 +1,13 @@
-from datetime import datetime
 from time import time
+
 import numpy as np
+from mpmg.services.models import (ConfigRecommendationEvidence,
+                                  DocumentRecommendation, Notification)
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.models import DocumentRecommendation, ConfigRecommendationEvidence, Notification
 
 
 class DocumentRecommendationView(APIView):
@@ -13,13 +15,13 @@ class DocumentRecommendationView(APIView):
     get:
         description: Retorna a lista de recomendações de um usuário. Se o ID da notificação que gerou as recomendações for passado, só elas serão retornadas.
         parameters:
-            - name: user_id
+            - name: id_usuario
               in: query
               description: ID do usuário
               required: true
               schema:
                     type: string
-            - name: notification_id
+            - name: id_notificacao
               in: query
               description: ID da notificação que gerou a recomendação.
               required: false
@@ -38,47 +40,47 @@ class DocumentRecommendationView(APIView):
                                     id:
                                         type: integer
                                         description: ID da recomendação.
-                                    user_id:
+                                    id_usuario:
                                         type: string
                                         description: ID do usuário que recebeu a recomendação.
-                                    notification_id: 
+                                    id_notificacao: 
                                         type: string
                                         description: ID da notificação que a recomendação está associada.
-                                    recommended_doc_index:
+                                    indice_doc_recomendado:
                                         type: string
                                         description: Índice do documento recomendado.
-                                    recommended_doc_id:
+                                    id_doc_recomendado:
                                         type: string
                                         description: ID do documento recomendado.
-                                    recommended_doc_title:
+                                    titulo_doc_recomendado:
                                         type: string
                                         description: Título do documento recomendado.
-                                    matched_from:
+                                    evidencia:
                                         type: string
                                         description: De onde a recomendação foi baseada, podendo ser click, bookmark ou query. 
-                                    evidence_query_text:
+                                    evidencia_texto_consulta:
                                         type: string
                                         description: Se a origem da recomendação foi uma consulta, ela aparecerá aqui.
-                                    evidence_doc_index:
+                                    evidencia_indice_doc:
                                         type: string
                                         description: Se a origem da recomendação foi um favorito, será o índice do documento favoritado.
-                                    evidence_doc_id: 
+                                    evidencia_id_doc: 
                                         type: string
                                         description: Se a origem da recomendação foi um favorito, será o ID do documento favoritado.
-                                    evidence_doc_title:
+                                    evidencia_titulo_doc:
                                         type: string
                                         description: Se a origem da recomendação foi um favorito, será o título do documento favoritado.
-                                    date: 
+                                    data_criacao: 
                                         type: integer
                                         description: Timestamp de quando a recomendação foi feita.
-                                    similarity_value:
+                                    similaridade:
                                         type: number
                                         description: O quão similar é o documento recomendado e os que serviram de base para a recomendação.
-                                    accepted: 
+                                    aprovado: 
                                         type: boolean
                                         nullable: true
                                         description: Informa se o usuário aceitou ou não a recomendação.
-                                    date_visualized: 
+                                    data_visualizacao: 
                                         type: integer
                                         nullable: true
                                         description: Timestamp de quando o usuário visualizou a
@@ -90,7 +92,7 @@ class DocumentRecommendationView(APIView):
                     schema:
                         type: object
                         properties:
-                            user_id:
+                            id_usuario:
                                 description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
                                 type: string
         responses:
@@ -105,19 +107,19 @@ class DocumentRecommendationView(APIView):
                     schema:
                         type: object
                         properties:
-                            recommendation_id:
+                            id_recomendacao:
                                 description: ID da recomendação a ser alterada.
                                 type: string
-                            accepted:
+                            aprovado:
                                 description: booleando indicando se o usuário aprovou a recomendação. Caso não haja opinião, passar o campo em branco.
                                 type: boolean
                                 nullable: true
-                            date_visualized:
+                            data_visualizacao:
                                 description: Inteiro representando o timestamp de quando a recomendação foi vista. Se em branco, o próprio sistema preencherá o campo.
                                 type:
                                     - int
                         required:
-                            - recommendation_id
+                            - id_recomendacao
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
@@ -130,11 +132,11 @@ class DocumentRecommendationView(APIView):
                     schema:
                         type: object
                         properties:
-                            recommendation_id:
+                            id_recomendacao:
                                 description: ID da recomendação a ser removida.
                                 type: string
                         required:
-                            - recommendation_id      
+                            - id_recomendacao      
         responses:
             '204':
                 description: A notificação foi removida com sucesso.
@@ -157,28 +159,28 @@ class DocumentRecommendationView(APIView):
         return np.dot(doc2, doc2)/(np.linalg.norm(doc1)*np.linalg.norm(doc2))
     
     def get(self, request):
-        user_id = request.GET['user_id']
+        id_usuario = request.GET['id_usuario']
 
-        notification_id = request.GET.get('notification_id')
-        if notification_id:
-            recommendations_list = DocumentRecommendation().get_by_notification_id(notification_id=notification_id)
+        id_notificacao = request.GET.get('id_notificacao')
+        if id_notificacao:
+            recommendations_list = DocumentRecommendation().get_by_notification_id(id_notificacao=id_notificacao)
 
         else:
-            recommendations_list = DocumentRecommendation().get_by_user(user_id=user_id)
+            recommendations_list = DocumentRecommendation().get_by_user(id_usuario=id_usuario)
         
         return Response(recommendations_list, status=status.HTTP_200_OK)
     
     
     def post(self, request):
-        user_id = request.POST.get('user_id', None)
+        id_usuario = request.POST.get('id_usuario', None)
         document_recommendation =  DocumentRecommendation()
         notification = Notification()
 
-        if user_id == None or user_id == '':
+        if id_usuario == None or id_usuario == '':
             users_ids = document_recommendation.get_users_ids_to_recommend()
 
         else:
-            users_ids = [user_id]
+            users_ids = [id_usuario]
 
         # data da última recomendação de cada usuário
         user_dates = document_recommendation.get_last_recommendation_date()
@@ -187,12 +189,12 @@ class DocumentRecommendationView(APIView):
         # quais os tipos de evidência que devem ser usadas na recomendação
         config_evidences, _ = self.config_rec_evidences.get(active=True)
 
-        for user_id in users_ids:
+        for id_usuario in users_ids:
 
             # usa como data de referência a data da última recomendação
             # se o usuário não possui data, usa a semana anterior como data de referência
-            if user_id in user_dates:
-                reference_date = user_dates[user_id]
+            if id_usuario in user_dates:
+                reference_date = user_dates[id_usuario]
                 
             else:
                 reference_date = '2021-04-01'
@@ -207,7 +209,7 @@ class DocumentRecommendationView(APIView):
                 min_similarity = evidence_item['min_similarity']
 
                 # busca as evidências do(s) usuário(s)
-                user_evidences = document_recommendation.get_evidences(user_id, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
+                user_evidences = document_recommendation.get_evidences(id_usuario, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
 
                 # computa a similaridade entre os documentos candidatos e a evidência
                 similarity_ranking = []
@@ -241,19 +243,19 @@ class DocumentRecommendationView(APIView):
                         candidate_i, score, evidence_i = candidate_rankings[i]
 
                         valid_recommendations.append({
-                            'user_id': user_id,
-                            'notification_id': None,
-                            'recommended_doc_index': candidates[candidate_i]['index_name'],
-                            'recommended_doc_id': candidates[candidate_i]['id'],
+                            'id_usuario': id_usuario,
+                            'id_notificacao': None,
+                            'indice_doc_recomendado': candidates[candidate_i]['index_name'],
+                            'id_doc_recomendado': candidates[candidate_i]['id'],
                             'recommended_doc_title': candidates[candidate_i]['title'],
                             'matched_from': evidence_item['evidence_type'],
-                            'evidence_query_text': user_evidences[evidence_i]['query'],
-                            'evidence_doc_index': user_evidences[evidence_i]['index_name'],
-                            'evidence_doc_id': user_evidences[evidence_i]['id'],
-                            'evidence_doc_title': user_evidences[evidence_i]['title'],
-                            'date': int(time() * 1000),
-                            'similarity_value': score,
-                            'accepted': None
+                            'titulo_doc_recomendado': user_evidences[evidence_i]['query'],
+                            'evidencia_indice_doc': user_evidences[evidence_i]['index_name'],
+                            'evidencia_id_doc': user_evidences[evidence_i]['id'],
+                            'evidencia_titulo_doc': user_evidences[evidence_i]['title'],
+                            'data_criacao': int(time() * 1000),
+                            'similaridade': score,
+                            'aprovado': None
                         })
 
                         del candidates[candidate_i]
@@ -269,15 +271,15 @@ class DocumentRecommendationView(APIView):
             if len(valid_recommendations) > 0:
                 # cria a notificação
                 notification_response = notification.create({
-                    'user_id': user_id,
+                    'id_usuario': id_usuario,
                     'message': 'Novos documentos que possam ser do seu interesse.',
                     'type': 'RECOMMENDATION',
-                    'date': int(time() * 1000)
+                    'data_criacao': int(time() * 1000)
                 })
-                notification_id = notification_response['_id']
+                id_notificacao = notification_response['_id']
 
                 for recommendation in valid_recommendations:
-                    recommendation['notification_id'] = notification_id
+                    recommendation['id_notificacao'] = id_notificacao
                     document_recommendation.save(recommendation)
 
 
@@ -286,35 +288,35 @@ class DocumentRecommendationView(APIView):
     def put(self, request):
         data = request.data.dict()
 
-        recommendation_id = data['recommendation_id']
-        if 'accepted' not in data and 'date_visualized' not in data:
-            return Response({'message': 'É necessário informar o campo accepted ou date_visualized.'}, status=status.HTTP_400_BAD_REQUEST)
+        id_recomendacao = data['id_recomendacao']
+        if 'aprovado' not in data and 'data_visualizacao' not in data:
+            return Response({'message': 'É necessário informar o campo aprovado ou data_visualizacao.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if 'accepted' in data:
-            accepted = data['accepted']
-            if accepted == 'True' or accepted == 'true':
-                accepted = True
+        if 'aprovado' in data:
+            aprovado = data['aprovado']
+            if aprovado == 'True' or aprovado == 'true':
+                aprovado = True
             
-            elif accepted == 'false' or accepted == 'False':
-                accepted = False
+            elif aprovado == 'false' or aprovado == 'False':
+                aprovado = False
             
-            elif accepted == '':
-                accepted = None
+            elif aprovado == '':
+                aprovado = None
 
             else:
                 return Response({'message': 'Não foi possível realizar o parsing dos parâmetros passados.'}, status.HTTP_400_BAD_REQUEST)
 
-            success, msg_error = DocumentRecommendation().update_feedback(recommendation_id, accepted)
+            success, msg_error = DocumentRecommendation().update_feedback(id_recomendacao, aprovado)
             if not success:
                 return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
             
-        
-        if 'date_visualized' in data:
-            date_visualized = data.get('date_visualized')
-            if not date_visualized:
-                date_visualized = int(time() * 1000)
+        if 'data_visualizacao' in data:
+            data_visualizacao = data.get('data_visualizacao')
+            if not data_visualizacao:
+                # TODO: Ter uma biblioteca padronizada para pegar o timestamp em ms
+                data_visualizacao = int(time() * 1000)
             
-            success, msg_error = DocumentRecommendation().mark_as_seen(recommendation_id, date_visualized)
+            success, msg_error = DocumentRecommendation().mark_as_seen(id_recomendacao, data_visualizacao)
             if not success:
                 return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -323,71 +325,12 @@ class DocumentRecommendationView(APIView):
     def delete(self, request):
         data = request.data.dict()
 
-        recommendation_id = data.get('recommendation_id')
-        if recommendation_id is None:
+        id_recomendacao = data.get('id_recomendacao')
+        if id_recomendacao is None:
             return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
         
-        success, msg_error = DocumentRecommendation().remove(recommendation_id)
+        success, msg_error = DocumentRecommendation().remove(id_recomendacao)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
         
         return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class AddFakeRecommendationsView():
-    '''
-    CLASSE TEMPORÁRIA que adiciona recomendações para um determinado usuário
-    para a execução de testes. Remova-a quando não for mais necessário
-    
-    Para executá-la siga os passos abaixo:
-
-    1. Entre no shell do django: 
-        python manage.py shell
-    
-    2. Execute:
-        from mpmg.services.views.document_recommendation import AddFakeRecommendationsView
-        AddFakeRecommendationsView().execute(1) # 1 é o user_id, altere de acordo
-    '''
-
-    def execute(self, user_id):        
-        # antes de inserir, deleta as existentes
-        from ..elastic import Elastic
-        elastic = Elastic()
-        search_obj = elastic.dsl.Search(using=elastic.es, index='doc_recommendations')
-        search_obj = search_obj.query(elastic.dsl.Q({"term": { "user_id": user_id }}))
-        search_obj.delete()
-
-        # pega 10 documentos aleatoriamente para usar como recomendação
-        from ..query import Query
-        query = Query('maria', 1, '123', '456', user_id, 'regular')
-        total_docs, total_pages, documents, response_time = query.execute()
-        rec_docs = []
-        for doc in documents:
-            rec_docs.append((doc['id'], doc['type']))
-        
-        # pega 10 documentos aleatoriamente para usar como referência
-        query = Query('joão', 1, '123', '456', user_id, 'regular')
-        total_docs, total_pages, documents, response_time = query.execute()
-        ref_docs = []
-        for doc in documents:
-            ref_docs.append((doc['id'], doc['type']))
-        
-        
-        # insere as novas recomendações
-        matched_from = ['query', 'bookmark', 'click', 'bookmark', 'bookmark', 'query', 'bookmark', 'click', 'query', 'query']
-        queries = ['maria', '', '', '', '', 'covid', '', '', 'dengue', 'chuvas']
-        for i, item in enumerate(rec_docs):
-            doc_id, doc_type = item
-            body = {
-                'user_id': user_id,
-                'notification_id': '',
-                'recommended_doc_index': doc_id,
-                'recommended_doc_id': doc_type,
-                'matched_from': matched_from[i],
-                'original_query_text': queries[i],
-                'original_doc_index': ref_docs[i][1] if matched_from[i] != 'query' else '',
-                'original_doc_id': ref_docs[i][0] if matched_from[i] != 'query' else '',
-                'date': '2021-01-01',
-                'similarity_value': '0.80',
-                'accepted': '',
-            }
-            elastic.es.index(index='doc_recommendations', body=body)

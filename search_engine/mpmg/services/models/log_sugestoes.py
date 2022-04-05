@@ -1,6 +1,5 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
-
 class LogSugestoes(ElasticModel):
     index_name = 'log_sugestoes'
 

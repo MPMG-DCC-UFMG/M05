@@ -1,17 +1,20 @@
-from mpmg.services.query import Query
-from ..elastic import Elastic
-from django.contrib.auth.models import User
-import time
-from datetime import datetime, timedelta
+import hashlib
 import random
 import string
-import hashlib
+import time
+from datetime import datetime, timedelta
+
+from django.contrib.auth.models import User
+from mpmg.services.models import (LogSearch, LogSearchClick,
+                                  LogSugestoes)
+from mpmg.services.query import Query
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from mpmg.services.models import LogSearch, LogSearchClick, LogSugestoes, Document
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from ..docstring_schema import AutoDocstringSchema
+from ..elastic import Elastic
 
 
 class LogSearchView(APIView):
@@ -64,10 +67,8 @@ class LogSearchView(APIView):
             data_final=request.POST['data_final'],
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        # FIXME: Retorna o status HTTP correto
+        return Response({"success": len(response[1]) == 0})
 
 
 class LogSearchClickView(APIView):
@@ -89,7 +90,7 @@ class LogSearchClickView(APIView):
                 qid:
                   description: ID da consulta executada (É sempre retornado pelo método search)
                   type: string
-                rank_number:
+                posicao:
                   description: Posição do documento clicado na lista de documentos retornados
                   type: integer
                 item_type:
@@ -106,7 +107,7 @@ class LogSearchClickView(APIView):
               required:
                 - item_id
                 - qid
-                - rank_number
+                - posicao
                 - item_type
                 - page
 
@@ -130,16 +131,13 @@ class LogSearchClickView(APIView):
             id_usuario=request.POST['id_usuario'],
             id_documento=request.POST['item_id'],
             id_consulta=request.POST['qid'],
-            posicao=request.POST['rank_number'],
+            posicao=request.POST['posicao'],
             tipo_documento=request.POST['item_type'],
             pagina=request.POST['page'],
             timestamp=int(time.time() * 1000),
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        return Response({"success": len(response[1]) == 0})
 
 
 class LogQuerySuggestionView(APIView):
@@ -161,35 +159,34 @@ class LogQuerySuggestionClickView(APIView):
             schema:
               type: object
               properties:
-                suggestion:
+                sugestao:
                   description: Texto da sugestão clicada
                   type: string
-                rank_number:
+                posicao:
                   description: Posição da sugestão clicada na lista de sugestões
                   type: integer
                   minimum: 1
               required:
-                - suggestion
-                - rank_number
+                - sugestao
+                - posicao
     '''
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
     def post(self, request):
+        # FIXME: Criar método padronizado para obter timestamp
         timestamp = int(time.time() * 1000)
-        rank_number = request.POST.get('rank_number', None)
-        suggestion = request.POST.get('suggestion', None)
+
+        posicao = request.POST.get('posicao', None)
+        sugestao = request.POST.get('sugestao', None)
 
         response = LogSugestoes().save(dict(
-            sugestao=suggestion,
-            posicao=rank_number,
+            sugestao=sugestao,
+            posicao=posicao,
             timestamp=timestamp
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        return Response({"success": len(response[1]) == 0})
 
 
 class LogDataGeneratorView():
@@ -203,13 +200,13 @@ class LogDataGeneratorView():
     '''
 
     def generate(self, start_date, end_date):
-        MAX_USERS = 10
         MAX_QUERIES_PER_DAY = 50
         POSSIBLE_QUERIES = ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros', 'Ribeirão das Neves', 'Uberaba', 'Governador Valadares', 'Ipatinga', 'Sete Lagoas', 'Divinópolis', 'Santa Luzia', 'Ibirité', 'Poços de Caldas', 'Patos de Minas', 'Pouso Alegre', 'Teófilo Otoni', 'Barbacena', 'Sabará', 'Varginha', 'Conselheiro Lafaiete', 'Vespasiano', 'Itabira', 'Araguari', 'Ubá', 'Passos', 'Coronel Fabriciano', 'Muriaé', 'Araxá', 'Ituiutaba', 'Lavras', 'Nova Serrana', 'Itajubá', 'Nova Lima', 'Pará de Minas', 'Itaúna', 'Paracatu', 'Caratinga', 'Patrocínio', 'Manhuaçu', 'São João del Rei', 'Timóteo', 'Unaí', 'Curvelo', 'Alfenas', 'João Monlevade', 'Três Corações', 'Viçosa', 'Cataguases',
                             'Ouro Preto', 'Janaúba', 'São Sebastião do Paraíso', 'Esmeraldas', 'Januária', 'Formiga', 'Lagoa Santa', 'Pedro Leopoldo', 'Mariana', 'Ponte Nova', 'Frutal', 'Três Pontas', 'Pirapora', 'São Francisco', 'Congonhas', 'Campo Belo', 'Leopoldina', 'Lagoa da Prata', 'Guaxupé', 'Itabirito', 'Bom Despacho', 'Bocaiúva', 'Monte Carmelo', 'Diamantina', 'João Pinheiro', 'Santos Dumont', 'São Lourenço', 'Caeté', 'Santa Rita do Sapucaí', 'Igarapé', 'Visconde do Rio Branco', 'Machado', 'Almenara', 'Oliveira', 'Salinas', 'Andradas', 'Nanuque', 'Boa Esperança', 'Brumadinho', 'Arcos', 'Ouro Branco', 'Várzea da Palma', 'Iturama', 'Jaíba', 'Porteirinha', 'Matozinhos', 'Capelinha', 'Araçuaí', 'Extrema', 'São Gotardo', ]
+
         start_date = datetime.strptime(start_date, '%d/%m/%Y')
         end_date = datetime.strptime(end_date, '%d/%m/%Y')
-        document = Document()
+
         user_ids = []
         for user in User.objects.all():
             user_ids.append(user.id)
@@ -251,9 +248,8 @@ class LogDataGeneratorView():
 
                 query_timestamp = current_timestamp + \
                     random.randrange(60*60*23) * \
-                    1000,  # add some hours and minutes
-                # I dont know why, the operation above returns a tuple
-                query_timestamp = query_timestamp[0]
+                    1000  # add some hours and minutes
+                query_timestamp = query_timestamp
 
                 qid = hashlib.sha1()
                 qid.update(bytes(str(query_timestamp) +
@@ -272,11 +268,9 @@ class LogDataGeneratorView():
                 # result click
                 num_clicks = 0
                 if len(documents) > 0:
-                    # clicked = random.choices([True, False], [click_prob, 1])
-                    # clicked = clicked[0]
-                    # clicked = random.choice([True, False])
                     num_clicks = random.choices(
                         [0, 1, 2, 3, 4], [5, 5, 1, 1, 1])
+
                     for _ in range(num_clicks[0]):
                         clicked_doc = random.sample(documents, 1)
                         clicked_doc = clicked_doc[0]
@@ -284,7 +278,7 @@ class LogDataGeneratorView():
                         LogSearchClick().save(dict(
                             id_documento=clicked_doc.id,
                             id_consulta=qid,
-                            posicao=clicked_doc.rank_number,
+                            posicao=clicked_doc.posicao,
                             tipo_documento=clicked_doc.type,
                             pagina=1,
                             # up to one minute to click in the result

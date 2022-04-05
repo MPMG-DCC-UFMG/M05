@@ -1,5 +1,6 @@
-from mpmg.services.models.elastic_model import ElasticModel
 from datetime import datetime
+
+from mpmg.services.models.elastic_model import ElasticModel
 
 class DiarioSegmentado(ElasticModel):
     index_name = 'diarios_segmentado'
@@ -27,9 +28,9 @@ class DiarioSegmentado(ElasticModel):
             'entidade_local',
             'vetor_embedding'
         ]
-        
+
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    
+
     @classmethod
     def get(cls, doc_id):
         '''
@@ -38,13 +39,15 @@ class DiarioSegmentado(ElasticModel):
         '''
 
         # primeiro recupera o registro do segmento pra poder pegar o ID do pai
-        retrieved_doc = cls.elastic.dsl.Document.get(doc_id, using=cls.elastic.es, index=cls.index_name)
+        retrieved_doc = cls.elastic.dsl.Document.get(
+            doc_id, using=cls.elastic.es, index=cls.index_name)
         id_pai = retrieved_doc['id_pai']
-        
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.index_name)
-        query_param = {"term":{"id_pai":id_pai}}
-        sort_param = {'num_segmento_global.keyword':{'order':'asc'}}
-        
+
+        search_obj = cls.elastic.dsl.Search(
+            using=cls.elastic.es, index=cls.index_name)
+        query_param = {"term": {"id_pai": id_pai}}
+        sort_param = {'num_segmento_global.keyword': {'order': 'asc'}}
+
         # faz a consulta uma vez pra pegar o total de segmentos
         search_obj = search_obj.query(cls.elastic.dsl.Q(query_param))
         elastic_result = search_obj.execute()
@@ -54,7 +57,7 @@ class DiarioSegmentado(ElasticModel):
         search_obj = search_obj[0:total_records]
         # search_obj = search_obj.sort(sort_param)
         segments_result = search_obj.execute()
-        
+
         all_segments = []
         for item in segments_result:
             segment = {
@@ -69,7 +72,7 @@ class DiarioSegmentado(ElasticModel):
 
             }
             all_segments.append(segment)
-        
+
         document = {
             'id': retrieved_doc.meta.id,
             'titulo': retrieved_doc['titulo_diario'],
@@ -79,4 +82,3 @@ class DiarioSegmentado(ElasticModel):
         }
 
         return document
-    

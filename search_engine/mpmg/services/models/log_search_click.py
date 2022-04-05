@@ -1,6 +1,6 @@
-from datetime import datetime, date
-from mpmg.services.models.elastic_model import ElasticModel
+from datetime import date, datetime
 
+from mpmg.services.models.elastic_model import ElasticModel
 
 class LogSearchClick(ElasticModel):
     index_name = 'log_clicks'
@@ -17,9 +17,9 @@ class LogSearchClick(ElasticModel):
             'tipo_documento',
             'pagina',
         ]
-    
+
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    
+
     @staticmethod
     def get_list_filtered(id_documento=None, tipo_documento=None, id_consulta=None, start_date=None, end_date=None, pagina_op=None, pagina=None, posicao_op=None, posicao=None, id_consultas=None, page='all', sort=None):
         query_param = {
@@ -34,7 +34,6 @@ class LogSearchClick(ElasticModel):
                     "id_consulta.keyword": id_consultas
                 }
             })
-        
 
         if id_documento:
             query_param["bool"]["must"].append({
@@ -43,7 +42,7 @@ class LogSearchClick(ElasticModel):
 
                 }
             })
-        
+
         if tipo_documento:
             query_param["bool"]["must"].append({
                 "term": {
@@ -51,7 +50,7 @@ class LogSearchClick(ElasticModel):
 
                 }
             })
-        
+
         if id_consulta:
             query_param["bool"]["must"].append({
                 "term": {
@@ -59,13 +58,15 @@ class LogSearchClick(ElasticModel):
 
                 }
             })
-        
+
         if start_date:
-            if type(start_date) == str: # de string para datetime
+            if type(start_date) == str:  # de string para datetime
                 start_date = datetime.strptime(start_date, '%d/%m/%Y')
-    
-            if type(start_date) == datetime or type(start_date) == date: # de datetime para milisegundos
-                start_date = int(datetime(year=start_date.year, month=start_date.month, day=start_date.day).timestamp() * 1000)
+
+            # de datetime para milisegundos
+            if type(start_date) == datetime or type(start_date) == date:
+                start_date = int(datetime(
+                    year=start_date.year, month=start_date.month, day=start_date.day).timestamp() * 1000)
 
             query_param["bool"]["must"].append({
                 "range": {
@@ -76,11 +77,12 @@ class LogSearchClick(ElasticModel):
             })
 
         if end_date:
-            if type(end_date) == str: # de string para datetime
+            if type(end_date) == str:  # de string para datetime
                 end_date = datetime.strptime(end_date, '%d/%m/%Y')
-    
-            if type(end_date) == datetime or type(end_date) == date: # de datetime para milisegundos
-                end_date = int(datetime(year=end_date.year, month=end_date.month, day=end_date.day).timestamp() * 1000)
+
+            if type(end_date) == datetime or type(end_date) == date:  # de datetime para milisegundos
+                end_date = int(datetime(
+                    year=end_date.year, month=end_date.month, day=end_date.day).timestamp() * 1000)
 
             query_param["bool"]["must"].append({
                 "range": {
@@ -89,10 +91,10 @@ class LogSearchClick(ElasticModel):
                     }
                 }
             })
-        
+
         if pagina and pagina_op:
             if pagina_op == 'e':
-                    query_param["bool"]["must"].append({
+                query_param["bool"]["must"].append({
                     "term": {
                         "pagina": pagina
                     }
@@ -108,8 +110,9 @@ class LogSearchClick(ElasticModel):
 
         if posicao and posicao_op:
             if posicao_op == 'e':
-                    query_param["bool"]["must"].append({
+                query_param["bool"]["must"].append({
                     "term": {
+                        # I dont know why, the operation above returns a tuple
                         "posicao": posicao
                     }
                 })
@@ -121,5 +124,5 @@ class LogSearchClick(ElasticModel):
                         }
                     }
                 })
-        
+
         return LogSearchClick.get_list(query=query_param, page=page, sort=sort)

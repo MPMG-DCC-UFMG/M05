@@ -18,8 +18,8 @@ class ElasticModel(dict):
             meta_fields = ['_id']
             index_fields = ['campo_um', 'campo_dois']
             super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    
-    
+
+
     Nota: Esta classe herda de dict para que o django consiga serializa-la em
     json automaticamente.
     '''
@@ -41,7 +41,7 @@ class ElasticModel(dict):
 
         for field in self.index_fields:
             setattr(self, field, kwargs.get(field, None))
-        
+
         # passa pro dict apenas os allowed_attributes
         serializable_attributes = {}
         for k, v in self.__dict__.items():
@@ -86,11 +86,12 @@ class ElasticModel(dict):
 
     def delete(self, item_id: str) -> bool:
         try:
-            response = self.elastic.es.delete(index=self.index_name, id=item_id)        
+            response = self.elastic.es.delete(
+                index=self.index_name, id=item_id)
             return response['result'] == 'deleted'
-        
+
         except:
-            return False 
+            return False
 
     @classmethod
     def get(cls, item_id):
@@ -99,19 +100,22 @@ class ElasticModel(dict):
         Retorna uma instância da classe correspondente ao índice em questão.
         '''
         try:
-            retrieved_element = cls.elastic.dsl.Document.get(item_id, using=cls.elastic.es, index=cls.index_name)
-            element = {'id': retrieved_element.meta.id, **retrieved_element.to_dict()}
+            retrieved_element = cls.elastic.dsl.Document.get(
+                item_id, using=cls.elastic.es, index=cls.index_name)
+            element = {'id': retrieved_element.meta.id,
+                       **retrieved_element.to_dict()}
             return cls(**element)
-        
+
         except NotFoundError:
-            return None 
+            return None
 
     @classmethod
     def get_total(cls):
         '''
         Retorna o total de registros salvos no índice.
         '''
-        total = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.index_name).count()
+        total = cls.elastic.dsl.Search(
+            using=cls.elastic.es, index=cls.index_name).count()
         return total
 
     @classmethod
@@ -131,11 +135,12 @@ class ElasticModel(dict):
         LogSearch.getList(query=query_param, page=3, sort=sort_param)
         '''
 
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.index_name)
-        
+        search_obj = cls.elastic.dsl.Search(
+            using=cls.elastic.es, index=cls.index_name)
+
         if query != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q(query))
-        
+
         if page == 'all':
             total = cls.get_total()
             search_obj = search_obj[0:total]
@@ -143,21 +148,22 @@ class ElasticModel(dict):
             start = cls.results_per_page * (page - 1)
             end = start + cls.results_per_page
             search_obj = search_obj[start:end]
-        
+
         if sort != None:
             search_obj = search_obj.sort(sort)
-        
+
         elastic_result = search_obj.execute()
 
         total_records = elastic_result.hits.total.value
-        
+
         result_list = []
-        
+
         for item in elastic_result:
-            result_list.append(cls(**dict({'id': item.meta.id}, **item.to_dict())))
+            result_list.append(
+                cls(**dict({'id': item.meta.id}, **item.to_dict())))
 
         return total_records, result_list
-    
+
     @staticmethod
     def get_indices_info():
         info = []
@@ -167,10 +173,10 @@ class ElasticModel(dict):
         for part in parts:
             try:
                 subpart = part.strip().split()
-                
+
                 if subpart[2][0] == '.':
                     continue
-                
+
                 info.append({
                     'health': subpart[0],
                     'status': subpart[1],
@@ -189,7 +195,7 @@ class ElasticModel(dict):
 
         info = sorted(info, key=lambda item: item['index_name'])
         return info
-    
+
     @staticmethod
     def get_cluster_info():
         response = ElasticModel.elastic.es.cluster.stats()

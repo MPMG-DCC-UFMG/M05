@@ -1,10 +1,10 @@
 from elasticsearch.exceptions import NotFoundError
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from ..elastic import Elastic
-from ..docstring_schema import AutoDocstringSchema
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from ..docstring_schema import AutoDocstringSchema
+from ..elastic import Elastic
 
 class DocumentNavigationView(APIView):
     '''
@@ -12,13 +12,13 @@ class DocumentNavigationView(APIView):
         description: Retorna uma lista com todas as seções do documento a ser visualizado. \
         Caso a consulta e as entidades sejam passadas, as seções que contiverem os termos da consulta ou as entidades serão destacadas.
         parameters:
-            -   name: doc_id
+            -   name: id_documento
                 in: query
                 description: ID do documento (ou segmento) a ser buscado
                 required: true
                 schema:
                     type: string
-            -   name: doc_type
+            -   name: tipo_documento
                 in: query
                 description: Tipo do documento
                 required: true
@@ -29,51 +29,54 @@ class DocumentNavigationView(APIView):
                         - processos
                         - licitacoes
                         - diarios_segmentado
-            -   name: query
+            -   name: consulta
                 in: query
                 description: Texto da consulta, para ter a seção onde a consulta aparece destacada.
                 schema:
                     type: string
-            -   name: filter_entidade_pessoa
+            -   name: filtro_entidade_pessoa
                 in: query
                 description: Lista de entidades do tipo pessoa. Seções que contiverem estas entidades serão destacadas
                 schema:
                     type: array
-            -   name: filter_entidade_municipio
+            -   name: filtro_entidade_municipio
                 in: query
                 description: Lista de entidades do tipo município. Seções que contiverem estas entidades serão destacadas
                 schema:
                     type: array
-            -   name: filter_entidade_organizacao
+            -   name: filtro_entidade_organizacao
                 in: query
                 description: Lista de entidades do tipo organização. Seções que contiverem estas entidades serão destacadas
                 schema:
                     type: array
-            
-
+            -   name: filtro_local
+                in: query
+                description: TODO
+                schema:
+                    type: array       
     '''
 
     schema = AutoDocstringSchema()
 
     def get(self, request):
         try:
-            doc_id = request.GET['doc_id']
+            id_documento = request.GET['id_documento']
             # o tipo do documento é o nome do índice
-            index_name = request.GET['doc_type']
-            query = request.GET.get('query', None)
-            filter_entidade_pessoa = request.GET.getlist(
-                'filter_entidade_pessoa', [])
-            filter_entidade_municipio = request.GET.getlist(
-                'filter_entidade_municipio', [])
-            filter_entidade_organizacao = request.GET.getlist(
-                'filter_entidade_organizacao', [])
-            local_filter = request.GET.getlist('local_filter', [])
+            index_name = request.GET['tipo_documento']
+            query = request.GET.get('consulta', None)
+            filtro_entidade_pessoa = request.GET.getlist(
+                'filtro_entidade_pessoa', [])
+            filtro_entidade_municipio = request.GET.getlist(
+                'filtro_entidade_municipio', [])
+            filtro_entidade_organizacao = request.GET.getlist(
+                'filtro_entidade_organizacao', [])
+            local_filter = request.GET.getlist('filtro_local', [])
 
             self.elastic = Elastic()
 
             # primeiro recupera o registro do segmento pra poder pegar o ID do pai
             retrieved_doc = self.elastic.dsl.Document.get(
-                doc_id, using=self.elastic.es, index=index_name)
+                id_documento, using=self.elastic.es, index=index_name)
             id_pai = retrieved_doc['id_pai']
 
             search_obj = self.elastic.dsl.Search(
@@ -132,6 +135,7 @@ class DocumentNavigationView(APIView):
             data = {
                 'navigation': navigation
             }
+            
             return Response(data)
 
         except NotFoundError:

@@ -1,6 +1,5 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
-
 class Processo(ElasticModel):
     index_name = 'processos'
 
@@ -19,6 +18,5 @@ class Processo(ElasticModel):
             'entidade_municipio',
             'entidade_local',
         ]
-        
+
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    
