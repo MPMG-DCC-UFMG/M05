@@ -30,8 +30,6 @@ class DiarioSegmentado(ElasticModel):
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
     
-
-    
     @classmethod
     def get(cls, doc_id):
         '''

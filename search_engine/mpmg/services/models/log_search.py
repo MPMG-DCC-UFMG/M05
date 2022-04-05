@@ -85,6 +85,7 @@ class LogSearch(ElasticModel):
         if start_date:
             if type(start_date) == str: # de string para datetime
                 start_date = datetime.strptime(start_date, '%d/%m/%Y')
+       
             if type(start_date) == datetime or type(start_date) == date: # de datetime para milisegundos
                 start_date = int(datetime(year=start_date.year, month=start_date.month, day=start_date.day).timestamp() * 1000)
 
@@ -99,6 +100,7 @@ class LogSearch(ElasticModel):
         if end_date:
             if type(end_date) == str: # de string para datetime
                 end_date = datetime.strptime(end_date, '%d/%m/%Y')
+       
             if type(end_date) == datetime or type(end_date) == date: # de datetime para milisegundos
                 end_date = int(datetime(year=end_date.year, month=end_date.month, day=end_date.day).timestamp() * 1000)
 
@@ -117,6 +119,7 @@ class LogSearch(ElasticModel):
                         "tempo_resposta_total": tempo
                     }
                 })
+       
             else:
                 query_param["bool"]["must"].append({
                     "range": {
@@ -141,6 +144,7 @@ class LogSearch(ElasticModel):
                 ]
             }
         }
+        
         response = LogSearch.get_list(query=request_body, page='all')
         total = response[0]
         suggestions = [ hit['text_consulta'] for hit in response[1]]

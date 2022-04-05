@@ -17,6 +17,7 @@ class SearchConfigs(models.Model):
     def get_results_per_page(cls):
         if SearchConfigs.objects.count() == 0:
             return 10
+        
         else:
             return cls.objects.all()[0].results_per_page
     
@@ -24,6 +25,7 @@ class SearchConfigs(models.Model):
     def get_use_entities_in_search(cls):
         if SearchConfigs.objects.count() == 0:
             return True
+
         else:
             return cls.objects.all()[0].use_entities_in_search
 
@@ -71,6 +73,7 @@ class SearchableIndicesConfigs(models.Model):
     def get_indices_list(cls, group='_all'):
         if group == '_all':
             return [index.index for index in cls.objects.all()]
+            
         else:
             return [index.index for index in cls.objects.filter(group=group)]
 

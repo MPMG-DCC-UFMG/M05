@@ -1,8 +1,5 @@
-from datetime import date, datetime
+from datetime import datetime
 from elasticsearch.exceptions import NotFoundError
-
-from mpmg.services.elastic import Elastic
-# from mpmg.services.models.bookmark import Bookmark
 from mpmg.services.models.elastic_model import ElasticModel
 
 from typing import Callable, Dict, Tuple, Union, List
@@ -21,7 +18,7 @@ class BookmarkFolder(ElasticModel):
             'data_modificacao',
             'pasta_pai',
             'subpastas',
-            'arquivos'
+            'favoritos'
         ]
         
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
@@ -42,14 +39,12 @@ class BookmarkFolder(ElasticModel):
             ou um string vazia, se não foi possível criá-lo junto com um mensagem de erro.
         '''
         
-        if dict_data == None:
-            dict_data = {}
-            for field in self.index_fields:
-                dict_data[field] = getattr(self, field, '')
+        dict_data = self.parse_dict_data(dict_data)
 
         if self.get(dict_data['pasta_pai']) is None:
-            return '', f'A pasta pai de ID {dict_data["pasta_pai"]} não existe ou não foi possível obtê-la.' 
-        
+            return None 
+
+        # TODO: Padronizar uso do timestamp
         now = datetime.now().timestamp()
 
         dict_data['data_criacao'] = now
@@ -58,14 +53,14 @@ class BookmarkFolder(ElasticModel):
         response = self.elastic.es.index(index=self.index_name, body=dict_data)
         
         if response['result'] != 'created':
-            return '', f'Não foi possível criar a pasta "{dict_data["nome"]}"". Tente novamente!'
+            return None
 
         result = self.add_subfolder(dict_data['pasta_pai'], response['_id'])
         if not result:
             self.elastic.es.delete(index=self.index_name, id=response['_id'])
-            return '', f'Falha ao adicionar a pasta "{dict_data["nome"]}" como subpasta da pasta de ID {dict_data["pasta_pai"]}'
+            return None
 
-        return response['_id'], ''
+        return response['_id']
 
     def _undo_operations(self, undo_queue: List[Tuple[Callable, Dict]]):
         '''Desfaz
@@ -75,7 +70,7 @@ class BookmarkFolder(ElasticModel):
         for undo_method, arg in undo_queue:
             undo_method(**arg)
 
-    def update(self, folder_id: str, data: dict) -> Tuple[bool, str]:
+    def update(self, folder_id: str, updated_data: dict) -> Tuple[bool, str]:
         folder = self.get(folder_id)
         if folder is None:
             return False, f'A pasta de ID informado não existe!'
@@ -85,12 +80,12 @@ class BookmarkFolder(ElasticModel):
         updated_folder = folder.copy()
         undo_queue = list()
         
-        for field in data:
-            if field == 'name':
-                updated_folder['nome'] = data[field]
+        for field in updated_data:
+            if field == 'nome':
+                updated_folder['nome'] = updated_data[field]
             
             # move uma pasta
-            elif field == 'parent_folder_id':
+            elif field == 'pasta_pai':
                 old_parent_folder = folder['pasta_pai']
 
                 success = self.remove_subfolder(old_parent_folder, folder_id)
@@ -100,7 +95,7 @@ class BookmarkFolder(ElasticModel):
                 
                 undo_queue.append((self.add_subfolder, {'parent_id': old_parent_folder, 'children_id': folder_id}))
                 
-                new_parent_folder = data['parent_folder_id']
+                new_parent_folder = updated_data['pasta_pai']
                 success = self.add_subfolder(new_parent_folder, folder_id)
 
                 if not success:
@@ -110,11 +105,11 @@ class BookmarkFolder(ElasticModel):
                 undo_queue.append((self.remove_subfolder, {'parent_id': new_parent_folder, 'children_id': folder_id}))
                 updated_folder['pasta_pai'] = new_parent_folder
             
-            elif field == 'subfolders':
-                updated_folder['subpastas'] = data['subfolders']
+            elif field == 'subpastas':
+                updated_folder['subpastas'] = updated_data['subpastas']
                  
-            elif field == 'files':
-                updated_folder['arquivos'] = data['files']
+            elif field == 'favoritos':
+                updated_folder['favoritos'] = updated_data['favoritos']
 
             else:
                 return False, f'Não é possível alterar o campo "{field}" na pasta!'
@@ -151,30 +146,21 @@ class BookmarkFolder(ElasticModel):
                 data_criacao = now,
                 data_modificacao = now,
                 subpastas=[],
-                arquivos=[]
+                favoritos=[]
             )
         
-            res = self.elastic.es.index(index=self.index_name, body=data, id=user_id)
-
-    def get(self, folder_id: str) -> Union[Dict, None]:
-        try:
-            response = self.elastic.es.get(index=self.index_name, id=folder_id) 
-            folder = {'id': response['_id'], **response['_source']}
-            return folder        
-
-        except:
-            return None
+            self.elastic.es.index(index=self.index_name, body=data, id=user_id)
 
     def add_file(self, folder_id, file_id) -> bool:
         
         try:
             folder = self.get(folder_id)
             
-            folder['arquivos'].append(file_id)
+            folder['favoritos'].append(file_id)
 
             now = datetime.now().timestamp()
             data = {
-                'arquivos': folder['arquivos'],
+                'favoritos': folder['favoritos'],
                 'data_modificacao': now,
             }
             
@@ -187,24 +173,17 @@ class BookmarkFolder(ElasticModel):
 
     def remove_file(self, folder_id, file_id) -> bool:
         try:
-            print(folder_id, file_id)
             folder = self.get(folder_id)
-
-            print(folder)
-
-            folder['arquivos'].remove(file_id)
+            folder['favoritos'].remove(file_id)
 
             now = datetime.now().timestamp()
 
             data = {
-                'arquivos': folder['arquivos'],
+                'favoritos': folder['favoritos'],
                 'data_modificacao': now
             }
             
             response = self.elastic.es.update(index=self.index_name, id=folder_id, body={'doc': data})
-            print('!' * 10)
-            print(response)
-            print('!' * 10)
             return response['result'] == 'updated'
         
         except Exception as e:
@@ -251,7 +230,7 @@ class BookmarkFolder(ElasticModel):
     def remove_tree(self, tree_id, bookmark_handler):
         folder = self.get(tree_id)
 
-        for file_id in folder['arquivos']:
+        for file_id in folder['favoritos']:
             self.elastic.es.delete(index=bookmark_handler.index_name, id=file_id)
 
         for subfolder_id in folder['subpastas']:
@@ -284,7 +263,7 @@ class BookmarkFolder(ElasticModel):
 
     def _get_all_files_id(self, folder_id: str, files: list):
         folder = self.get(folder_id)
-        files.extend(folder['arquivos'])
+        files.extend(folder['favoritos'])
         for subfolder_id in folder['subpastas']:
             self._get_all_files_id(subfolder_id, files)
 
@@ -292,4 +271,3 @@ class BookmarkFolder(ElasticModel):
         files = list()
         self._get_all_files_id(folder_id, files)
         return files 
-

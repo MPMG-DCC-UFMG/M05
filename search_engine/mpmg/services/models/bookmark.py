@@ -65,10 +65,7 @@ class Bookmark(ElasticModel):
 
         '''        
         
-        if dict_data == None:
-            dict_data = {}
-            for field in self.index_fields:
-                dict_data[field] = getattr(self, field, '')
+        dict_data = self.parse_dict_data(dict_data)
 
         if self.bookmark_folder.get(dict_data['id_pasta']) is None:
             return None 
@@ -82,32 +79,14 @@ class Bookmark(ElasticModel):
         if self.get(bookmark_id):
             return None
 
-        result = self.elastic.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
-
-        self.bookmark_folder.add_file(dict_data['id_pasta'], result['_id'])
-
-        return bookmark_id
-
-
-    def get(self, id_bookmark: str) -> Union[dict, None]:
-        ''' Recupa um bookmar por seu ID id_bookmark.
-
-        Args:
-            - id_bookmark: ID do bookmark a ser recuperado.
-
-        Returns:
-            Retorna um dicionário representando o bookmark, ou None, se não foi possível recuperá-lo.
-        '''
-        
-        try:
-            data = self.elastic.es.get(index=self.index_name, id=id_bookmark)['_source']        
-            data['id'] = id_bookmark
-            return data
-            
-        except:
+        response = self.elastic.es.index(index=self.index_name, id=bookmark_id, body=dict_data)
+        if response['result'] != 'created':
             return None
 
-    def remove(self, id_bookmark: str) -> Union[bool, str]:
+        self.bookmark_folder.add_file(dict_data['id_pasta'], response['_id'])
+        return bookmark_id
+
+    def delete(self, id_bookmark: str) -> Union[bool, str]:
         ''' Remove o bookmark de ID id_bookmark.
 
         Args:
@@ -120,29 +99,13 @@ class Bookmark(ElasticModel):
         
         '''
 
-        bookmark = self.get(id_bookmark)
-
-
-        if bookmark is None:
-            return False, 'Não foi possível encontrar o bookmark!'
-
         id_pasta = bookmark['id_pasta']
         success = self.bookmark_folder.remove_file(id_pasta, id_bookmark)
         
-
         if not success:
-            return False, 'Não foi possível remover o bookmark de sua pasta!'
+            return False
 
-        response = self.elastic.es.delete(index=self.index_name, id=id_bookmark)
-        
-        success = response['result'] == 'deleted'
-
-        msg_error = ''
-        if not success:
-            msg_error = 'Não foi possível remover o bookmark!'
-            self.bookmark_folder.add_file(id_pasta, id_bookmark)
-
-        return success, msg_error
+        return super().delete(id_bookmark)
     
     def _undo_operations(self, undo_queue: List[Tuple[Callable, Dict]]):
         '''Desfaz

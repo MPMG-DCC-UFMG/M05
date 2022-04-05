@@ -353,3 +353,4 @@ class SearchFilterTests(TestCase):
         self.assertIsNotNone(doc_types)
         self.assertIsNotNone(instances)
         self.assertIsNotNone(entities)
+

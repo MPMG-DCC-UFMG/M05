@@ -20,7 +20,6 @@ class LogSearchClick(ElasticModel):
     
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
     
-    
     @staticmethod
     def get_list_filtered(id_documento=None, tipo_documento=None, id_consulta=None, start_date=None, end_date=None, pagina_op=None, pagina=None, posicao_op=None, posicao=None, id_consultas=None, page='all', sort=None):
         query_param = {
@@ -64,6 +63,7 @@ class LogSearchClick(ElasticModel):
         if start_date:
             if type(start_date) == str: # de string para datetime
                 start_date = datetime.strptime(start_date, '%d/%m/%Y')
+    
             if type(start_date) == datetime or type(start_date) == date: # de datetime para milisegundos
                 start_date = int(datetime(year=start_date.year, month=start_date.month, day=start_date.day).timestamp() * 1000)
 
@@ -78,6 +78,7 @@ class LogSearchClick(ElasticModel):
         if end_date:
             if type(end_date) == str: # de string para datetime
                 end_date = datetime.strptime(end_date, '%d/%m/%Y')
+    
             if type(end_date) == datetime or type(end_date) == date: # de datetime para milisegundos
                 end_date = int(datetime(year=end_date.year, month=end_date.month, day=end_date.day).timestamp() * 1000)
 

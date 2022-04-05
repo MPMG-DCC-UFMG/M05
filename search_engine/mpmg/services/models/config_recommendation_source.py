@@ -19,16 +19,14 @@ class ConfigRecommendationSource(ElasticModel):
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
     def get(self, source_id = None, index_name = None, ativo = None):
-        msg_error = ''
         if source_id:
             try:
                 source = self.elastic.es.get(index=self.index_name, id=source_id)['_source']        
                 source['id'] = source_id
-                return source, msg_error
+                return source
                 
             except:
-                msg_error = 'Não encontrado!'
-                return None, msg_error
+                return None
         
         elif index_name:
             elastic_result = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name) \
@@ -40,11 +38,9 @@ class ConfigRecommendationSource(ElasticModel):
             if len(elastic_result) > 0:
                 source = elastic_result[0]['_source']
                 source['id'] = elastic_result[0]['_id']
-                return source, msg_error
+                return source
             
-            else:
-                msg_error = f'Não foi encontrado nenhum resultado para "{index_name}"'
-                return None, msg_error 
+            return None
             
         else:
             search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=self.index_name)
@@ -56,7 +52,7 @@ class ConfigRecommendationSource(ElasticModel):
             for item in elastic_result:
                 sources.append(dict({'id': item.meta.id}, **item.to_dict()))
             
-            return sources, msg_error
+            return sources
 
     def _update(self, config, source_id):
         parsed_config = dict()
@@ -90,19 +86,6 @@ class ConfigRecommendationSource(ElasticModel):
 
         else:
             return False, 'É necessário informar "evidence_type" ou "evidence_id"'
- 
-
-    def save(self, dict_data: dict = None):
-        if dict_data == None:
-            dict_data = {}
-            for field in self.index_fields:
-                dict_data[field] = getattr(self, field, '')
-        
-        response = self.elastic.es.index(index=self.index_name, body=dict_data)
-        if response['result'] != 'created':
-            return None, 'Não foi possível criar a configuração. Tente novamente!'
-
-        return response['_id'], ''
 
     def delete(self, source_id = None, index_name = None):
         if index_name:
@@ -113,17 +96,6 @@ class ConfigRecommendationSource(ElasticModel):
             source_id = source['id']
 
         if source_id:
-            response = self.elastic.es.delete(index=self.index_name, id=source_id)
-        
-            success = response['result'] == 'deleted'
-            msg_error = ''
+            return super().delete(source_id)
 
-            if not success:
-                msg_error = 'Não foi possível remover a evidência!'
-                return False, msg_error
-
-            return True, '' 
-
-        else:
-            msg_error = 'É necessário informar "index_name" ou "source_id" válidos!'
-            return False, msg_error
+        return False

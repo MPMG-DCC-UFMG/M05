@@ -1,5 +1,6 @@
-from mpmg.services.elastic import Elastic
+from elasticsearch.exceptions import NotFoundError
 
+from mpmg.services.elastic import Elastic
 
 class ElasticModel(dict):
     '''
@@ -28,7 +29,6 @@ class ElasticModel(dict):
     index_name = None
     results_per_page = 10
 
-    
     def __init__(self, index_name, meta_fields, index_fields, **kwargs):
         self.elastic = ElasticModel.elastic
         self.index_name = index_name
@@ -48,7 +48,6 @@ class ElasticModel(dict):
             if k in self.allowed_attributes:
                 serializable_attributes[k] = v
         super().__init__(serializable_attributes)
-    
 
     def set_attributes(self, dict_data):
         '''
@@ -60,10 +59,10 @@ class ElasticModel(dict):
             if field in self.allowed_attributes:
                 setattr(self, field, value)
 
-
-    def save(self, dict_data=None):
+    def parse_dict_data(self, dict_data: dict = None) -> dict:
         '''
-        Salva o objeto no índice. Os valores a serem salvos podem ser passados em dict_data.
+        Proprocessamento de dict_data.
+
         Chaves passadas em dict_data que não estiverem especificadas em index_fields serão ignoradas.
         Se dict_data for igual a None, os atributos do objeto é que serão salvos.
         '''
@@ -71,7 +70,14 @@ class ElasticModel(dict):
             dict_data = {}
             for field in self.index_fields:
                 dict_data[field] = getattr(self, field, '')
-        
+        return dict_data
+
+    def save(self, dict_data=None):
+        '''
+        Salva o objeto no índice. Os valores a serem salvos podem ser passados em dict_data.
+        '''
+        dict_data = self.parse_dict_data(dict_data)
+
         response = self.elastic.es.index(index=self.index_name, body=dict_data)
         if response['result'] != 'created':
             return None
@@ -79,20 +85,26 @@ class ElasticModel(dict):
         return response['_id']
 
     def delete(self, item_id: str) -> bool:
-        response = self.elastic.es.delete(index=self.index_name, id=item_id)        
-        return response['result'] == 'deleted'
+        try:
+            response = self.elastic.es.delete(index=self.index_name, id=item_id)        
+            return response['result'] == 'deleted'
+        
+        except:
+            return False 
 
     @classmethod
-    def get(cls, doc_id):
+    def get(cls, item_id):
         '''
-        Busca um registro no índice diretamente pelo seu ID.
+        Busca um elemento no índice diretamente pelo seu ID.
         Retorna uma instância da classe correspondente ao índice em questão.
         '''
-
-        retrieved_doc = cls.elastic.dsl.Document.get(doc_id, using=cls.elastic.es, index=cls.index_name)
-        document = dict({'id': retrieved_doc.meta.id}, **retrieved_doc.to_dict())
-        return cls(**document)
-    
+        try:
+            retrieved_element = cls.elastic.dsl.Document.get(item_id, using=cls.elastic.es, index=cls.index_name)
+            element = {'id': retrieved_element.meta.id, **retrieved_element.to_dict()}
+            return cls(**element)
+        
+        except NotFoundError:
+            return None 
 
     @classmethod
     def get_total(cls):
@@ -101,7 +113,6 @@ class ElasticModel(dict):
         '''
         total = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.index_name).count()
         return total
-    
 
     @classmethod
     def get_list(cls, query=None, page=1, sort=None):
@@ -142,13 +153,11 @@ class ElasticModel(dict):
         
         result_list = []
         
-
         for item in elastic_result:
             result_list.append(cls(**dict({'id': item.meta.id}, **item.to_dict())))
 
         return total_records, result_list
     
-
     @staticmethod
     def get_indices_info():
         info = []
@@ -158,8 +167,10 @@ class ElasticModel(dict):
         for part in parts:
             try:
                 subpart = part.strip().split()
+                
                 if subpart[2][0] == '.':
                     continue
+                
                 info.append({
                     'health': subpart[0],
                     'status': subpart[1],
@@ -172,12 +183,13 @@ class ElasticModel(dict):
                     'total_store_size': subpart[8],
                     'primary_store_size': subpart[9]
                 })
+
             except:
                 pass
+
         info = sorted(info, key=lambda item: item['index_name'])
         return info
     
-
     @staticmethod
     def get_cluster_info():
         response = ElasticModel.elastic.es.cluster.stats()

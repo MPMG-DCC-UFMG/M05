@@ -59,6 +59,7 @@ class Notification(ElasticModel):
 
         success = response['result'] == 'updated' 
         msg_error = ''
+        
         if not success:
             msg_error = 'Não foi possível atualizar.'
 

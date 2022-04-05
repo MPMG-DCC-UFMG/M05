@@ -3,7 +3,6 @@ from .config_recommendation_source import ConfigRecommendationSource
 from collections import defaultdict
 from ..semantic_model import SemanticModel
 
-
 class DocumentRecommendation(ElasticModel):
     index_name = 'doc_recommendations'
     config_rec_sources = ConfigRecommendationSource()
@@ -105,6 +104,7 @@ class DocumentRecommendation(ElasticModel):
 
         success = response['result'] == 'updated' 
         msg_error = ''
+
         if not success:
             msg_error = 'Não foi possível atualizar.'
 
@@ -118,17 +118,19 @@ class DocumentRecommendation(ElasticModel):
         '''
 
         users_ids = []
+
         # busca todos os IDs, varrendo os índices de logs de buscas e bookmarks
         search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=['log_buscas', 'bookmark'])
         search_obj = search_obj.extra(size=0) # não precisa retornar documentos, apenas a agregação
         search_obj.aggs.bucket('ids_usuarios', 'terms', field='id_usuario.keyword')
+        
         elastic_result = search_obj.execute()
+        
         for item in elastic_result['aggregations']['ids_usuarios']['buckets']:
             users_ids.append(item['key'])
         
         return users_ids
     
-
     def get_last_recommendation_date(self, id_usuario=None):
         '''
         Retorna um dicionário do tipo id_usuario:data_criacao que contém a data da última
@@ -140,8 +142,6 @@ class DocumentRecommendation(ElasticModel):
         # search_obj = self.elastic.dsl.Search(using=self.elastic.es, index='doc_recommendations')
         # return date_by_user
         return {'1': '2021-04-01', '2': '2021-05-01'}
-
-
     
     def get_candidate_documents(self, reference_date) -> list:
         '''
@@ -177,7 +177,6 @@ class DocumentRecommendation(ElasticModel):
                     
         return candidates
     
-
     def get_evidences(self, id_usuario, evidence_type, evidence_index, amount):
         '''
         Retorna uma lista de evidências do usuário para servir como base de recomendação.
@@ -187,31 +186,16 @@ class DocumentRecommendation(ElasticModel):
             - bookmark: Documentos marcados como favoritos
         '''
 
-        semantic_model = SemanticModel()
-        
+        semantic_model = SemanticModel()        
         user_evidences = []
 
-        # TODO: Padronizar o nome destes campos
-        if evidence_type == 'query':
-            date_field = 'data_hora'
-        elif evidence_type == 'click':
-            date_field = 'timestamp'
-        elif evidence_type == 'bookmark':
-            date_field = 'data_criacao'
-
         # busca as evidências do usuário
-        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index
-        )
+        search_obj = self.elastic.dsl.Search(using=self.elastic.es, index=evidence_index)
         search_obj = search_obj.query(self.elastic.dsl.Q({'match_phrase': {'id_usuario.keyword': id_usuario}}))
 
-        # print('*' * 15)
-        # print(search_obj.execute())
-        # print('*' * 15)
-
-        search_obj = search_obj.sort({date_field:{'order':'desc'}})
+        search_obj = search_obj.sort({'data_criacao': {'order':'desc'}})
         search_obj = search_obj[0:amount]
         elastic_result = search_obj.execute()
-
 
         # se for consulta, pega o texto da consulta e passa pelo modelo para obter o embedding
         if evidence_type == 'query':
@@ -219,7 +203,6 @@ class DocumentRecommendation(ElasticModel):
                 embbeded_query = semantic_model.get_dense_vector(doc['text_consulta'])
                 user_evidences.append({'id':None, 'index_name':None, 'title':None, 'query': doc['text_consulta'], 'embedding_vector': embbeded_query})
         
-
         # se for click, pega os IDs dos documentos clicados e faz uma nova consulta 
         # para recuperar o embedding destes documentos
         elif evidence_type == 'click':
@@ -229,8 +212,8 @@ class DocumentRecommendation(ElasticModel):
                 
                 doc_type = doc['tipo_documento']
                 doc_id = doc['id_documento']
-                print(f'{doc_type}:{doc_id}')
                 doc_ids_by_type[doc_type].append(doc_id)
+
             # pega os embeddings dos documentos clicados através dos IDs no respectivo índice
             for dtype, ids in doc_ids_by_type.items():
                 evidence_docs = self.elastic.dsl.Document.mget(ids, using=self.elastic.es, index=dtype)
@@ -238,7 +221,6 @@ class DocumentRecommendation(ElasticModel):
                     if doc != None:
                         user_evidences.append({'id':doc.meta.id, 'index_name': dtype, 'title':doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
         
-
         # se for bookmark, pega os IDs dos documentos favoritados e faz uma nova consulta 
         # para recuperar o embedding destes documentos
         elif evidence_type == 'bookmark':
@@ -247,10 +229,8 @@ class DocumentRecommendation(ElasticModel):
             for doc in elastic_result:
                 doc_type = doc['indice_documento']
                 doc_id = doc['id_documento']
-
-                print(f'{doc_type}:{doc_id}')
-
                 doc_ids_by_type[doc_type].append(doc_id)
+            
             # pega os embeddings dos documentos favoritados através dos IDs no respectivo índice
             for dtype, ids in doc_ids_by_type.items():
                 evidence_docs = self.elastic.dsl.Document.mget(ids, using=self.elastic.es, index=dtype)
@@ -259,20 +239,3 @@ class DocumentRecommendation(ElasticModel):
                         user_evidences.append({'id':doc.meta.id, 'index_name': dtype, 'title':doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
         
         return user_evidences
-
-    def remove(self, recommendation_id):
-        response = self.elastic.es.delete(index=self.index_name, id=recommendation_id)        
-        success = response['result'] == 'deleted'
-
-        msg_error = ''
-        if not success:
-            msg_error = 'Não foi possível remover a recomendação!'
-            
-        return success, msg_error
-
-
-
-
-            
-
-
