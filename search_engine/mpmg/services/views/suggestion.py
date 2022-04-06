@@ -51,7 +51,7 @@ class QuerySuggestionView(APIView):
         }
         for i, hit in enumerate(processed_suggestions):
             data["suggestions"].append(
-                {'label': hit, 'value': hit, 'rank_number': i+1, 'suggestion_id': i+1})
+                {'label': hit, 'value': hit, 'posicao_ranking': i+1, 'suggestion_id': i+1})
 
         return Response(data)
 

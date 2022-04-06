@@ -7,7 +7,7 @@ class DiarioSegmentado(ElasticModel):
 
     def __init__(self, **kwargs):
         index_name = DiarioSegmentado.index_name
-        meta_fields = ['id', 'rank_number', 'description', 'type']
+        meta_fields = ['id', 'posicao_ranking', 'descricao', 'tipo']
         index_fields = [
             'id_pai',
             'titulo_diario',
@@ -26,7 +26,7 @@ class DiarioSegmentado(ElasticModel):
             'entidade_organizacao',
             'entidade_municipio',
             'entidade_local',
-            'vetor_embedding'
+            'embedding'
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)

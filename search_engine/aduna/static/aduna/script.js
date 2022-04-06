@@ -10,7 +10,7 @@ function log_search_click(link){
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             id_usuario: USER_ID,
-            rank_number: $(link).data('rank-number'),
+            posicao_ranking: $(link).data('rank-number'),
             item_id: $(link).data('item-id'),
             item_type: $(link).data('item-type'),
             qid: QID,
@@ -26,7 +26,7 @@ function log_suggestion_click(item){
         dataType: 'json',
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
-            rank_number: item['rank_number'],
+            posicao_ranking: item['posicao_ranking'],
             suggestion: item['value'],
         }
     });

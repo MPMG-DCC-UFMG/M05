@@ -75,6 +75,7 @@ class Query:
             entities = NER().execute(self.raw_query)
             entities_fields = list(entities.keys())
             return entities, entities_fields
+
         else:
             return {}, []
 
@@ -155,7 +156,8 @@ class Query:
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
 
-        self._log()
+        # TODO reativar isso
+        # self._log()
 
         return self.total_docs, self.total_pages, self.documents, self.response_time
 
@@ -173,7 +175,8 @@ class Query:
             text_consulta = self.query,
             data_criacao = self.data_criacao,
             tempo_resposta = self.response_time,
-            documentos = [ i['type']+':'+i['id'] for i in sorted(self.documents, key = lambda x: x['rank_number']) ],
+            documentos=[i['tipo']+':'+i['id']
+                        for i in sorted(self.documents, key=lambda x: x['posicao_ranking'])],
             pagina = self.page,
             resultados_por_pagina = self.results_per_page,
             tempo_resposta_total = time.time() - self.start_time,

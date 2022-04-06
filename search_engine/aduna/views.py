@@ -29,57 +29,62 @@ def search(request):
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
     sid = request.session.session_key
-    query = request.GET['query']
+    query = request.GET['consulta']
     qid = request.GET.get('qid', '')
-    page = int(request.GET.get('page', 1))
-    filter_instances = request.GET.getlist('filter_instances', [])
-    filter_doc_types = request.GET.getlist('filter_doc_types', [])
-    filter_start_date = request.GET.get('filter_start_date', None)
+    page = int(request.GET.get('pagina', 1))
+    
+    filter_instances = request.GET.getlist('filtro_instancias', [])
+    filter_doc_types = request.GET.getlist('filtro_tipos_documentos', [])
+
+    filter_start_date = request.GET.get('filtro_data_inicio', None)
     if filter_start_date == "":
         filter_start_date = None
-    filter_end_date = request.GET.get('filter_end_date', None)
+    
+    filter_end_date = request.GET.get('filtro_data_fim', None)
     if filter_end_date == "":
         filter_end_date = None
-    filter_entidade_pessoa = request.GET.getlist('filter_entidade_pessoa', [])
-    filter_entidade_municipio = request.GET.getlist('filter_entidade_municipio', [])
-    filter_entidade_organizacao = request.GET.getlist('filter_entidade_organizacao', [])
-    filter_entidade_local = request.GET.getlist('filter_entidade_local', [])
+
+    filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
+    filter_entidade_municipio = request.GET.getlist('filtro_entidade_municipio', [])
+    filter_entidade_organizacao = request.GET.getlist('filtro_entidade_organizacao', [])
+    filter_entidade_local = request.GET.getlist('filtro_entidade_local', [])
 
     # busca as opções do filtro
     params = {
-        'query': query, 
-        'filter_instances': filter_instances, 
-        'filter_doc_types': filter_doc_types,
-        'filter_start_date': filter_start_date,
-        'filter_end_date': filter_end_date,
-        'filter_entidade_pessoa': filter_entidade_pessoa,
-        'filter_entidade_municipio': filter_entidade_municipio,
-        'filter_entidade_organizacao': filter_entidade_organizacao,
-        'filter_entidade_local': filter_entidade_local,
+        'consulta': query, 
+        'filtro_instancias': filter_instances, 
+        'filtro_tipos_documentos': filter_doc_types,
+        'filtro_data_inicio': filter_start_date,
+        'filtro_data_fim': filter_end_date,
+        'filtro_entidade_pessoa': filter_entidade_pessoa,
+        'filtro_entidade_municipio': filter_entidade_municipio,
+        'filtro_entidade_organizacao': filter_entidade_organizacao,
+        'filtro_entidade_local': filter_entidade_local,
     }
+
     filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
     filter_content = filter_response.json()
-    filter_instances_list = filter_content['instances']
-    filter_doc_types_list = filter_content['doc_types']
-    filter_entities_list = filter_content['entities']
 
+    filter_instances_list = filter_content['instancias']
+    filter_doc_types_list = filter_content['tipos_documentos']
+    filter_entities_list = filter_content['entidades']
 
-    
     # faz a busca
     params = {
-        'query': query, 
-        'page': page, 
+        'consulta': query, 
+        'pagina': page, 
         'sid': sid, 
         'qid': qid, 
-        'filter_instances': filter_instances, 
-        'filter_doc_types': filter_doc_types,
-        'filter_start_date': filter_start_date,
-        'filter_end_date': filter_end_date,
-        'filter_entidade_pessoa': filter_entidade_pessoa,
-        'filter_entidade_municipio': filter_entidade_municipio,
-        'filter_entidade_organizacao': filter_entidade_organizacao,
-        'filter_entidade_local': filter_entidade_local,
+        'filtro_instancias': filter_instances, 
+        'filtro_tipos_documentos': filter_doc_types,
+        'filtro_data_inicio': filter_start_date,
+        'filtro_data_fim': filter_end_date,
+        'filtro_entidade_pessoa': filter_entidade_pessoa,
+        'filtro_entidade_municipio': filter_entidade_municipio,
+        'filtro_entidade_organizacao': filter_entidade_organizacao,
+        'filtro_entidade_local': filter_entidade_local,
     }
+
     service_response = requests.get(settings.SERVICES_URL+'search', params, headers=headers)
     response_content = service_response.json()
 
@@ -103,15 +108,16 @@ def search(request):
             'sid': sid,
             'time': response_content['time'],
             'qid': response_content['qid'],
-            'total_docs': response_content['total_docs'],
-            'results_per_page': range(response_content['results_per_page']),
-            'documents': response_content['documents'],
-            'total_pages': response_content['total_pages'],
-            'results_pagination_bar': range(min(9, response_content['total_pages'])), # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
-            'filter_start_date': datetime.strptime(response_content['filter_start_date'], '%Y-%m-%d') if response_content['filter_start_date'] != None else None,
-            'filter_end_date': datetime.strptime(response_content['filter_end_date'], '%Y-%m-%d') if response_content['filter_end_date'] != None else None,
-            'filter_instances': response_content['filter_instances'],
-            'filter_doc_types': response_content['filter_doc_types'],
+            'total_docs': response_content['total_documentos'],
+            'results_per_page': range(response_content['resultados_por_pagina']),
+            'documents': response_content['documentos'],
+            'total_pages': response_content['total_paginas'],
+            # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
+            'results_pagination_bar': range(min(9, response_content['total_paginas'])),
+            'filter_start_date': datetime.strptime(response_content['filtro_data_inicio'], '%Y-%m-%d') if response_content['filtro_data_inicio'] != None else None,
+            'filter_end_date': datetime.strptime(response_content['filtro_data_fim'], '%Y-%m-%d') if response_content['filtro_data_fim'] != None else None,
+            'filter_instances': response_content['filtro_instancias'],
+            'filter_doc_types': response_content['filtro_tipos_documentos'],
             'filter_instances_list': filter_instances_list,
             'filter_doc_types_list': filter_doc_types_list,
             'filter_entities_list': filter_entities_list,
@@ -272,11 +278,11 @@ def search_comparison(request):
         # Verificação dos ids de resposta
         id_pos = defaultdict(list)
         for result in response_content['documents']:
-            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_base'], result['rank_number']))
+            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_base'], result['posicao_ranking']))
         for result in response_content['documents_repl']:
             if id_pos[result['id']]:
                 id_pos[result['id']].append('<br>')    
-            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_repl'], result['rank_number']))
+            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_repl'], result['posicao_ranking']))
 
         id_pos = dict(id_pos) # Converte de volta pra dict, pois o Django Template Language não lê defaultdict
         for k, v in id_pos.items():
@@ -361,13 +367,12 @@ def search_comparison_entity(request):
         # Verificação dos ids de resposta
         id_pos = defaultdict(list)
         for result in response_content['documents_entity']:
-            id_pos[result['id']].append('Com entidades: {}ª posição'.format(result['rank_number']))
+            id_pos[result['id']].append('Com entidades: {}ª posição'.format(result['posicao_ranking']))
         for result in response_content['documents']:
             if id_pos[result['id']]:
                 id_pos[result['id']].append('<br>')    
-            id_pos[result['id']].append('Sem entidades: {}ª posição'.format(result['rank_number']))
+            id_pos[result['id']].append('Sem entidades: {}ª posição'.format(result['posicao_ranking']))
 
-        print(id_pos)
         id_pos = dict(id_pos)
         for k, v in id_pos.items():
             id_pos[k] = ''.join(v)

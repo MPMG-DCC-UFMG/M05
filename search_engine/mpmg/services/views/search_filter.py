@@ -29,7 +29,7 @@ class SearchFilterView(APIView):
                         - entities
             -   name: consulta
                 in: query
-                description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filtro="all" ou filter_Name="entities"
+                description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filtro="all" ou filtro="entities"
                 schema:
                     type: string
             -   name: filtro_instancias
@@ -95,18 +95,20 @@ class SearchFilterView(APIView):
     def get(self, request, filtro):
         data = {}
 
-        if filtro == 'instances' or filtro == 'all':
-            data['instances'] = self._get_instances()
+        if filtro == 'instancias' or filtro == 'all':
+            data['instancias'] = self._get_instances()
 
-        if filtro == 'doc_types' or filtro == 'all':
-            data['doc_types'] = self._get_doc_types()
+        if filtro == 'tipos_documentos' or filtro == 'all':
+            data['tipos_documentos'] = self._get_doc_types()
 
-        if filtro == 'entities' or filtro == 'all':
-            data['entities'] = self._get_dynamic_entities_filter(request)
+        if filtro == 'entidades' or filtro == 'all':
+            data['entidades'] = self._get_dynamic_entities_filter(request)
 
         return Response(data)
 
     def _get_dynamic_entities_filter(self, request):
+        print(request.GET)
+
         consulta = request.GET['consulta']
         query_filter = QueryFilter.create_from_request(request)
 

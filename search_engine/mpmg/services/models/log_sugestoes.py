@@ -1,5 +1,6 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
+
 class LogSugestoes(ElasticModel):
     index_name = 'log_sugestoes'
 
@@ -14,7 +15,6 @@ class LogSugestoes(ElasticModel):
     
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-
     @staticmethod
     def get_suggestions(query):
         request_body = {
@@ -28,9 +28,11 @@ class LogSugestoes(ElasticModel):
                 ]
             }
         }
+
         response = LogSugestoes.get_list(query=request_body, page='all')
         total = response[0]
         suggestions = [ hit['sugestao'] for hit in response[1]]
+
         return total, suggestions
     
     @staticmethod

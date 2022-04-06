@@ -12,7 +12,7 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
@@ -272,7 +272,7 @@
                 "num_segmento_global": {
                     "type": "integer"
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
@@ -445,7 +445,7 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
@@ -533,7 +533,7 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },

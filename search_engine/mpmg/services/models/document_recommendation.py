@@ -185,7 +185,7 @@ class DocumentRecommendation(ElasticModel):
                 key = f'{index_name}:{item.meta.id}'
                 if key not in candidates_keys:
                     candidates.append({'id': item.meta.id, 'index_name': index_name,
-                                      'title': item['titulo'], 'embedding_vector': item['embedding_vector']})
+                                      'title': item['titulo'], 'embedding': item['embedding']})
                     candidates_keys.add(key)
 
         return candidates
@@ -218,7 +218,7 @@ class DocumentRecommendation(ElasticModel):
                 embbeded_query = semantic_model.get_dense_vector(
                     doc['text_consulta'])
                 user_evidences.append({'id': None, 'index_name': None, 'title': None,
-                                      'query': doc['text_consulta'], 'embedding_vector': embbeded_query})
+                                      'query': doc['text_consulta'], 'embedding': embbeded_query})
 
         # se for click, pega os IDs dos documentos clicados e faz uma nova consulta
         # para recuperar o embedding destes documentos
@@ -238,7 +238,7 @@ class DocumentRecommendation(ElasticModel):
                 for doc in evidence_docs:
                     if doc != None:
                         user_evidences.append(
-                            {'id': doc.meta.id, 'index_name': dtype, 'title': doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
+                            {'id': doc.meta.id, 'index_name': dtype, 'title': doc['titulo'], 'query': None, 'embedding': doc['embedding']})
 
         # se for bookmark, pega os IDs dos documentos favoritados e faz uma nova consulta
         # para recuperar o embedding destes documentos
@@ -257,6 +257,6 @@ class DocumentRecommendation(ElasticModel):
                 for doc in evidence_docs:
                     if doc != None:
                         user_evidences.append(
-                            {'id': doc.meta.id, 'index_name': dtype, 'title': doc['titulo'], 'query': None, 'embedding_vector': doc['embedding_vector']})
+                            {'id': doc.meta.id, 'index_name': dtype, 'title': doc['titulo'], 'query': None, 'embedding': doc['embedding']})
 
         return user_evidences

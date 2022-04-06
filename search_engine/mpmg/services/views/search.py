@@ -49,7 +49,7 @@ class SearchView(APIView):
             type: array
             items:
               type: string
-        - name: filtro_tipo_documentos
+        - name: filtro_tipos_documentos
           in: query
           description: Filtro com uma lista de tipos de documentos que devem ser retornados
           schema:
@@ -130,9 +130,9 @@ class SearchView(APIView):
 
         # Busca os documentos no elastic
         total_docs, total_pages, documents, response_time = self.query.execute()
-
+        
         # reranking goes here
-        documents = self.reranker.rerank(request.GET['query'], documents)
+        documents = self.reranker.rerank(request.GET['consulta'], documents)
 
         end = time.time()
         wall_time = end - start
@@ -140,30 +140,30 @@ class SearchView(APIView):
         data = {
             'time': wall_time,
             'time_elastic': response_time,
-            'query': self.query.query,
+            'consulta': self.query.query,
             'qid': self.query.qid,
-            'results_per_page': self.query.results_per_page,
-            'current_page': self.query.pagina,
-            'documents': documents,
-            'total_docs': total_docs,
-            'total_pages': total_pages,
+            'resultados_por_pagina': self.query.results_per_page,
+            'pagina_atual': self.query.page,
+            'documentos': documents,
+            'total_documentos': total_docs,
+            'total_paginas': total_pages,
             'filtro_data_inicio': self.query.query_filter.start_date,
             'filtro_data_fim': self.query.query_filter.end_date,
             'filtro_instancias': self.query.query_filter.instances,
-            'filtro_tipo_documentos': self.query.query_filter.doc_types,
+            'filtro_tipos_documentos': self.query.query_filter.doc_types,
         }
         return Response(data)
 
-    def goenerate_query(self, request):
+    def _generate_query(self, request):
         group = 'regular'
         user_id = request.user.id
-        raw_query = request.GET['query']
-        pagina = int(request.GET.get('pagina', 1))
+        raw_query = request.GET['consulta']
+        page = int(request.GET.get('pagina', 1))
         sid = request.GET['sid']
         qid = request.GET.get('qid', '')
 
         # o eostante dos parâmetros do request são lidos automaticamente
         query_filter = QueryFilter.create_from_request(request)
 
-        self.query = Query(raw_query, pagina, qid, sid,
+        self.query = Query(raw_query, page, qid, sid,
                            user_id, group, query_filter=query_filter)

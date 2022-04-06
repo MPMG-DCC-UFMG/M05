@@ -34,17 +34,18 @@ class QueryFilter:
         '''
         Cria uma instância desta classe lendo diretamente os parâmetros do request
         '''
-        instances = request.GET.getlist('filter_instances', [])
-        start_date = request.GET.get('filter_start_date', None)
-        end_date = request.GET.get('filter_end_date', None)
-        doc_types = request.GET.getlist('filter_doc_types', [])
+        instances = request.GET.getlist('filtro_instancias', [])
+        start_date = request.GET.get('filtro_data_inicio', None)
+        end_date = request.GET.get('filtro_data_fim', None)
+        doc_types = request.GET.getlist('filtro_tipos_documentos', [])
 
+        entidade_pessoa_filter = request.GET.getlist('filtro_entidade_pessoa', [])
+        entidade_municipio_filter = request.GET.getlist('filtro_entidade_municipio', [])
+        entidade_organizacao_filter = request.GET.getlist('filtro_entidade_organizacao', [])
+        entidade_local_filter = request.GET.getlist('filtro_entidade_local', [])
         
-        entidade_pessoa_filter = request.GET.getlist('filter_entidade_pessoa', [])
-        entidade_municipio_filter = request.GET.getlist('filter_entidade_municipio', [])
-        entidade_organizacao_filter = request.GET.getlist('filter_entidade_organizacao', [])
-        entidade_local_filter = request.GET.getlist('filter_entidade_local', [])
         filter_entities_selected = {}
+
         if len(entidade_pessoa_filter) > 0:
             filter_entities_selected['entidade_pessoa'] = entidade_pessoa_filter
         if len(entidade_municipio_filter) > 0:

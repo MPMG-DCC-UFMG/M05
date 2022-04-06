@@ -3,17 +3,15 @@
 from django.db import migrations
 from mpmg.services.elastic import Elastic
 
-
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('user_id', 'text')
-    m.field('message', 'text')
-    m.field('type', 'text')
-    m.field('date', 'date')
-    m.field('date_visualized', 'date')
+    m.field('id_usuario', 'text')
+    m.field('texto', 'text')
+    m.field('tipo', 'text')
+    m.field('data_criacao', 'date')
+    m.field('data_visualizacao', 'date')
     m.save('notifications')
-
 
 class Migration(migrations.Migration):
 

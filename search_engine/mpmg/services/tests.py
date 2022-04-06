@@ -185,7 +185,7 @@ class LogSearchTests(TestCase):
                         }
         self.log_click = {
                         'item_id': 'test_item_id', 
-                        'rank_number': 1, 
+                        'posicao_ranking': 1, 
                         'item_type': 'test_type', 
                         'qid': 'test_query',
                         'page': 1
@@ -253,7 +253,7 @@ class LogQuerySuggestionClickTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.log_query_suggestion_click = {
-            'rank_number': 0,
+            'posicao_ranking': 0,
             'suggestion': 'some suggestion'
         }
 
@@ -303,9 +303,9 @@ class SearchFilterTests(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def _get_response_json(self, filter_name, data = dict()):
+    def _get_response_json(self, filtro, data = dict()):
         return self.client.get(reverse('mpmg.services:search', 
-            kwargs={'filter_name': filter_name}), data=data).json()
+            kwargs={'filtro': filtro}), data=data).json()
 
     def test_doctypes_search_filter(self):
         data = self._get_response_json('doc_types')

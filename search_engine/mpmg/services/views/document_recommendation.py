@@ -220,7 +220,7 @@ class DocumentRecommendationView(APIView):
                         evidence_ranking[evidence_i] = []
 
                     for candidate_i, candidate_doc in enumerate(candidates):
-                        similarity_score = self._cosine_similarity(candidate_doc['embedding_vector'], evidence_doc['embedding_vector']) * 100
+                        similarity_score = self._cosine_similarity(candidate_doc['embedding'], evidence_doc['embedding']) * 100
                         if similarity_score >= min_similarity:
                             evidence_ranking[evidence_i].append((candidate_i, similarity_score, evidence_i))
                     

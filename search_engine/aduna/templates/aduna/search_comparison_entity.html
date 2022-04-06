@@ -106,7 +106,7 @@
                         <div class="result-item">
                         {% for key, value in id_pos.items %} 
                         {% if key == doc.id %}
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
+                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
                             <div class="result-description">
                                 {{ doc.description|safe }}
                             </div>
@@ -130,7 +130,7 @@
                         <div class="result-item">
                         {% for key, value in id_pos.items %} 
                         {% if key == doc.id %}
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
+                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
                             <div class="result-description">
                                 {{ doc.description|safe }}
                             </div>

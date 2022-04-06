@@ -1,4 +1,5 @@
 from django.conf import settings
+from mpmg.services.models import *
 from mpmg.services.elastic import Elastic
 
 class Document:
@@ -29,6 +30,7 @@ class Document:
     def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
+
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
             .source(self.retrievable_fields) \
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
@@ -45,16 +47,18 @@ class Document:
             dict_data['id'] = item.meta.id
 
             if hasattr(item.meta, 'highlight'):
-                dict_data['description'] = item.meta.highlight.conteudo[0]
+                dict_data['descricao'] = item.meta.highlight.conteudo[0]
 
             else:
-                dict_data['description'] = 'Sem descrição.'
+                dict_data['descricao'] = 'Sem descrição.'
 
-            dict_data['rank_number'] = results_per_page * \
+            dict_data['posicao_ranking'] = results_per_page * \
                 (page_number-1) + (i+1)
-            dict_data['type'] = item.meta.index
+
+            dict_data['tipo'] = item.meta.index
 
             result_class = self.index_to_class[item.meta.index]
+
             documents.append(result_class(**dict_data))
 
         return total_docs, total_pages, documents, response.took

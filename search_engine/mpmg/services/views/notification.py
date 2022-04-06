@@ -175,6 +175,7 @@ class NotificationView(APIView):
             return Response({'message': 'Informe o campo id_usuario ou id_notificacao!'}, status=status.HTTP_400_BAD_REQUEST)
 
         if id_notificacao:
+            # FIXME: Fazer com que os métodos de Notification sejam estáticos para não precisar criar novas instâncias a todo momento, o mesmo para outro modelos
             notification = Notification().get_by_id(id_notificacao)
             if notification is None:
                 return Response({'message': 'Verifique se o ID da notificação informado é válido!'}, status=status.HTTP_404_NOT_FOUND)
