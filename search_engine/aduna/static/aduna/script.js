@@ -8,11 +8,11 @@ function log_search_click(link){
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             id_usuario: USER_ID,
-            posicao_ranking: $(link).data('rank-number'),
-            item_id: $(link).data('item-id'),
-            item_type: $(link).data('item-type'),
+            posicao: $(link).data('rank-number'),
+            id_documento: $(link).data('item-id'),
+            tipo_documento: $(link).data('item-type'),
             qid: QID,
-            page: PAGE,
+            pagina: PAGE,
         }
     });
 }
@@ -39,7 +39,7 @@ $(function(){
                 dataType: 'json',
                 headers:{'Authorization': 'Token ' + AUTH_TOKEN},
                 data:{
-                    query: request.term
+                    consulta: request.term
                 }
             });
 

@@ -24,6 +24,9 @@ class QuerySuggestionView(APIView):
 
     def get(self, request):
         consulta = request.GET.get('consulta', None)
+
+        print(request.GET)
+        
         if not consulta or len(consulta) < 1:
             data = {'message': 'Termo de consulta inválido.'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)

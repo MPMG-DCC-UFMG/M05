@@ -84,7 +84,7 @@ class LogSearchClickView(APIView):
                 id_usuario: 
                   description: ID do usuário que clicou no item
                   type: string
-                item_id:
+                id_documento:
                   description: ID do documento clicado
                   type: string
                 qid:
@@ -93,23 +93,24 @@ class LogSearchClickView(APIView):
                 posicao:
                   description: Posição do documento clicado na lista de documentos retornados
                   type: integer
-                item_type:
+                tipo_documento:
                   description: Tipo do documento clicado
                   type: string
                   enum:
                   - diarios
                   - processos
                   - licitacoes
-                page:
+                pagina:
                   description: Número da página onde estava o documento
                   type: integer
                   minimum: 1
               required:
-                - item_id
+                - id_usuario
+                - id_documento
                 - qid
                 - posicao
-                - item_type
-                - page
+                - tipo_documento
+                - pagina
 
     '''
 
@@ -127,13 +128,15 @@ class LogSearchClickView(APIView):
     '''
 
     def post(self, request):
+
         response = LogSearchClick().save(dict(
             id_usuario=request.POST['id_usuario'],
-            id_documento=request.POST['item_id'],
+            id_documento=request.POST['id_documento'],
             id_consulta=request.POST['qid'],
             posicao=request.POST['posicao'],
-            tipo_documento=request.POST['item_type'],
-            pagina=request.POST['page'],
+            tipo_documento=request.POST['tipo_documento'],
+            pagina=request.POST['pagina'],
+            # FIXME: Usar método padronizado para obter timestamp
             timestamp=int(time.time() * 1000),
         ))
 
