@@ -1,6 +1,4 @@
 function log_search_click(link){
-    console.log("matusybaro");
-    
     // var query = $('#results-container').data('executed-query');
     $.ajax({
         async: false,

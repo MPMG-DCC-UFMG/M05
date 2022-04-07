@@ -82,7 +82,7 @@ function get_notifications() {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            user_id: USER_ID,
+            id_usuario: USER_ID,
         },
         success: function (notifications) {
             parse_notifications(notifications);

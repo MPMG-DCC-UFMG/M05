@@ -119,7 +119,8 @@ class Indexer:
 
                 if field_type == "list":
                     doc[field_name] = eval(line[field])
-                elif field_name == 'data':
+
+                elif field_name == 'data_criacao':
                     if line[field] != '':
                         element = parse_date(line[field])
                         timestamp = datetime.datetime.timestamp(element)

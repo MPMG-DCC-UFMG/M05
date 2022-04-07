@@ -76,7 +76,7 @@ class DiarioSegmentado(ElasticModel):
         document = {
             'id': retrieved_doc.meta.id,
             'titulo': retrieved_doc['titulo_diario'],
-            'data': datetime.fromtimestamp(retrieved_doc['data']).strftime('%d/%m/%Y'),
+            'data': datetime.fromtimestamp(retrieved_doc['data_criacao']).strftime('%d/%m/%Y'),
             'num_segmento_ativo': int(retrieved_doc['num_segmento_global']),
             'segmentos': all_segments
         }

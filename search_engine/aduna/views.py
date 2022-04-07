@@ -131,13 +131,13 @@ def search(request):
         return render(request, 'aduna/search.html', context)
     
 
-def document(request, doc_type, doc_id):
+def document(request, tipo_documento, id_documento):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
     
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
     sid = request.session.session_key
-    service_response = requests.get(settings.SERVICES_URL+'document', {'doc_type': doc_type, 'doc_id': doc_id}, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+'document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
 
     if service_response.status_code == 401:
         request.session['auth_token'] = None
@@ -150,16 +150,16 @@ def document(request, doc_type, doc_id):
         organizacao_filter = request.GET.getlist('organizacao', [])
         local_filter = request.GET.getlist('local', [])
 
-        if '_segmentado' in doc_type:
+        if '_segmentado' in tipo_documento:
             # requisita a estrutura de navegação do documento, para criar um índice lateral na página
             nav_params = {
-                'doc_type': doc_type, 
-                'doc_id': doc_id, 
-                'query':query,
-                'pessoa_filter': pessoa_filter,
-                'municipio_filter': municipio_filter,
-                'organizacao_filter': organizacao_filter,
-                'local_filter': local_filter,
+                'tipo_documento': tipo_documento, 
+                'id_documento': id_documento, 
+                'consulta':query,
+                'filtro_entidade_pessoa': pessoa_filter,
+                'filtro_entidade_municipio': municipio_filter,
+                'filtro_entidade_organizacao': organizacao_filter,
+                'filtro_local': local_filter,
                 }
             nav_response = requests.get(settings.SERVICES_URL+'document_navigation', nav_params, headers=headers)
             navigation = nav_response.json()['navigation']
@@ -170,8 +170,8 @@ def document(request, doc_type, doc_id):
                 'query': query,
                 'document': response_content['document'],
                 'navigation': navigation,
-                'doc_type': doc_type,
-                'doc_id': doc_id,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
                 'user_id': request.session['user_info']['user_id'],
                 'auth_token': request.session.get('auth_token'),
             }
@@ -188,8 +188,8 @@ def document(request, doc_type, doc_id):
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
                 'query': query,
-                'doc_type': doc_type,
-                'doc_id': doc_id,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
                 'user_id': request.session['user_info']['user_id'],
                 'auth_token': request.session.get('auth_token'),
             }
@@ -244,7 +244,7 @@ def search_comparison(request):
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('page', 1))
     instances = request.GET.getlist('instance', [])
-    doc_types = request.GET.getlist('doc_type', [])
+    tipo_documentos = request.GET.getlist('doc_type', [])
     start_date = request.GET.get('start_date', None)
     if start_date == "":
         start_date = None
