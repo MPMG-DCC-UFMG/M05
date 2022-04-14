@@ -67,6 +67,14 @@ function parse_notifications(notifications) {
             has_new_notifications = true;
     }
 
+    if (notification_lis.length == 0) {
+        notification_lis.push(`
+        <li>
+            <p class="m-0 p-0 text-center">Sem notificações.</p>
+        </li>
+        `)
+    }
+
     $('#notification-list').empty();
     $('#notification-list').append(notification_lis);
 

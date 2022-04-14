@@ -20,6 +20,8 @@ class Reranker():
 
     def rerank(self, text_query, documents):
         query_embedding = self.model.encode(text_query)
+        
+        print(len(documents), documents[0].keys())
 
         for document in documents:
             document.score = self.get_bert_score(document.embedding, query_embedding)

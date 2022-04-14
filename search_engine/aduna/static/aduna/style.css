@@ -195,7 +195,7 @@ mark.active{
   color: white;
 }
 
-a#dropdownNotification.nav-link.dropdown-toggle::after {
+#dropdownNotification.nav-link.dropdown-toggle::after {
     display: none;
 }
 

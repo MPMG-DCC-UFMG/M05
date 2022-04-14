@@ -1,40 +1,49 @@
 {% extends "./_base.html" %}
 {% load static %}
-{% block content %}
-    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-        <div class="container">
+
+{% block header %}
+    <header>
+        <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
+            <div class="container">
             <div class="row">
                 <div class="col-2 offset-10">&nbsp;</div>
             </div>
             <ul class="navbar-nav">
                 <li id="notification" class="nav-item dropdown mr-2">
-                    <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
                         <div class="notification">
                             <i class="fas fa-bell text-muted"></i>
                             <div id="notification-badge" class="badge d-none"></div>
                         </div>
                     </a>
-                    <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification" style="width: 360px; max-height: 400px; overflow-y: auto;">
+                    <div class="dropdown-menu p-3" aria-labelledby="dropdownNotification"
+                    style="width: 360px; max-height: 400px; overflow-y: auto;">
                         <ul class="small p-0" style="list-style: none;" id="notification-list">
                         </ul>
                         <!-- <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a> -->
                     </div>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
                         <i class="fas fa-user"></i>
                         {{ user_name }}
                     </a>
                     <div class="dropdown-menu" aria-labelledby="dropdown07">
-                            <a class="dropdown-item" href="/aduna/recomendacoes"><i class="fas fa-lightbulb"></i> Recomendações</a>
+                        <a class="dropdown-item" href="/aduna/recomendacoes"><i class="fas fa-lightbulb"></i>
+                            Recomendações</a>
                             <a class="dropdown-item" href="/aduna/bookmark"><i class="fas fa-star"></i> Favoritos</a>
                             <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+{% endblock %}
 
+{% block content %}
     <div class="vertical-center">
         <div class="container">
             <h1 class="aduna-title">Áduna</h1>
