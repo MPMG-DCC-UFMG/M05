@@ -1,6 +1,8 @@
 import time
 import hashlib
 from django.conf import settings
+
+from aduna.views import document
 from .elastic import Elastic
 from.query_filter import QueryFilter
 from .ner import NER
@@ -40,7 +42,7 @@ class Query:
         self.user_id = user_id
         self.group = group
         self.query_filter = query_filter
-        self.data_criacao = int(time.time()*1000)
+        self.data_criacao = int(time.time()*1000) #TODO: usar método padronizado para isso
         self.use_entities = settings.USE_ENTITIES_IN_SEARCH
         self.results_per_page =  settings.NUM_RESULTS_PER_PAGE
         self.weighted_fields = settings.SEARCHABLE_FIELDS
@@ -155,8 +157,8 @@ class Query:
         
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
-
-        # TODO reativar isso
+        
+        # FIXME reativar isso
         # self._log()
 
         return self.total_docs, self.total_pages, self.documents, self.response_time

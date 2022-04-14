@@ -62,6 +62,8 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
+    print(params)
+
     filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
     filter_content = filter_response.json()
 
@@ -98,6 +100,21 @@ def search(request):
         return redirect('/aduna/login')
 
     else:
+        # criar automaticamente o filter_urls a partir de params
+        ignore_keys = {'consulta', 'pagina', 'sid', 'qid'}
+
+        filter_url = ''
+        for key, val in params.items():
+            if key in ignore_keys:
+                continue
+
+            filter_item = f'&{key}='
+            if type(val) is list:
+                filter_url += filter_item + filter_item.join(val)
+
+            else:
+                filter_url += filter_item + val if val else filter_item 
+
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
@@ -125,7 +142,7 @@ def search(request):
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,
             'filter_entidade_local': filter_entidade_local,
-            'filter_url': '&pessoa='+'&pessoa='.join(filter_entidade_pessoa)+'&municipio='+'&municipio='.join(filter_entidade_municipio)+'&organizacao='+'&organizacao='.join(filter_entidade_organizacao)+'&local='+'&local='.join(filter_entidade_local)
+            'filter_url': filter_url
         }
         
         return render(request, 'aduna/search.html', context)
@@ -258,7 +275,7 @@ def search_comparison(request):
         'sid': sid, 
         'qid': qid, 
         'instances': instances, 
-        'doc_types': doc_types,
+        'doc_types': tipo_documentos,
         'start_date': start_date,
         'end_date': end_date
     }

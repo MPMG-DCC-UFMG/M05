@@ -130,7 +130,7 @@ class SearchView(APIView):
 
         # Busca os documentos no elastic
         total_docs, total_pages, documents, response_time = self.query.execute()
-        
+
         # reranking goes here
         documents = self.reranker.rerank(request.GET['consulta'], documents)
 

@@ -57,6 +57,8 @@ class Document:
 
             dict_data['tipo'] = item.meta.index
 
+            print('>>> ', item)
+
             result_class = self.index_to_class[item.meta.index]
 
             documents.append(result_class(**dict_data))
