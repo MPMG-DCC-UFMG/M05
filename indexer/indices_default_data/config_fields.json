@@ -1,0 +1,12 @@
+{
+    "data": [
+        {"id": 1, "body": {"ui_name":"Fonte",          "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 2, "body": {"ui_name":"Título",         "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 3, "body": {"ui_name":"Conteúdo",       "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 4, "body": {"ui_name":"Pessoas",        "field_name": "entidade_pessoa",      "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 5, "body": {"ui_name":"Organizações",   "field_name": "entidade_organizacao", "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 6, "body": {"ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 7, "body": {"ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 8, "body": {"ui_name":"Vetores Densos", "field_name": "embedding_vector",     "weight": 1, "searchable": false, "retrievable": true}}
+    ]
+}

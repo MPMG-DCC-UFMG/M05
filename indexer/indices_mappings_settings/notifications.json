@@ -1,0 +1,21 @@
+{
+    "mappings" : {
+        "properties" : {
+            "date" : {
+                "type" : "date"
+            },
+            "date_visualized" : {
+                "type" : "date"
+            },
+            "message" : {
+                "type" : "text"
+            },
+            "type" : {
+                "type" : "text"
+            },
+            "user_id" : {
+                "type" : "text"
+            }
+        }
+    }
+}

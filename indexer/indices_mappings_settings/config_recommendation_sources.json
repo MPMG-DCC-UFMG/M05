@@ -1,0 +1,23 @@
+{
+    "mappings" : {
+        "properties" : {
+            "active" : {
+                "type" : "boolean"
+            },
+            "amount" : {
+                "type" : "integer"
+            },
+            "es_index_name" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword"
+                    }
+                }
+            },
+            "ui_name" : {
+                "type" : "text"
+            }
+        }
+    }
+}

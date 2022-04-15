@@ -1,0 +1,21 @@
+{
+    "mappings" : {
+        "properties" : {
+            "active" : {
+                "type" : "boolean"
+            },
+            "class_name" : {
+                "type" : "text"
+            },
+            "es_index_name" : {
+                "type" : "text"
+            },
+            "group" : {
+                "type" : "text"
+            },
+            "ui_name" : {
+                "type" : "text"
+            }
+        }
+    }
+}

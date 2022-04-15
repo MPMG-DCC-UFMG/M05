@@ -1,0 +1,12 @@
+{
+    "mappings" : {
+        "properties" : {
+            "entity_type" : {
+                "type" : "text"
+            },
+            "field_name" : {
+                "type" : "text"
+            }
+        }
+    }
+}
