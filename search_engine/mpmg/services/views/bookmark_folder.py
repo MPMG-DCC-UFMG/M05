@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
+from mpmg.services.utils import validators 
 
 BOOKMARK_FOLDER = BookmarkFolder()
 BOOKMARK = Bookmark()
@@ -78,7 +79,7 @@ class BookmarkFolderView(APIView):
                             nome:
                                 description: Nome da pasta a ser criada. 
                                 type: string
-                            pasta_pai:
+                            id_pasta_pai:
                                 description: ID da pasta que a pasta a ser criada será colocada. Se o campo não for
                                         informado, a pasta será criada na pasta default.
                                 type: string
@@ -113,27 +114,17 @@ class BookmarkFolderView(APIView):
                     schema:
                         type: object
                         properties:
-                            folder_id:
+                            id_pasta:
                                 description: ID da pasta a ser alterada.
                                 type: string
-                            name:
+                            nome:
                                 description: Novo nome da pasta. 
                                 type: string
-                            parent_folder_id:
+                            id_pasta_pai:
                                 description: ID da nova pasta pai. Isto é, da pasta que a pasta sendo alterada será movida.
                                 type: string
-                            subfolders:
-                                type: array
-                                description: Lista de IDs de subpastas da pasta.
-                                items:
-                                    type: string  
-                            files:
-                                type: array
-                                description: Lista de IDs de bookmarks na pasta.
-                                items:
-                                    type: string 
                         required:
-                            - folder_id
+                            - id_pasta
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
@@ -157,11 +148,11 @@ class BookmarkFolderView(APIView):
                     schema:
                         type: object
                         properties:
-                            folder_id:
+                            id_pasta:
                                 description: ID da pasta a ser removido.
                                 type: string
                         required:
-                            - folder_id      
+                            - id_pasta      
         responses:
             '204':
                 description: A pasta foi removido com sucesso.
@@ -181,7 +172,8 @@ class BookmarkFolderView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        folder_id = request.GET.get('folder_id') 
+        
+        folder_id = request.GET.get('id_pasta') 
 
         if folder_id:
             # retornar também os itens que estão na pasta do usuário
@@ -189,43 +181,50 @@ class BookmarkFolderView(APIView):
             if result is None:
                 msg_error = f"Não foi possível encontrar a pasta de ID {folder_id}. Certifique que este é um ID válido!"
                 return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            
             return Response(result, status=status.HTTP_200_OK)
         
         else:
-            user_id = request.GET.get('user_id')
+            user_id = request.GET.get('id_usuario')
             if not user_id:
                 return Response({'message': 'É necessário informar o ID da pasta ou ID do usuário a ter a árvore de pastas retornada!'}, status=status.HTTP_400_BAD_REQUEST) 
+
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
             bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(user_id)
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
     def post(self, request):
         try:
-            id_usuario = request.POST['id_usuario']
-
+            data = request.data.dict()
+        
         except:
-            return Response({'message': 'É necessário informar o ID do criador da pasta, por meio do campo id_usuario!'}, status=status.HTTP_400_BAD_REQUEST)
+            data = request.data 
 
-        pasta_pai = request.POST.get('pasta_pai')
+        expected_fields = {'id_usuario', 'nome'}        
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
 
-        if not pasta_pai:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
-            pasta_pai = id_usuario
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user_id = data['id_usuario']
+        parent_folder_id = data.get('id_pasta_pai')
+
+        if not parent_folder_id:
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            parent_folder_id = user_id
 
         data = dict(
-            criador = id_usuario,
-            nome=request.POST['name'],
-            pasta_pai=pasta_pai,
-            subpastas=[],
-            arquivos=[]
+            criador = user_id,
+            nome=data['nome'],
+            id_pasta_pai=parent_folder_id
         )
 
         folder_id = BOOKMARK_FOLDER.save(data)
         
         if not bool(folder_id):
-            return Response({'folder_id': None}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'folder_id': folder_id}, status=status.HTTP_201_CREATED)        
+        return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
         data = request.data.dict()

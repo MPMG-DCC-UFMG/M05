@@ -1,6 +1,8 @@
 from elasticsearch.exceptions import NotFoundError
+from joblib import PrintTime
 
 from mpmg.services.elastic import Elastic
+from mpmg.services.utils import get_current_timestamp
 
 class ElasticModel(dict):
     '''
@@ -68,17 +70,36 @@ class ElasticModel(dict):
         '''
         if dict_data == None:
             dict_data = {}
+
             for field in self.index_fields:
                 dict_data[field] = getattr(self, field, '')
+        
+        fields = list(dict_data.keys())
+        for field in fields:
+            if field not in self.index_fields:
+                del dict_data[field]
+
         return dict_data
 
-    def save(self, dict_data=None):
+    def save(self, dict_data=None, item_id: str = None):
         '''
         Salva o objeto no índice. Os valores a serem salvos podem ser passados em dict_data.
         '''
         dict_data = self.parse_dict_data(dict_data)
+        
+        now = get_current_timestamp()
+        if 'data_criacao' in self.index_fields:
+            dict_data['data_criacao'] = now 
 
-        response = self.elastic.es.index(index=self.index_name, body=dict_data)
+        if 'data_modificacao' in self.index_fields:
+            dict_data['data_modificacao'] = now
+
+        if item_id is None:
+            response = self.elastic.es.index(index=self.index_name, body=dict_data)
+        
+        else:
+            response = self.elastic.es.index(index=self.index_name, id=item_id, body=dict_data)
+
         if response['result'] != 'created':
             return None
 
@@ -93,6 +114,18 @@ class ElasticModel(dict):
         except:
             return False
 
+    def update(self, item_id: str, updated_fields: dict) -> bool:
+        try:
+            if 'data_modificacao' in self.index_fields:
+                updated_fields['data_modificacao'] = get_current_timestamp()
+
+            response = self.elastic.es.update(index=self.index_name, 
+                        id=item_id, body={"doc": updated_fields})
+            return response['result'] == 'updated' 
+        
+        except:
+            return False 
+
     @classmethod
     def get(cls, item_id):
         '''
@@ -102,8 +135,10 @@ class ElasticModel(dict):
         try:
             retrieved_element = cls.elastic.dsl.Document.get(
                 item_id, using=cls.elastic.es, index=cls.index_name)
+
             element = {'id': retrieved_element.meta.id,
-                       **retrieved_element.to_dict()}
+                       **retrieved_element.to_dict(skip_empty=False)}
+
             return cls(**element)
 
         except NotFoundError:

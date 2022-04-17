@@ -21,15 +21,16 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
-                user_id: USER_ID,
-                folder_id: bookmark.folder,
-                name: bookmark.name,
-                doc_index: DOC_TYPE,
-                doc_id: DOC_ID,
-                query_id: QID
+                id_usuario: USER_ID,
+                id_pasta: bookmark.folder,
+                nome: bookmark.name,
+                indice_documento: DOC_TYPE,
+                id_documento: DOC_ID,
+                id_consulta: QID
             },
             success: function (res) {
                 bookmark.id = res.id_bookmark;
+                console.log(res);
             },
             error: function (res) {
                 alert(`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
@@ -43,7 +44,8 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
-                folder_id: bookmark.folder,
+                id_bookmark: bookmark.id,
+                id_pasta: bookmark.folder,
                 name: bookmark.name,
                 bookmark_id: bookmark.id,
             }
@@ -69,7 +71,7 @@ services.remove_bookmark = function(bookmark_id) {
         async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            bookmark_id: bookmark_id,
+            id_bookmark: bookmark_id,
         }
     });
 }
@@ -81,11 +83,11 @@ services.start_bookmark = function(index, item_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            user_id: USER_ID,
-            doc_index: index,
-            doc_id: item_id,
+            id_usuario: USER_ID,
+            indice_documento: index,
+            id_documento: item_id,
         },
-        success: function (data) {
+        success: function (data) {6
             bookmark.id = data.id;
             bookmark.folder = data.id_folder;
             bookmark.name = data.nome;
@@ -241,7 +243,7 @@ services.get_folder_tree = function()  {
             tree = data;
         },
         error: function (res) {
-            alert(res.message);
+            console.error(res.message);
         }
     });
 

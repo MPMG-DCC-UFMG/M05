@@ -7,13 +7,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-
+from mpmg.services.utils import validators 
 
 class BookmarkView(APIView):
     '''
     get:
-        description: Busca o conteúdo de um bookmark por meio de seu ID único, pelo índice e ID do documento que ele salva ou, se nenhum desses campos forem informado,
-            retorna a lista de todos bookmarks do usuário.
+        description: Busca o conteúdo de um favorito por meio de seu ID único ou pelo índice, ID do documento e ID do usuaŕio
+            que criou o favorito. Se somente o id do usuário for informao, retorna a lista de todos favoritos do usuário.
         parameters:
             - name: id
               in: query
@@ -245,7 +245,7 @@ class BookmarkView(APIView):
             id_documento = request.GET['id_documento']
             id_usuario = request.GET['id_usuario']
 
-            id_bookmark = BOOKMARK.get_id(id_usuario, indice_documento, id_documento)
+            id_bookmark = BOOKMARK.generate_id(id_usuario, indice_documento, id_documento)
 
             bookmark = BOOKMARK.get(id_bookmark)
 
@@ -258,76 +258,110 @@ class BookmarkView(APIView):
             return Response(bookmarks, status=status.HTTP_200_OK)
 
         else:
-            return Response({'message': 'Informe os campos apropriadamente!'}, status=status.HTTP_400_BAD_REQUEST)
+            message = 'Informe o campo id_boomark ou indice_documento, id_documento e id_usuario ' + \
+                        'ou apenas id_usuario, se deseja todos seus favoritos!'
+
+            return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
         if bookmark is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
             
         return Response(bookmark, status=status.HTTP_200_OK)
+ 
 
     def post(self, request):
         try:
-            id_usuario = request.POST['id_usuario']
-
+            data = request.data.dict()
+        
         except:
-            return Response({'message': 'Informe o ID do usuário!'}, status=status.HTTP_400_BAD_REQUEST) 
+            data = request.data 
 
-        # pasta default onde são salvo os bookmarks do usuário
-        folder_id = id_usuario
+        expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
 
-        if request.POST.get('folder_id'):
-            folder_id = request.POST['folder_id'] 
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(request.user.id)
+        user_id = request.POST['id_usuario']
+        folder_id = request.POST.get('id_pasta', user_id) 
 
-            now = datetime.now().timestamp()
-            id_bookmark = BOOKMARK.save(dict(
-                id_pasta=folder_id,
-                id_usuario=id_usuario,
-                indice_documento=request.POST['indice_documento'],
-                id_documento=request.POST['id_documento'],
-                id_consulta=request.POST['id_consulta'],
-                id_sessao=request.session.session_key,
-                nome=request.POST['nome'],
-                data_criacao=now,
-                data_modificacao=now
-            )) 
+        # O ID do bookmark é um hash do id do usuário com o indice e id do documento salvo
+        generated_bookmark_id = BOOKMARK.generate_id(user_id, request.POST['indice_documento'], request.POST['id_documento'])
+        bookmark = BOOKMARK.get(generated_bookmark_id)
 
-        except KeyError:
-            msg_error = 'Informe corretamente os campos de criação de bookmark!'
-            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST) 
+        if bookmark:
+            return Response({'message': 'O favorito já existe!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if id_bookmark is None:
-            return Response({"message": 'Não foi possível criar o bookmark. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
 
-        return Response({'id_bookmark': id_bookmark}, status=status.HTTP_201_CREATED)        
+        bookmark_id = BOOKMARK.save(dict(
+            id_pasta=folder_id,
+            id_usuario=user_id,
+            indice_documento=request.POST['indice_documento'],
+            id_documento=request.POST['id_documento'],
+            id_consulta=request.POST['id_consulta'],
+            id_sessao=request.session.session_key,
+            nome=request.POST['nome'],
+        ), generated_bookmark_id) 
+
+        if bookmark_id is None:
+            return Response({"message": 'Não foi possível criar o favorito. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'id_bookmark': generated_bookmark_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
-        # FIXME: Nem sempre o tipo request.data possui um método dict!
+        try:
+            data = request.data.dict()
+        
+        except:
+            data = request.data 
 
-        data = request.data.dict()
-        id_bookmark = data.get('id_bookmark')
-        if not id_bookmark:
+        bookmark_id = data.get('id_bookmark')
+        if bookmark_id is None:
             return Response({'message': 'É necessário informar o campo id_bookmark!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        del data['id_bookmark']
+        bookmark = Bookmark.get(bookmark_id)
 
-        success, msg_error = BOOKMARK.update(id_bookmark, data)
+        if bookmark is None:
+            return Response({'message': 'O favorito não existe ou não foi encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        del data['id_bookmark']
+        
+        valid_fields = {'id_pasta', 'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'id_sessao', 'nome'} 
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
+
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        has_updated_fields = False 
+        
+        # se ao menos um campo a ser atualizado é diferente do atual 
+        for field, value in data.items():
+            if bookmark[field] != value:
+                has_updated_fields = True 
+                break 
+        
+        if not has_updated_fields:
+            return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        success = BOOKMARK.update(bookmark_id, data)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': msg_error}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
         if 'id_bookmark' not in request.data:
             return Response({'message': 'Informe o id_bookmark!'}, status.HTTP_400_BAD_REQUEST) 
 
         id_bookmark = request.data['id_bookmark']
+        
+        bookmark = BOOKMARK.get(id_bookmark)
+        if bookmark is None:
+            return Response({'message': 'Não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        success, msg_error = BOOKMARK.remove(id_bookmark)
-        if success:
+        if BOOKMARK.delete(id_bookmark):
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Não foi remover o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 

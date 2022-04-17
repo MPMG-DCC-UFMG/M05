@@ -227,3 +227,13 @@ ENTITY_TYPE_TO_INDEX_FIELD = {
 
 
 USE_ENTITIES_IN_SEARCH = False
+
+'''
+Nome padrão da pasta de favoritos do usuário
+'''
+DEFAULT_BOOKMARK_FOLDER_NAME = 'Favoritos'
+
+'''
+Nome do índice de bookmarks
+'''
+BOOKMARK_INDEX = 'bookmark'
