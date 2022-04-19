@@ -1,5 +1,4 @@
 from elasticsearch.exceptions import NotFoundError
-from joblib import PrintTime
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
@@ -88,9 +87,12 @@ class ElasticModel(dict):
         dict_data = self.parse_dict_data(dict_data)
         
         now = get_current_timestamp()
+
+        # Se o objeto a ser salvo possui o campo data_criacao, editamos ele para ter o valor corrente
         if 'data_criacao' in self.index_fields:
             dict_data['data_criacao'] = now 
 
+        # Se o objeto a ser salvo possui o campo data_modificacao, editamos ele para ter o valor corrente
         if 'data_modificacao' in self.index_fields:
             dict_data['data_modificacao'] = now
 
@@ -106,6 +108,8 @@ class ElasticModel(dict):
         return response['_id']
 
     def delete(self, item_id: str) -> bool:
+        '''Deleta o documento item_id do índice.
+        '''
         try:
             response = self.elastic.es.delete(
                 index=self.index_name, id=item_id)
@@ -115,7 +119,10 @@ class ElasticModel(dict):
             return False
 
     def update(self, item_id: str, updated_fields: dict) -> bool:
+        '''Método responsável por atualizar os campos de um documento.
+        '''
         try:
+            # Se o objeto a ser salvo possui o campo data_modificacao, editamos ele para ter o valor corrente
             if 'data_modificacao' in self.index_fields:
                 updated_fields['data_modificacao'] = get_current_timestamp()
 

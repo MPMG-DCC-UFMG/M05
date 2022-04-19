@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from mpmg.services.models import Bookmark
 from mpmg.services.views.bookmark_folder import BOOKMARK, BOOKMARK_FOLDER
 from rest_framework import status
@@ -15,7 +13,7 @@ class BookmarkView(APIView):
         description: Busca o conteúdo de um favorito por meio de seu ID único ou pelo índice, ID do documento e ID do usuaŕio
             que criou o favorito. Se somente o id do usuário for informao, retorna a lista de todos favoritos do usuário.
         parameters:
-            - name: id
+            - name: id_bookmark
               in: query
               description: ID do bookmark. 
               required: false
@@ -39,7 +37,6 @@ class BookmarkView(APIView):
               required: false
               schema:
                     type: string
-
         responses:
             '200':
                 description: Retorna a representação do bookmark.
@@ -76,7 +73,7 @@ class BookmarkView(APIView):
                                     type: number
                                     description: Timestamp da última modificação do bookmark.
             '400':
-                description: Não foi informado o ID do bookmark ou índice e ID do documento que ele salva.
+                description: Não foi informado os campos necessários para encontrar o(s) bookmark(s).
                 content:
                     application/json:
                         schema:
@@ -112,7 +109,7 @@ class BookmarkView(APIView):
                                 description: ID da consulta.
                                 type: string
                             id_sessao:
-                                description: TODO: (deixar ou não esse parâmetro?) ID da sessao.
+                                description: ID da sessao. Se não for informado, será preenchido automaticamente com o ID da sessão atual.
                                 type: string
                             nome:
                                 description: Nome do bookmark.
@@ -122,7 +119,6 @@ class BookmarkView(APIView):
                             - indice_documento
                             - id_documento
                             - id_consulta
-                            - id_sessao
                             - nome
         responses:
             '201':
@@ -134,7 +130,7 @@ class BookmarkView(APIView):
                             properties: 
                                 id_bookmark: 
                                     type: string
-                                    description: ID do bookmark.
+                                    description: ID do bookmark criado.
             '400':
                 description: Algum(ns) do(s) campo(s) de criação foi(ram) informado(s) incorretamente.
                 content:
@@ -170,21 +166,6 @@ class BookmarkView(APIView):
                             id_pasta:
                                 description: Nova pasta do bookmark, para onde ele será movido. 
                                 type: string
-                            id_usuario:
-                                description: ID do usuário. 
-                                type: string
-                            indice_documento:
-                                description: Índice do documento salvo pelo bookmark.
-                                type: string
-                            id_documento:
-                                description: ID do documento salvo pelo bookmark.
-                                type: string
-                            id_consulta:
-                                description: ID da consulta.
-                                type: string
-                            id_sessao:
-                                description: ID da sessao.
-                                type: string
                             nome:
                                 description: Novo nome do bookmark.
                                 type: string
@@ -193,7 +174,26 @@ class BookmarkView(APIView):
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
-            
+            '400':
+                description: Algum campo editável do bookmark foi informado incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: O bookmark a ser alterado não existe ou não foi encontrado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
             '400':
                 description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
                 content:
@@ -221,6 +221,26 @@ class BookmarkView(APIView):
         responses:
             '204':
                 description: O bookmark foi removido com sucesso.
+            '400':
+                description: O campo id_bookmark não foi informado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: O bookmark a ser deletado não existe ou não foi encontrado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
             '500':
                 description: Houve algum(ns) erro(s) interno durante o processamento.
                 content:
@@ -233,7 +253,6 @@ class BookmarkView(APIView):
                                     description: Mensagem de erro.
     '''
 
-    # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
     def get(self, request):
@@ -277,7 +296,8 @@ class BookmarkView(APIView):
             data = request.data 
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
-        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
+        optional_fields = {'id_sessao', 'id_pasta'}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
 
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
@@ -286,7 +306,10 @@ class BookmarkView(APIView):
         folder_id = request.POST.get('id_pasta', user_id) 
 
         # O ID do bookmark é um hash do id do usuário com o indice e id do documento salvo
-        generated_bookmark_id = BOOKMARK.generate_id(user_id, request.POST['indice_documento'], request.POST['id_documento'])
+        generated_bookmark_id = BOOKMARK.generate_id(user_id, 
+                                                    request.POST['indice_documento'], 
+                                                    request.POST['id_documento'])
+        
         bookmark = BOOKMARK.get(generated_bookmark_id)
 
         if bookmark:
@@ -294,18 +317,21 @@ class BookmarkView(APIView):
 
         BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
 
+        session_id = request.POST.get('id_sessao', request.session.session_key)
+
         bookmark_id = BOOKMARK.save(dict(
             id_pasta=folder_id,
             id_usuario=user_id,
             indice_documento=request.POST['indice_documento'],
             id_documento=request.POST['id_documento'],
             id_consulta=request.POST['id_consulta'],
-            id_sessao=request.session.session_key,
+            id_sessao=session_id,
             nome=request.POST['nome'],
         ), generated_bookmark_id) 
 
         if bookmark_id is None:
-            return Response({"message": 'Não foi possível criar o favorito. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            message = 'Não foi possível criar o favorito. Tente novamente!'
+            return Response({'message': message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'id_bookmark': generated_bookmark_id}, status=status.HTTP_201_CREATED)        
 
@@ -327,7 +353,7 @@ class BookmarkView(APIView):
 
         del data['id_bookmark']
         
-        valid_fields = {'id_pasta', 'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'id_sessao', 'nome'} 
+        valid_fields = {'id_pasta', 'nome'} 
         data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
 
         if not data_fields_valid:
@@ -351,10 +377,16 @@ class BookmarkView(APIView):
         return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        if 'id_bookmark' not in request.data:
-            return Response({'message': 'Informe o id_bookmark!'}, status.HTTP_400_BAD_REQUEST) 
+        try:
+            data = request.data.dict()
+        
+        except:
+            data = request.data 
+        
+        if 'id_bookmark' not in data:
+            return Response({'message': 'Informe o id_bookmark com o ID do bookmark a ser deletado!'}, status.HTTP_400_BAD_REQUEST) 
 
-        id_bookmark = request.data['id_bookmark']
+        id_bookmark = data['id_bookmark']
         
         bookmark = BOOKMARK.get(id_bookmark)
         if bookmark is None:
@@ -363,5 +395,5 @@ class BookmarkView(APIView):
         if BOOKMARK.delete(id_bookmark):
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': 'Não foi remover o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Não foi possível remover o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 

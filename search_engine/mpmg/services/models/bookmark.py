@@ -1,10 +1,8 @@
 import hashlib
-from typing import Union
 
 from mpmg.services.models import ElasticModel
 from mpmg.services.models.bookmark_folder import BookmarkFolder
-
-from typing import Union
+from mpmg.services.utils import doc_filter
 
 class Bookmark(ElasticModel):
     index_name = 'bookmark'
@@ -41,3 +39,21 @@ class Bookmark(ElasticModel):
         '''
         key = id_usuario + indice_documento + id_documento
         return hashlib.sha1(key.encode()).hexdigest()
+
+    def get_all(self, user_id: str) -> dict:
+        '''Retorna todas as pastas do usuário user_id estruturado como uma árvore de pastas.
+
+        Args:
+            - user_id: ID do usuário que terá sua árvore de pastas gerada.
+
+        Returns:
+            Retorna um dicionário estruturado como uma árvore de pastas.
+
+        '''
+        bookmarks_found = doc_filter(self.index_name, {'term': {'id_usuario.keyword': user_id}})
+         
+        bookmarks = list()
+        for bookmark_found in bookmarks_found:
+            bookmarks.append({'id': bookmark_found['_id'], **bookmark_found['_source']})
+        
+        return bookmarks

@@ -12,18 +12,20 @@ BOOKMARK = Bookmark()
 class BookmarkFolderView(APIView):
     '''
     get:
-        description: Retorna uma pasta específica, se folder_id for informado. Ou a árvore de pastas, se folder_id não for informado.
+        description: Retorna uma pasta específica, se id_pasta for informado, ou a árvore de pastas do usuário, se id_usuario for passado ao invés de id_pasta.
         parameters:
-            - name: id
-                in: query
-                description: ID da pasta a ser buscada. 
-                required: false
-                schema:
-                        type: string
+            - name: id_pasta
+              in: query
+              description: ID da pasta a ser buscada. 
+              required: false
+              schema:
+                    type: string
             - name: id_usuario
-                in: query
-                description: ID do usuário a ter a árvore de pastas recuperadas.
-                required: 
+              in: query
+              description: ID do usuário a ter a árvore de pastas recuperadas.
+              required: false
+              schema:
+                    type: string
         responses:
             '200':
                 description: Retorna a representação de uma pasta ou a árvore de pastas, se folder_id não for informado.
@@ -35,7 +37,7 @@ class BookmarkFolderView(APIView):
                                 id: 
                                     type: string
                                     description: ID da pasta.
-                                criador:
+                                id_usuario:
                                     type: string
                                     description: ID do criador da pasta. 
                                 nome:
@@ -52,18 +54,34 @@ class BookmarkFolderView(APIView):
                                     description: ID da pasta pai, que esta pasta está contida. 
                                 subpastas:
                                     type: array
-                                    description: Lista de favoritos. Está lista será de IDs, se folder_id for 
-                                        informado ou será objetos representando as subpastas da pasta.
-                                    oneOf:
-                                        - type: string
-                                        - type: object
+                                    description: Lista de subpastas.
+                                    items:
+                                        type: object
                                 favoritos:
                                     type: array
                                     description: Lista de favoritos da pasta.
                                     items:
                                         type: string 
             '400':
-                description: Não foi informado o ID do bookmark ou índice e ID do documento que ele salva.
+                description: O campo id_pasta e id_usuario não foram informados.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: A pasta com ID informado não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
 
     post:
         description: Cria uma pasta de bookmarks. 
@@ -84,7 +102,8 @@ class BookmarkFolderView(APIView):
                                         informado, a pasta será criada na pasta default.
                                 type: string
                         required:
-                            - name
+                            - nome
+                            - id_usuario
         responses:
             '201':
                 description: O bookmark foi criado com sucesso.
@@ -93,7 +112,7 @@ class BookmarkFolderView(APIView):
                         schema:
                             type: object
                             properties: 
-                                folder_id: 
+                                id_pasta: 
                                     type: string
                                     description: ID da pasta criada.
             '400':
@@ -128,9 +147,18 @@ class BookmarkFolderView(APIView):
         responses:
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
-            
             '400':
                 description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum erro ao processar a requisição.
                 content:
                     application/json:
                         schema:
@@ -155,9 +183,29 @@ class BookmarkFolderView(APIView):
                             - id_pasta      
         responses:
             '204':
-                description: A pasta foi removido com sucesso.
+                description: A pasta foi removida com sucesso.
             '400':
-                description: Informação de qual erro ocorreu.
+                description: O campo id_pasta foi informado incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: A pasta a ser deletada não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum erro ao processar a requisição.
                 content:
                     application/json:
                         schema:
@@ -172,25 +220,25 @@ class BookmarkFolderView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        
         folder_id = request.GET.get('id_pasta') 
 
         if folder_id:
-            # retornar também os itens que estão na pasta do usuário
             result = BOOKMARK_FOLDER.get(folder_id)
             if result is None:
-                msg_error = f"Não foi possível encontrar a pasta de ID {folder_id}. Certifique que este é um ID válido!"
-                return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+                msg_error = f"Pasta não existe ou não foi encontrada."
+                return Response({'message': msg_error}, status=status.HTTP_404_NOT_FOUND)
             
             return Response(result, status=status.HTTP_200_OK)
         
         else:
             user_id = request.GET.get('id_usuario')
             if not user_id:
-                return Response({'message': 'É necessário informar o ID da pasta ou ID do usuário a ter a árvore de pastas retornada!'}, status=status.HTTP_400_BAD_REQUEST) 
+                message = 'É necessário informar o id_pasta ou id_usuario.'
+                return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST) 
 
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
             bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(user_id)
+            
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -200,8 +248,9 @@ class BookmarkFolderView(APIView):
         except:
             data = request.data 
 
-        expected_fields = {'id_usuario', 'nome'}        
-        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
+        expected_fields = {'id_usuario', 'nome'}    
+        optional_fields = {'id_pasta_pai'}    
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
 
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,13 +262,11 @@ class BookmarkFolderView(APIView):
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
             parent_folder_id = user_id
 
-        data = dict(
+        folder_id = BOOKMARK_FOLDER.save(dict(
             criador = user_id,
             nome=data['nome'],
             id_pasta_pai=parent_folder_id
-        )
-
-        folder_id = BOOKMARK_FOLDER.save(data)
+        ))
         
         if not bool(folder_id):
             return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -227,28 +274,71 @@ class BookmarkFolderView(APIView):
         return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
-        data = request.data.dict()
-
         try:
-            folder_id = data['folder_id']
+            data = request.data.dict()
         
         except:
-            msg_error = f'O campo "folder_id" deve ser informado!'
-            return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+            data = request.data 
 
+        try:
+            folder_id = data['id_pasta']
+        
+        except:
+            message = 'O campo id_pasta com o ID da pasta a ser alterada deve ser informado!'
+            return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
-        del data['folder_id']
-        success, msg_error = BOOKMARK_FOLDER.update(folder_id, data)
+        del data['id_pasta']
+
+        folder = BOOKMARK_FOLDER.get(folder_id)
+
+        if folder is None:
+            return Response({'message': 'A pasta não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # campos que o usuário pode editar
+        valid_fields = {'id_pasta_pai', 'nome'} 
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
+
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        has_updated_fields = False 
+        
+        # se ao menos um campo a ser atualizado é diferente do atual 
+        for field, value in data.items():
+            if folder[field] != value:
+                has_updated_fields = True 
+                break 
+        
+        if not has_updated_fields:
+            return Response({'message': 'A pasta já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        success = BOOKMARK_FOLDER.update(folder_id, data)
 
         if success:
             return Response(status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Não foi possível atualizar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        folder_id = request.data['folder_id']
+        try:
+            data = request.data.dict()
+        
+        except:
+            data = request.data 
 
-        if BOOKMARK_FOLDER.remove_folder(folder_id, BOOKMARK):
+        try:
+            folder_id = data['id_pasta']
+        
+        except:
+            message = 'O campo id_pasta com o ID da pasta a ser alterada deve ser informado!'
+            return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
+
+        folder = BOOKMARK_FOLDER.get(folder_id)
+
+        if folder is None:
+            return Response({'message': 'A pasta não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if BOOKMARK_FOLDER.delete(folder_id):
             return Response(status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': f'Confira se "{folder_id}" é um ID válido e tente novamente!'}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Não foi possível remover a pasta, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
