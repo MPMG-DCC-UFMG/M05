@@ -305,6 +305,10 @@ class BookmarkView(APIView):
         user_id = request.POST['id_usuario']
         folder_id = request.POST.get('id_pasta', user_id) 
 
+        parent_folder = BOOKMARK_FOLDER.get(folder_id)
+        if parent_folder is None:
+            return Response({'message': 'A pasta onde o bookmark seria salvo não existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # O ID do bookmark é um hash do id do usuário com o indice e id do documento salvo
         generated_bookmark_id = BOOKMARK.generate_id(user_id, 
                                                     request.POST['indice_documento'], 

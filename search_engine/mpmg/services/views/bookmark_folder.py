@@ -125,6 +125,16 @@ class BookmarkFolderView(APIView):
                                 message: 
                                     type: string
                                     description: Mensagem de erro.
+            '500':
+                description: Houve algum erro interno ao criar a pasta.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
     put:
         description: Permite atualizar uma pasta já salva. 
         requestBody:
@@ -167,7 +177,6 @@ class BookmarkFolderView(APIView):
                                 message: 
                                     type: string
                                     description: Mensagem de erro.
-
     delete:
         description: Apaga uma pasta.
         requestBody:
@@ -262,6 +271,10 @@ class BookmarkFolderView(APIView):
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
             parent_folder_id = user_id
 
+        parent_folder = BOOKMARK_FOLDER.get(parent_folder_id)
+        if parent_folder is None:
+            return Response({'message': 'A pasta pai da pasta sendo criada não existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
         folder_id = BOOKMARK_FOLDER.save(dict(
             criador = user_id,
             nome=data['nome'],
@@ -269,7 +282,7 @@ class BookmarkFolderView(APIView):
         ))
         
         if not bool(folder_id):
-            return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        
 
