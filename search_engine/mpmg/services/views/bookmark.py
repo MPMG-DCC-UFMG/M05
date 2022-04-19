@@ -374,6 +374,12 @@ class BookmarkView(APIView):
         if not has_updated_fields:
             return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
         
+        if 'id_pasta' in data:
+            new_parent_folder_id = data['id_pasta']
+            new_parent_folder = BOOKMARK_FOLDER.get(new_parent_folder_id)
+            if new_parent_folder is None:
+                return Response({'message': 'A pasta onde o bookmark seria movido não existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
         success = BOOKMARK.update(bookmark_id, data)
         if success:
             return Response(status=status.HTTP_204_NO_CONTENT)

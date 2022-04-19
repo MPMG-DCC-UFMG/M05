@@ -325,6 +325,13 @@ class BookmarkFolderView(APIView):
         if not has_updated_fields:
             return Response({'message': 'A pasta já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
+        if 'id_pasta_pai' in data:
+            new_parent_folder_id = data['id_pasta_pai']
+            new_parent_folder = BOOKMARK_FOLDER.get(new_parent_folder_id)
+            if new_parent_folder is None:
+                return Response({'message': 'A pasta para onde a pasta sendo alterada está sendo movida não existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
         success = BOOKMARK_FOLDER.update(folder_id, data)
 
         if success:
