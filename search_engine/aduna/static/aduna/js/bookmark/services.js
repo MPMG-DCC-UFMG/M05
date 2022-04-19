@@ -20,6 +20,7 @@ services.create_bookmark = function() {
             type: 'post',
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+            async: false,
             data: {
                 id_usuario: USER_ID,
                 id_pasta: bookmark.folder,
@@ -29,8 +30,9 @@ services.create_bookmark = function() {
                 id_consulta: QID
             },
             success: function (res) {
-                bookmark.id = res.id_bookmark;
-                console.log(res);
+                bookmark.id = res.id_favorito;
+                // delay para que o elastic search tenha tempo de atualizar os dados
+                setTimeout(function () { update_folder_tree(); }, 1500);
             },
             error: function (res) {
                 alert(`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
@@ -44,10 +46,14 @@ services.create_bookmark = function() {
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
             data: {
-                id_bookmark: bookmark.id,
+                id_favorito: bookmark.id,
                 id_pasta: bookmark.folder,
-                name: bookmark.name,
-                bookmark_id: bookmark.id,
+                nome: bookmark.name,
+            }, success: function(data) {
+                setTimeout(function () { update_folder_tree(); }, 1500);
+            },
+            error: function (res) {
+                console.error(res.message);
             }
         });
     }
@@ -55,7 +61,7 @@ services.create_bookmark = function() {
 
 services.remove_bookmark = function(bookmark_id) {
     
-    if (typeof DOC_ID !== 'undefined') {
+    if (running_in_document_page()) {
         let bookmark_icon = $('#bookmark-icon');
     
         bookmark_icon.removeClass('fas');
@@ -70,8 +76,15 @@ services.remove_bookmark = function(bookmark_id) {
         dataType: 'json',
         async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        async: false,
         data: {
-            id_bookmark: bookmark_id,
+            id_favorito: bookmark_id,
+        },
+        success: function(data) {
+            setTimeout(function () { update_folder_tree(); }, 1500);
+        },
+        error: function (res) {
+            console.error(res.message);
         }
     });
 }
@@ -87,7 +100,7 @@ services.start_bookmark = function(index, item_id) {
             indice_documento: index,
             id_documento: item_id,
         },
-        success: function (data) {6
+        success: function (data) {
             bookmark.id = data.id;
             bookmark.folder = data.id_folder;
             bookmark.name = data.nome;
@@ -110,10 +123,12 @@ services.get_bookmark = function (bookmark_id) {
         type: 'get',
         dataType: 'json',
         data: {
-            bookmark_id: bookmark_id,
+            id_favorito: bookmark_id,
         },
-        // async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
+        error: function (res) {
+            console.error(res.message);
+        }
     });
 }
 
@@ -131,13 +146,13 @@ services.move_bookmark = function () {
     if (!bulk)
         $('#moveBookmarkModal').modal('hide');
     
-        let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
+    let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
 
-    let idx = folder_tree[active_folder].arquivos.indexOf(id_bookmark_to_move);
+    let idx = folder_tree[active_folder].favoritos.indexOf(id_bookmark_to_move);
     if (idx >= 0)
-        folder_tree[active_folder].arquivos.splice(idx, 1);
+        folder_tree[active_folder].favoritos.splice(idx, 1);
 
-    folder_tree[move_to_folder].arquivos.push(id_bookmark_to_move);
+    folder_tree[move_to_folder].favoritos.push(id_bookmark_to_move);
 
     if (!bulk)
         update_gallery();
@@ -149,9 +164,12 @@ services.move_bookmark = function () {
         async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            name: doc_name,
-            folder_id: move_to_folder,
-            bookmark_id: id_bookmark_to_move,
+            nome: doc_name,
+            id_pasta: move_to_folder,
+            id_favorito: id_bookmark_to_move,
+        },
+        error: function (res) {
+            console.error(res.message);
         }
     });
 }
@@ -163,23 +181,36 @@ services.rename_bookmark = function (new_name, bookmark_id, folder_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            name: new_name,
-            folder_id: folder_id,
-            bookmark_id: bookmark_id,
+            nome: new_name,
+            id_pasta: folder_id,
+            id_favorito: bookmark_id,
+        },
+        error: function (res) {
+            console.error(res.message);
         }
     });
 }
 
 
 services.rename_folder = function(folder_id, new_name) {
+    let data = {
+        id_pasta: folder_id,
+        nome: new_name,
+    };
+    
+    console.log(data);
+
     $.ajax({
         url: SERVICES_URL + 'bookmark_folder',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
-        data: {
-            folder_id: folder_id,
-            name: new_name,
+        data: data,
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (res) {
+            console.error(res);
         }
     });
 }
@@ -192,7 +223,10 @@ services.remove_folder = function(folder_id) {
         async: false,
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            folder_id: folder_id,
+            id_pasta: folder_id,
+        },
+        error: function (res) {
+            console.error(res.message);
         }
     });
 }
@@ -206,26 +240,28 @@ services.create_folder = function(parent_id) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            user_id: USER_ID,
-            parent_folder_id: parent_id,
-            name: folder_name,
-        }
-    });
-
-    ajax.done(function (data) {
-        
-        folder_tree[data.folder_id] = {
-            id: data.folder_id,
-            pasta_pai: parent_id,
+            id_usuario: USER_ID,
+            id_pasta_pai: parent_id,
             nome: folder_name,
-            subpastas: [],
-            arquivos: [],
-        }
-
-        folder_tree[parent_id].subpastas.push(folder_tree[data.folder_id]);
+        },
+        success: function(data) {
+            folder_tree[data.id_pasta] = {
+                id: data.id_pasta,
+                pasta_pai: parent_id,
+                nome: folder_name,
+                subpastas: [],
+                favoritos: [],
+            }
         
-        create_children(parent_id, data.folder_id, folder_name);
+            folder_tree[parent_id].subpastas.push(folder_tree[data.id_pasta]);
+            
+            create_children(parent_id, data.id_pasta, folder_name);
+        },
+        error: function (res) {
+            console.error(res.message);
+        }
     });
+
 }
 
 services.get_folder_tree = function()  {
@@ -236,7 +272,7 @@ services.get_folder_tree = function()  {
         dataType: 'json',
         async: false,
         data: {
-            user_id: USER_ID
+            id_usuario: USER_ID
         },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
@@ -264,7 +300,7 @@ services.get_bookmark_folder_tree = function() {
 
     dictify_tree(tree);
 
-    if (typeof DOC_ID !== 'undefined')
+    if (running_in_document_page())
         listify_tree(tree, folders);
 
     // // define que o pasta raiz é a pasta ativa, por default
@@ -294,9 +330,11 @@ services.move_folder = function () {
                 headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
                 async: false,
                 data: {
-                    folder_id: folders_to_move[i],
-                    parent_folder_id: move_to_folder,
-                },
+                    id_pasta: folders_to_move[i],
+                    id_pasta_pai: move_to_folder,
+                }, error: function (res) {
+                    console.error(res.message);
+                }
             });
         }
 
@@ -307,7 +345,6 @@ services.move_folder = function () {
     $('#moveFolderModal').modal('hide');
     
     if (id_folder_to_move == move_to_folder) {
-        // TODO: Não deixar também mover para nenhuma subpasta
         alert('Você não pode mover uma pasta para ela mesma!');
         return;
     }
@@ -319,8 +356,8 @@ services.move_folder = function () {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
-            folder_id: id_folder_to_move,
-            parent_folder_id: move_to_folder,
+            id_pasta: id_folder_to_move,
+            id_pasta_pai: move_to_folder,
         },
         success: function () {
             folder_blacklist = [];
@@ -331,5 +368,4 @@ services.move_folder = function () {
         }
     });
     
-    // console.log(id_folder_to_move, move_to_folder);
 }

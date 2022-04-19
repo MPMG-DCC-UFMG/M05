@@ -292,6 +292,10 @@ class BookmarkFolderView(APIView):
         
         except:
             data = request.data 
+        
+        print('*' * 10)
+        print(data)
+        print('*' * 10)
 
         try:
             folder_id = data['id_pasta']

@@ -116,11 +116,11 @@ class BookmarkFolder(ElasticModel):
         '''
         folder = self.get(folder_id)
             
-        for subfolder_id in folder['subpastas']:
-            self.delete(subfolder_id)
+        for subfolder in folder['subpastas']:
+            self.delete(subfolder['id'])
         
-        for bookmark_id in folder['favoritos']:
-            self.elastic.es.delete(index=settings.BOOKMARK_INDEX, id=bookmark_id)
+        for bookmark in folder['favoritos']:
+            self.elastic.es.delete(index=settings.BOOKMARK_INDEX, id=bookmark['id'])
 
         response = self.elastic.es.delete(index=self.index_name, id=folder_id)
         return response['result'] == 'deleted'

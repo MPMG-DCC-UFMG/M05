@@ -19,6 +19,13 @@ var bookmarks_to_move = [];
 var folders_to_remove = [];
 var bookmarks_to_remove = [];
 
+var bookmark_inside_removed_folder;
+
+function running_in_document_page() {
+    if (typeof DOC_ID !== 'undefined')
+        return true;
+    return false;
+}
 
 function show_move_to_modal() {
     id_bookmark_to_move = this.context;
@@ -43,9 +50,9 @@ function remove_bookmark() {
     $(`#document-${this.context}`).popover('hide');
     $(`#document-${this.context}-li`).remove();
     
-    let idx = folder_tree[active_folder].arquivos.indexOf(this.context);
+    let idx = folder_tree[active_folder].favoritos.indexOf(this.context);
     if (idx >= 0) 
-        folder_tree[active_folder].arquivos.splice(idx, 1);
+        folder_tree[active_folder].favoritos.splice(idx, 1);
 
     services.remove_bookmark(this.context);
 }
@@ -56,8 +63,12 @@ function dictify_tree(tree) {
     folder_tree[tree.id] = tree;
 }
 
+function update_folder_tree() {
+    let tree = services.get_folder_tree();
+    dictify_tree(tree);
+}
+
 function enable_bookmark_edit_mode() {
-    console.log(this.context);
     $(`#document-${this.context}`).addClass('d-none');
     $(`#document-${this.context}-input`).removeClass('d-none');
     $(`#document-${this.context}-input`).focus();
@@ -150,15 +161,6 @@ function disable_folder_items_selection() {
 }
 
 function create_folder_item(folder) {
-    /**
-        <li class="my-1">
-            <div class="d-flex justify-content-between" title="Clique para acessar a pasta" onclick="update_active_folder('${subpasta.id}')" style="cursor: pointer;">
-                <p class="m-0 p-0 font-weight-bold"><i class="fas fa-folder"></i> ${subpasta.nome}</p>
-                <small>${subpasta.subpastas.length} subpasta(s), ${subpasta.arquivos.length} documento(s)</small>
-            </div>
-        </li>
-     */
-
     let li = document.createElement('LI');
     li.className = 'mt-1'
     li.style.userSelect = 'none';
@@ -181,7 +183,7 @@ function create_folder_item(folder) {
     folder_name.style.cursor = 'pointer';
     
     let info = document.createElement('SMALL');
-    info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.arquivos.length} documento(s)`;
+    info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} documento(s)`;
     
     let detail_wrapper = document.createElement('DIV');
     detail_wrapper.id = `folder-${folder.id}-detail`;
@@ -211,7 +213,7 @@ function create_folder_item(folder) {
     label_text.className = 'mx-2';
 
     let label_info = document.createElement('SMALL');
-    label_info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.arquivos.length} documento(s)`;
+    label_info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} documento(s)`;
 
     let label_folder_name = document.createElement('P');
     label_folder_name.className = 'p-0 m-0';
@@ -235,14 +237,6 @@ function create_folder_item(folder) {
 }
 
 function create_bookmark_item(bookmark) {
-    /**
-        <li class="my-1">
-            <div class="d-flex justify-content-between align-items-center">
-                <a id="document-${bookmark.id}" target="_blank" data-toggle="popover" data-container="body" data-placement="right" href="${server_address}/aduna/document/${bookmark.index}/${bookmark.item_id}?query=" class="m-0 p-0 pr-2"><i class="fas fa-file-alt text-dark"></i> ${bookmark.nome}</a>
-            </div>
-        </li>
-    */
-
     let li = document.createElement('LI');
     li.className = 'my-1';
     li.id = `document-${bookmark.id}-li`;
@@ -339,19 +333,19 @@ function create_bookmark_item(bookmark) {
 }
 
 function back_folder() {
-    if (folder_opened_historic.length > 0) {
+    if (folder_opened_historic.length > 0)
         update_active_folder(folder_opened_historic.pop(), true);
-    }
 }
 
 function update_gallery() {
-    if (typeof DOC_ID !== 'undefined')
+    if (running_in_document_page())
         return; 
 
     let folder_items = $('#folder-items');
     let pasta = folder_tree[active_folder];
 
     let back_folder_li = '';
+
     if(folder_opened_historic.length > 0) {
         back_folder_li = `<li class="my-1 d-flex justify-content-between">
             <div class="">
@@ -403,7 +397,7 @@ function update_gallery() {
         `;
     }
 
-    if ((pasta.arquivos.length + pasta.subpastas.length) == 0) {
+    if ((pasta.favoritos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
             ${back_folder_li}
             <li class="my-1">
@@ -423,8 +417,8 @@ function update_gallery() {
     }
 
 
-    for (let i=0;i<pasta.arquivos.length;i++) {
-        services.get_bookmark(pasta.arquivos[i]).then(response => {
+    for (let i=0;i<pasta.favoritos.length;i++) {
+        services.get_bookmark(pasta.favoritos[i]).then(response => {
             let bookmark = response;
             folder_items.append(create_bookmark_item(bookmark));
             attach_document_context_menu(bookmark.id);
@@ -521,13 +515,13 @@ function create_children(parent_id, children_id, folder_name) {
     // let children_id = services.create_children(parent_id, folder_name)
 
     let parent_folder = $(`#${parent_id}`);
-    let parent_children = $(`#${parent_id}-children`)
+    let parent_children = $(`#${parent_id}-children`);
 
     // Objeto onde o menu de contexto aparece, logo após o nome da pasta
-    let parent_folder_detail = $(`#${parent_id}-folder-name`)
+    let parent_folder_detail = $(`#${parent_id}-folder-name`);
 
     if (parent_children.hasClass('d-none'))
-        parent_folder_detail.click()
+        parent_folder_detail.click();
 
     let parent_depth = parseInt(parent_folder.attr("depth"));
 
@@ -559,28 +553,62 @@ function create_children(parent_id, children_id, folder_name) {
 
 function create_children_from_context_menu() {
     $(`#${this.context}-folder-name`).popover('hide');
-    services.create_folder(this.context)
+    services.create_folder(this.context);
 }
 
 function create_children_from_active_folder() {
-    services.create_folder(active_folder)
+    services.create_folder(active_folder);
 }
 
 function enable_edit_mode_from_context_menu() {
-    enable_edit_mode(this.context)
+    enable_edit_mode(this.context);
+}
+
+function update_recently_folders(tree, bookmark_id) {
+    console.log(tree);
+
+    for (let i = 0; i < tree.favoritos.length; i++) {
+        console.log(bookmark_id, tree.favoritos[i].id);
+
+        if (bookmark_id == tree.favoritos[i].id) 
+            bookmark_inside_removed_folder = true;
+    }
+    
+    for (let i = 0; i < tree.subpastas.length; i++)
+        update_recently_folders(tree.subpastas[i], bookmark_id);
+
+    let idx = folders.findIndex(pasta => pasta.id === tree.id);
+    if (idx >= 0)
+        folders.splice(idx, 1);
+
 }
 
 function remove_folder() {
-    $('#removeFolderModal').modal('hide')
-    $('#folderModal').modal('show')
+    $('#removeFolderModal').modal('hide');
+    $('#folderModal').modal('show');
     
-    $(`#${folder_to_remove}`).remove()
+    $(`#${folder_to_remove}`).remove();
 
     let pasta_pai = folder_tree[folder_to_remove].pasta_pai;
     if (pasta_pai) {
         let idx = folder_tree[pasta_pai].subpastas.findIndex(pasta => pasta.id === folder_to_remove);
         if (idx >= 0)
             folder_tree[pasta_pai].subpastas.splice(idx, 1);
+    }
+
+    if (running_in_document_page()) {
+        bookmark_inside_removed_folder = false;
+        
+        update_recently_folders(folder_tree[folder_to_remove], bookmark.id);
+
+        if (bookmark_inside_removed_folder) {
+            let bookmark_icon = $('#bookmark-icon');
+    
+            bookmark_icon.removeClass('fas');
+            bookmark_icon.addClass('far');
+    
+            bookmark.id = null;    
+        }
     }
 
     update_active_folder(pasta_pai);
@@ -661,7 +689,7 @@ function create_context_menu(context) {
     let li_edit = create_context_menu_item('fas fa-pen', 'Editar', context, enable_edit_mode_from_context_menu)
     ul.appendChild(li_edit)
 
-    if (typeof DOC_ID === 'undefined') {
+    if (!running_in_document_page()) {
         let li_move = create_context_menu_item('fas fa-folder', 'Mover para', context, show_move_folder_modal);
         ul.appendChild(li_move);
         li_move.className = 'mt-2'
@@ -863,7 +891,7 @@ function create_folder(name, folder_id, opened, depth, children = []) {
 
         services.rename_folder(folder_id, input.value);
 
-        if (typeof DOC_ID === 'undefined') {
+        if (!running_in_document_page()) {
             raw_tree = services.get_folder_tree();
             $('#move-folder').html(parse_folder_move_tree(raw_tree, 'folder'));
             folder_blacklist = [];
@@ -932,7 +960,7 @@ function create_folder(name, folder_id, opened, depth, children = []) {
     folder_name.onclick = function () {
         folder.opened = !folder.opened;
 
-        if (typeof DOC_ID !== 'undefined') {
+        if (running_in_document_page()) {
             folder_children.className = folder.opened ? 'children' : 'children d-none'
             folder_icon.className = folder.opened ? 'fas fa-folder-open' : 'fas fa-folder'
         }
@@ -967,6 +995,7 @@ function parse_folder_tree(tree, depth = 0) {
 
     for (let i = 0; i < tree.subpastas.length; i++)
         subpastas_processadas.push(parse_folder_tree(tree.subpastas[i], depth + 1))
+
 
     return create_folder(tree.nome, tree.id, true, depth, subpastas_processadas)
 }
@@ -1139,12 +1168,12 @@ $(document).ready(function () {
     // // let tree = services.retrieve_folders()
     // tree = { "name": "Favoritos de Elves", "id": 123, "children": [{ "name": "Processos", "id": 797, "children": [{ "name": "Estaduais", "id": 63, "children": [{ "name": "Minas Gerais", "id": 630, "children": [{ "name": "Municípios", "id": 6340, "children": [] }] }] }, { "name": "Federais", "id": 31, "children": [] }] }, { "name": "Diários", "id": 89, "created_at": "Apr. 2012", "children": [] }] }
 
-    // // Inserindo após converter o json com estrutura de pastas do usuário em HTML
-    // $('#bookmark-folder').append(parse_folder_tree(tree))
+    // Inserindo após converter o json com estrutura de pastas do usuário em HTML
+    $('#bookmark-folder').append(parse_folder_tree(tree))
 
-    // // Habilita o evento de menu de contexto
-    // enable_context_menu_event(tree)
+    // Habilita o evento de menu de contexto
+    enable_context_menu_event(tree)
 
-    // // define que o pasta raiz é a pasta ativa, por default
-    // update_active_folder(tree.id)
+    // define que o pasta raiz é a pasta ativa, por default
+    update_active_folder(tree.id)
 });
