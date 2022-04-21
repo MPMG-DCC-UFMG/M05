@@ -183,7 +183,7 @@ function create_folder_item(folder) {
     folder_name.style.cursor = 'pointer';
     
     let info = document.createElement('SMALL');
-    info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} documento(s)`;
+    info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} favorito(s)`;
     
     let detail_wrapper = document.createElement('DIV');
     detail_wrapper.id = `folder-${folder.id}-detail`;
@@ -213,7 +213,7 @@ function create_folder_item(folder) {
     label_text.className = 'mx-2';
 
     let label_info = document.createElement('SMALL');
-    label_info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} documento(s)`;
+    label_info.textContent = `${folder.subpastas.length} subpasta(s), ${folder.favoritos.length} favorito(s)`;
 
     let label_folder_name = document.createElement('P');
     label_folder_name.className = 'p-0 m-0';
@@ -274,6 +274,12 @@ function create_bookmark_item(bookmark) {
         link.className = '';
 
         $('#inputName').val(input.value);
+
+        let idx = folder_tree[active_folder].favoritos.findIndex(bmk => bmk.id === bookmark.id);
+
+        if (idx >= 0) {
+            folder_tree[active_folder].favoritos[idx].nome = input.value;
+        }
 
         services.rename_bookmark(input.value, bookmark.id, active_folder);
     }
@@ -416,13 +422,12 @@ function update_gallery() {
         folder_items.append(create_folder_item(subpasta));
     }
 
-
+    let bookmark;
     for (let i=0;i<pasta.favoritos.length;i++) {
-        services.get_bookmark(pasta.favoritos[i]).then(response => {
-            let bookmark = response;
-            folder_items.append(create_bookmark_item(bookmark));
-            attach_document_context_menu(bookmark.id);
-        });
+        bookmark = pasta.favoritos[i]
+
+        folder_items.append(create_bookmark_item(bookmark));
+        attach_document_context_menu(bookmark.id);
     }
 }
 
@@ -565,14 +570,9 @@ function enable_edit_mode_from_context_menu() {
 }
 
 function update_recently_folders(tree, bookmark_id) {
-    console.log(tree);
-
-    for (let i = 0; i < tree.favoritos.length; i++) {
-        console.log(bookmark_id, tree.favoritos[i].id);
-
+    for (let i = 0; i < tree.favoritos.length; i++) 
         if (bookmark_id == tree.favoritos[i].id) 
             bookmark_inside_removed_folder = true;
-    }
     
     for (let i = 0; i < tree.subpastas.length; i++)
         update_recently_folders(tree.subpastas[i], bookmark_id);
@@ -608,6 +608,7 @@ function remove_folder() {
             bookmark_icon.addClass('far');
     
             bookmark.id = null;    
+            bookmark.folder = null;
         }
     }
 
@@ -1063,7 +1064,8 @@ function bulk_remove() {
         if (cb_folders[i].checked)
             services.remove_folder(cb_folders[i].value);
 
-    location.reload();
+    // delay para que o elastic search tenha tempo de atualizar o índice
+    setTimeout(function () { location.reload() }, 1000);
 }
 
 function listify_tree(tree, list) {
@@ -1168,8 +1170,8 @@ $(document).ready(function () {
     // // let tree = services.retrieve_folders()
     // tree = { "name": "Favoritos de Elves", "id": 123, "children": [{ "name": "Processos", "id": 797, "children": [{ "name": "Estaduais", "id": 63, "children": [{ "name": "Minas Gerais", "id": 630, "children": [{ "name": "Municípios", "id": 6340, "children": [] }] }] }, { "name": "Federais", "id": 31, "children": [] }] }, { "name": "Diários", "id": 89, "created_at": "Apr. 2012", "children": [] }] }
 
-    // Inserindo após converter o json com estrutura de pastas do usuário em HTML
-    $('#bookmark-folder').append(parse_folder_tree(tree))
+    // // Inserindo após converter o json com estrutura de pastas do usuário em HTML
+    // $('#bookmark-folder').append(parse_folder_tree(tree))
 
     // Habilita o evento de menu de contexto
     enable_context_menu_event(tree)

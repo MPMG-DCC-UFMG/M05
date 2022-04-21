@@ -51,9 +51,8 @@ services.create_bookmark = function() {
                 nome: bookmark.name,
             }, success: function(data) {
                 setTimeout(function () { update_folder_tree(); }, 1500);
-            },
-            error: function (res) {
-                console.error(res.message);
+            }, error: function (data) {
+                console.error(data);
             }
         });
     }
@@ -83,9 +82,6 @@ services.remove_bookmark = function(bookmark_id) {
         success: function(data) {
             setTimeout(function () { update_folder_tree(); }, 1500);
         },
-        error: function (res) {
-            console.error(res.message);
-        }
     });
 }
 
@@ -148,13 +144,18 @@ services.move_bookmark = function () {
     
     let doc_name = $(`#document-${id_bookmark_to_move}-name`).text();
 
-    let idx = folder_tree[active_folder].favoritos.indexOf(id_bookmark_to_move);
-    if (idx >= 0)
-        folder_tree[active_folder].favoritos.splice(idx, 1);
+    let idx = folder_tree[active_folder].favoritos.findIndex(bookmark => bookmark.id === id_bookmark_to_move);
 
-    folder_tree[move_to_folder].favoritos.push(id_bookmark_to_move);
+    if (idx >= 0) {
+        let bookmark_moved = folder_tree[active_folder].favoritos[idx];
+        bookmark_moved.id_pasta = move_to_folder
 
-    if (!bulk)
+        folder_tree[active_folder].favoritos.splice(idx, 1);        
+        folder_tree[move_to_folder].favoritos.push(bookmark_moved);
+    }
+
+
+    if (!bulk) 
         update_gallery();
 
     $.ajax({
@@ -184,9 +185,6 @@ services.rename_bookmark = function (new_name, bookmark_id, folder_id) {
             nome: new_name,
             id_pasta: folder_id,
             id_favorito: bookmark_id,
-        },
-        error: function (res) {
-            console.error(res.message);
         }
     });
 }
@@ -198,7 +196,6 @@ services.rename_folder = function(folder_id, new_name) {
         nome: new_name,
     };
     
-    console.log(data);
 
     $.ajax({
         url: SERVICES_URL + 'bookmark_folder',
@@ -206,12 +203,7 @@ services.rename_folder = function(folder_id, new_name) {
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: data,
-        success: function (data) {
-            console.log(data);
-        },
-        error: function (res) {
-            console.error(res);
-        }
+        async: false
     });
 }
 
@@ -224,9 +216,6 @@ services.remove_folder = function(folder_id) {
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             id_pasta: folder_id,
-        },
-        error: function (res) {
-            console.error(res.message);
         }
     });
 }
@@ -256,9 +245,6 @@ services.create_folder = function(parent_id) {
             folder_tree[parent_id].subpastas.push(folder_tree[data.id_pasta]);
             
             create_children(parent_id, data.id_pasta, folder_name);
-        },
-        error: function (res) {
-            console.error(res.message);
         }
     });
 
@@ -277,9 +263,6 @@ services.get_folder_tree = function()  {
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
             tree = data;
-        },
-        error: function (res) {
-            console.error(res.message);
         }
     });
 
@@ -319,7 +302,6 @@ services.move_folder = function () {
         for (let i = 0; i < bookmarks_to_move.length;i++) {
             id_bookmark_to_move = bookmarks_to_move[i];
             services.move_bookmark();
-            console.log('Movendo: ', id_bookmark_to_move);
         }
 
         for (let i = 0; i < folders_to_move.length;i++) {
@@ -332,13 +314,13 @@ services.move_folder = function () {
                 data: {
                     id_pasta: folders_to_move[i],
                     id_pasta_pai: move_to_folder,
-                }, error: function (res) {
-                    console.error(res.message);
                 }
             });
         }
 
-        location.reload();
+        // delay para que o elastic search tenha tempo de atualizar o índice
+        setTimeout(function () { location.reload()}, 1000);
+
         return;
     }
 
@@ -362,9 +344,6 @@ services.move_folder = function () {
         success: function () {
             folder_blacklist = [];
             location.reload();
-        },
-        error: function (res) {
-            alert(res.message)
         }
     });
     
