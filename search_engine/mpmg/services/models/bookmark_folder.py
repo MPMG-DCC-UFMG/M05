@@ -29,15 +29,9 @@ class BookmarkFolder(ElasticModel):
             Retorna uma lista onde cada elemento é um dicionário representando as subpastas da pasta folder_id.
 
         '''
-        
-        subfolders_found = doc_filter(self.index_name, {'term': {'id_pasta_pai.keyword': folder_id}})
-        
-        subfolders_ids = list()
-        for subfolder_found in subfolders_found:
-            source = subfolder_found['_source']
-            subfolders_ids.append({'id': subfolder_found['_id'], **source})
-        
-        return subfolders_ids
+        filter = {'term': {'id_pasta_pai.keyword': folder_id}}
+        _, folders_found = super().get_list(filter=filter, page='all')
+        return folders_found
 
     def _get_bookmarks(self, folder_id = str) -> list:
         ''' Retorna a lista de bookmarks salvos na pasta folder_id.
@@ -50,15 +44,8 @@ class BookmarkFolder(ElasticModel):
 
         '''
         
-        bookmarks_found = doc_filter(settings.BOOKMARK_INDEX, {'term': {'id_pasta.keyword': folder_id}}) 
+        return doc_filter(settings.BOOKMARK_INDEX, {'term': {'id_pasta.keyword': folder_id}}) 
          
-        bookmarks_ids = list()
-        for bookmark_found in bookmarks_found:
-            source = bookmark_found['_source']
-            bookmarks_ids.append({'id': bookmark_found['_id'], **source})
-        
-        return bookmarks_ids
-
     def get(self, folder_id: str) -> dict:
         '''Recupera a pasta de ID folder_id.
 

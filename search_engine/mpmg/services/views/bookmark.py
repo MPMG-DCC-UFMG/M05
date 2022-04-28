@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators, get_data_from_request 
+from mpmg.services.utils import validators, get_data_from_request, item_already_updated 
 
 class BookmarkView(APIView):
     '''
@@ -368,15 +368,7 @@ class BookmarkView(APIView):
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        has_updated_fields = False 
-        
-        # se ao menos um campo a ser atualizado é diferente do atual 
-        for field, value in data.items():
-            if bookmark[field] != value:
-                has_updated_fields = True 
-                break 
-        
-        if not has_updated_fields:
+        if item_already_updated(bookmark, data):
             return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if 'id_pasta' in data:
@@ -385,8 +377,7 @@ class BookmarkView(APIView):
             if new_parent_folder is None:
                 return Response({'message': 'A pasta onde o bookmark seria movido não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        success = BOOKMARK.update(bookmark_id, data)
-        if success:
+        if BOOKMARK.update(bookmark_id, data):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)

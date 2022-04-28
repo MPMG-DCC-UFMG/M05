@@ -18,5 +18,5 @@ def doc_filter(index_name: str, filter: dict) -> list:
     .filter(filter) \
     .execute() \
     .to_dict()
-    
-    return elastic_result['hits']['hits']
+
+    return [{'id': doc['_id'], **doc['_source']} for doc in elastic_result['hits']['hits']]

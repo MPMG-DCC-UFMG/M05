@@ -1,10 +1,13 @@
-from mpmg.services.models import ConfigRecommendationEvidence
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
 
+from mpmg.services.models import ConfigRecommendationEvidence
+from mpmg.services.utils import str2bool, get_data_from_request, validators, item_already_updated
+
+CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
 
 class ConfigRecommendationEvidenceView(APIView):
     '''
@@ -129,7 +132,7 @@ class ConfigRecommendationEvidenceView(APIView):
                 application/x-www-form-urlencoded:
                     schema:
                         type: object
-                        properties:
+                        properties:get_list
                             tipo_evidencia:
                                 description: (TODO: adicionar a possibilidade de fazer por ID) Dicionário onde a chave é o tipo da evidência e o valor é um dicionário com os campos a serem alterados.
                                 type: object                            
@@ -188,107 +191,80 @@ class ConfigRecommendationEvidenceView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        id_evidencia = request.GET.get('id_evidencia')
-        tipo_evidencia = request.GET.get('tipo_evidencia')
+        evidence_type = request.GET.get('tipo_evidencia')
+        evidence_conf_id = request.GET.get('id_conf_evidencia', evidence_type)
 
-        conf_rec_ev = ConfigRecommendationEvidence()
-
-        if id_evidencia or tipo_evidencia:
-            evidence, msg_error = conf_rec_ev.get(id_evidencia, tipo_evidencia)
+        if evidence_conf_id:
+            evidence = CONF_REC_EVIDENCE.get(evidence_conf_id)
             if evidence is None:
-                return Response({'message': msg_error}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'Configuração de evidência não existe ou não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
             
             return Response(evidence, status=status.HTTP_200_OK)
         
-        active = request.GET.get('active')
+        active = request.GET.get('ativo')
         if active is not None:
-            if active == 'false':
-                active = False
-        
-            elif active == 'true':
-                active = True
-        
-            else:
-                active = False
-        
-        evidences, _ = conf_rec_ev.get(active=active)
+            active = str2bool(active)
 
-        return Response(evidences, status=status.HTTP_200_OK)
+        conf_rec_evidences = CONF_REC_EVIDENCE.get(active=active)
+
+        return Response(conf_rec_evidences, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.POST if len(request.POST) > 0 else request.data
+        data = get_data_from_request(request)
+
+        expected_fields = {'nome', 'tipo_evidencia', 'nome_indice', 'quantidade', 'similaridade_minima', 'top_n_recomendacoes', 'ativo'}
+        optional_fields = {}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
+
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
         
-        try:
-            ev_repr = dict(
+        evidence_id = CONF_REC_EVIDENCE.save(dict(
                 nome = data['nome'],
                 tipo_evidencia = data['tipo_evidencia'],
                 nome_indice = data['nome_indice'],
                 quantidade = data['quantidade'],
-                similaridade_min = data['similaridade_min'],
-                top_n_recommendacoes = data['top_n_recommendacoes'],
-                active = data['active'],
-            )
-        except:
-            return Response({'message': 'Informe todos os campos corretamente!'}, status=status.HTTP_400_BAD_REQUEST)
+                similaridade_min = data['similaridade_minima'],
+                top_n_recommendacoes = data['top_n_recomendacoes'],
+                active = data['ativo'],
+            ), data['tipo_evidencia']
+        )
 
+        if evidence_id is None:
+            return Response({'message': 'Não foi possível criar a configuração de evidência. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        conf_rec_ev = ConfigRecommendationEvidence()
-        id_evidencia, msg_error = conf_rec_ev.save(ev_repr)
-
-        if id_evidencia:
-            return Response({'id_evidencia': id_evidencia}, status=status.HTTP_201_CREATED)
-
-        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def _parse_data(self, data: dict):
-        parsed_data = dict()
-        for key, val in data.items():
-            if '[' in key:
-                s_key = key[:-1].split('[')
-                index_name, attrib  = s_key[0], s_key[1]
-
-                if index_name not in parsed_data:
-                    parsed_data[index_name] = dict()
-                
-                if type(val) is str:
-                    if val == 'false':
-                        val = False
-                    
-                    elif val == 'true':
-                        val = True 
-                    
-                    else:
-                        val = int(val)
-                    
-                parsed_data[index_name][attrib] = val
-                
-        return parsed_data
+        return Response({'id_evidencia': evidence_id}, status=status.HTTP_201_CREATED)
 
     def put(self, request):
-        data = request.data
-        if type(data) is not dict:
-            data = self._parse_data(data.dict())
+        data = get_data_from_request(request)
         
-        conf_rec_ev = ConfigRecommendationEvidence()
+        evidence_type = data.get('tipo_evidencia')
+        evidence_conf_id = data.get('id_conf_evidencia', evidence_type)
 
-        error = dict()
-        all_successfull = True
-        for tipo_evidencia in data:
-            config = data[tipo_evidencia]
-            success, msg_error = conf_rec_ev.update(config, tipo_evidencia=tipo_evidencia)
+        if evidence_conf_id is None:
+            return Response({'message': 'É necessário informar tipo_evidencia ou id_evidencia para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not success:
-                all_successfull = False 
+        conf_ref_evidence = CONF_REC_EVIDENCE.get(evidence_conf_id) 
+        if conf_ref_evidence is None:
+            return Response({'message': 'Configuração de evidência não existe ou não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            
+        valid_fields = {'similaridade_minima', 'top_n_recomendacoes', 'ativo', 'nome'} 
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
 
-            error[tipo_evidencia] = {
-                'success': success,
-                'message': msg_error 
-            }
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        if all_successfull:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        if 'tipo_evidencia' in data:
+            del data['tipo_evidencia']
 
-        return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        if 'id_conf_evidencia' in data:
+            del data['id_conf_evidencia']
+
+        if item_already_updated(conf_ref_evidence, data):
+            return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if 
 
     def delete(self, request):
         data = request.data
@@ -298,13 +274,13 @@ class ConfigRecommendationEvidenceView(APIView):
         id_evidencia = data.get('id_evidencia')
         tipo_evidencia = data.get('tipo_evidencia')
 
-        conf_rec_ev = ConfigRecommendationEvidence()
+        CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
         if id_evidencia or tipo_evidencia:
-            evidence, msg_error = conf_rec_ev.get(id_evidencia, tipo_evidencia)
+            evidence, msg_error = CONF_REC_EVIDENCE.get(id_evidencia, tipo_evidencia)
             if evidence is None:
                 return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 
-            success, msg_error = conf_rec_ev.delete(id_evidencia, tipo_evidencia)
+            success, msg_error = CONF_REC_EVIDENCE.delete(id_evidencia, tipo_evidencia)
             if success:
                 return Response(status=status.HTTP_204_NO_CONTENT)
             

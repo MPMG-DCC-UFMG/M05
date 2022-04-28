@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators, get_data_from_request 
+from mpmg.services.utils import validators, get_data_from_request, item_already_updated 
 
 BOOKMARK_FOLDER = BookmarkFolder()
 BOOKMARK = Bookmark()
@@ -306,15 +306,7 @@ class BookmarkFolderView(APIView):
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        has_updated_fields = False 
-        
-        # se ao menos um campo a ser atualizado é diferente do atual 
-        for field, value in data.items():
-            if folder[field] != value:
-                has_updated_fields = True 
-                break 
-        
-        if not has_updated_fields:
+        if item_already_updated(folder, data):
             return Response({'message': 'A pasta já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if 'id_pasta_pai' in data:
