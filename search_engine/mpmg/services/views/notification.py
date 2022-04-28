@@ -244,6 +244,7 @@ class NotificationView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
+        NOTIFICATION.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'texto', 'tipo'}    
         optional_fields = {'data_visualizacao'}
@@ -252,7 +253,7 @@ class NotificationView(APIView):
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
         
-        id_notificacao = Notification().save(dict(
+        id_notificacao = NOTIFICATION.save(dict(
             id_usuario=data['id_usuario'],
             texto=data['texto'],
             tipo=data['tipo'],
@@ -266,7 +267,8 @@ class NotificationView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-
+        NOTIFICATION.parse_data_type(data)
+        
         notification_id = data.get('id_notificacao')
         if notification_id is None:
             return Response({'message': 'Informe o ID da notificação a ser editada.'}, status.HTTP_400_BAD_REQUEST)

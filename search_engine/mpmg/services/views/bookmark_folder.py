@@ -252,6 +252,7 @@ class BookmarkFolderView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
+        BOOKMARK_FOLDER.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'nome'}    
         optional_fields = {'id_pasta_pai'}    
@@ -284,7 +285,8 @@ class BookmarkFolderView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-
+        BOOKMARK_FOLDER.parse_data_type(data)
+        
         try:
             folder_id = data['id_pasta']
         

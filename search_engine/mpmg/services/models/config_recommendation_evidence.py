@@ -18,9 +18,9 @@ class ConfigRecommendationEvidence(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get(self, evidence_id: Union[str, None] = None, active: Union[bool, None] = None):
-        if evidence_id:
-            return super().get(evidence_id)
+    def get(self, conf_evidence_id: Union[str, None] = None, active: Union[bool, None] = None):
+        if conf_evidence_id:
+            return super().get(conf_evidence_id)
 
         else:
             evidences_filter = {'term': {'ativo': active}} if active != None else None

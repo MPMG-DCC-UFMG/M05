@@ -300,6 +300,7 @@ class BookmarkView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
+        BOOKMARK.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
         optional_fields = {'id_sessao', 'id_pasta'}
@@ -350,6 +351,7 @@ class BookmarkView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
+        BOOKMARK.parse_data_type(data)
 
         bookmark_id = data.get('id_favorito')
         if bookmark_id is None:

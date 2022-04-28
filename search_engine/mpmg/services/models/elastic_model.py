@@ -2,7 +2,15 @@ from elasticsearch.exceptions import NotFoundError
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
-from mpmg.services.utils import doc_filter
+from mpmg.services.utils import str2bool
+
+ELASTIC_TYPE_TO_PYTHON_TYPE = {
+    'text': str,
+    'boolean': str2bool,
+    'integer': int,
+    'number': float,
+    'float': float 
+}
 
 class ElasticModel(dict):
     '''
@@ -133,6 +141,22 @@ class ElasticModel(dict):
         
         except:
             return False 
+
+    @classmethod
+    def mapping(cls) -> dict:
+        index_mapping = dict()
+        raw_mapping = cls.elastic.es.indices.get_mapping(index=cls.index_name)[cls.index_name]
+        raw_mapping = raw_mapping['mappings']['properties'] 
+        for prop in raw_mapping:
+            index_mapping[prop] = raw_mapping[prop]['type']
+        return index_mapping
+
+    @classmethod
+    def parse_data_type(cls, data: dict):
+        index_mapping = cls.mapping()
+        for field, value in data.items():
+            field_es_type = index_mapping[field]
+            data[field] = ELASTIC_TYPE_TO_PYTHON_TYPE[field_es_type](value)
 
     @classmethod
     def get(cls, item_id):

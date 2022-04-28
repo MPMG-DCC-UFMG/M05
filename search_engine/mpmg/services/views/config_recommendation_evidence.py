@@ -211,6 +211,7 @@ class ConfigRecommendationEvidenceView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
+        CONF_REC_EVIDENCE.parse_data_type(data)
 
         expected_fields = {'nome', 'tipo_evidencia', 'nome_indice', 'quantidade', 'similaridade_minima', 'top_n_recomendacoes', 'ativo'}
         optional_fields = {}
@@ -220,25 +221,26 @@ class ConfigRecommendationEvidenceView(APIView):
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
         
-        evidence_id = CONF_REC_EVIDENCE.save(dict(
+        conf_evidence_id = CONF_REC_EVIDENCE.save(dict(
                 nome = data['nome'],
                 tipo_evidencia = data['tipo_evidencia'],
                 nome_indice = data['nome_indice'],
                 quantidade = data['quantidade'],
-                similaridade_min = data['similaridade_minima'],
-                top_n_recommendacoes = data['top_n_recomendacoes'],
-                active = data['ativo'],
+                similaridade_minima = data['similaridade_minima'],
+                top_n_recomendacoes = data['top_n_recomendacoes'],
+                ativo = data['ativo'],
             ), data['tipo_evidencia']
         )
 
-        if evidence_id is None:
+        if conf_evidence_id is None:
             return Response({'message': 'Não foi possível criar a configuração de evidência. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        return Response({'id_evidencia': evidence_id}, status=status.HTTP_201_CREATED)
+        return Response({'id_conf_evidencia': conf_evidence_id}, status=status.HTTP_201_CREATED)
 
     def put(self, request):
         data = get_data_from_request(request)
-        
+        CONF_REC_EVIDENCE.parse_data_type(data)
+
         evidence_type = data.get('tipo_evidencia')
         evidence_conf_id = data.get('id_conf_evidencia', evidence_type)
 
@@ -248,45 +250,42 @@ class ConfigRecommendationEvidenceView(APIView):
         conf_ref_evidence = CONF_REC_EVIDENCE.get(evidence_conf_id) 
         if conf_ref_evidence is None:
             return Response({'message': 'Configuração de evidência não existe ou não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-            
-        valid_fields = {'similaridade_minima', 'top_n_recomendacoes', 'ativo', 'nome'} 
-        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
-
-        if not data_fields_valid:
-            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'tipo_evidencia' in data:
             del data['tipo_evidencia']
 
         if 'id_conf_evidencia' in data:
             del data['id_conf_evidencia']
+            
+        valid_fields = {'similaridade_minima', 'quantidade', 'top_n_recomendacoes', 'ativo', 'nome'} 
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
+
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
         if item_already_updated(conf_ref_evidence, data):
-            return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'A configuração da evidência já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if CONF_REC_EVIDENCE.update(evidence_conf_id, data):
              return Response(status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': 'Não foi possível atualizar a configuração da evidência, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Não foi possível atualizar a configuração da evidência. Tente novamente!'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        data = request.data
-        if type(data) is not dict:
-            data = data.dict()
-
-        id_evidencia = data.get('id_evidencia')
+        data = get_data_from_request(request)
+        
         tipo_evidencia = data.get('tipo_evidencia')
+        conf_evidence_id = data.get('id_conf_evidencia', tipo_evidencia)
 
-        CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
-        if id_evidencia or tipo_evidencia:
-            evidence, msg_error = CONF_REC_EVIDENCE.get(id_evidencia, tipo_evidencia)
-            if evidence is None:
-                return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
+        if conf_evidence_id is None:
+            return Response({'message': 'É necessário informar id_conf_evidencia ou tipo_evidencia!'}, status=status.HTTP_400_BAD_REQUEST)
 
-            success, msg_error = CONF_REC_EVIDENCE.delete(id_evidencia, tipo_evidencia)
-            if success:
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            
-            return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        evidence = CONF_REC_EVIDENCE.get(conf_evidence_id)
+        if evidence is None:
+            return Response({'message': 'A configuração de evidência não existe ou não foi encontrada!'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'message': 'É necessário informar "id_evidencia" ou "tipo_evidencia"!'}, status=status.HTTP_400_BAD_REQUEST)
+        if CONF_REC_EVIDENCE.delete(conf_evidence_id):
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({'message': 'Não foi possível deletar a configuração de evidência. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
