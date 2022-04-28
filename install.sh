@@ -6,10 +6,9 @@ export LD_RUN_PATH=/usr/local/lib
 ########################################
 
 # Installing Requirements
-if [[ -z $(pip freeze) ]]; then
-    pip install -r requirements.txt
-    pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
-fi
+pip install --use-deprecated=legacy-resolver -r requirements.txt
+pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+
 ########################################
 
 # Install ElasticSearch
