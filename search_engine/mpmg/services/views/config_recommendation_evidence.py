@@ -264,7 +264,10 @@ class ConfigRecommendationEvidenceView(APIView):
         if item_already_updated(conf_ref_evidence, data):
             return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if 
+        if CONF_REC_EVIDENCE.update(evidence_conf_id, data):
+             return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'message': 'Não foi possível atualizar a configuração da evidência, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
         data = request.data

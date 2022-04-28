@@ -388,13 +388,13 @@ class BookmarkView(APIView):
         if 'id_favorito' not in data:
             return Response({'message': 'Informe o id_favorito com o ID do bookmark a ser deletado!'}, status.HTTP_400_BAD_REQUEST) 
 
-        id_favorito = data['id_favorito']
+        bookmark_id = data['id_favorito']
         
-        bookmark = BOOKMARK.get(id_favorito)
+        bookmark = BOOKMARK.get(bookmark_id)
         if bookmark is None:
-            return Response({'message': 'Não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Bookmark não existe ou não foi encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if BOOKMARK.delete(id_favorito):
+        if BOOKMARK.delete(bookmark_id):
             return Response(status=status.HTTP_204_NO_CONTENT)
         
         return Response({'message': 'Não foi possível remover o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
