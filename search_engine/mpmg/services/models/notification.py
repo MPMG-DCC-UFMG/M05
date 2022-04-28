@@ -11,42 +11,11 @@ class Notification(ElasticModel):
             'texto',
             'tipo',
             'data_criacao',
+            'data_modificacao',
             'data_visualizacao',
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-
-    def get_by_user(self, id_usuario):
-        '''
-        Retorna uma lista de notificações do usuário.
-        '''
-
-        search_obj = self.elastic.dsl.Search(
-            using=self.elastic.es, index=self.index_name)
-
-        search_obj = search_obj.query(self.elastic.dsl.Q(
-            {"term": {"id_usuario": id_usuario}}))
-        search_obj = search_obj.sort({'data_criacao': {'order': 'desc'}})
-        elastic_result = search_obj.execute()
-
-        notifications_list = []
-        for item in elastic_result:
-            dict_data = item.to_dict()
-            dict_data['id'] = item.meta.id
-
-            notifications_list.append(Notification(**dict_data))
-
-        return notifications_list
-
-    def get_by_id(self, notification_id):
-        try:
-            data = self.elastic.es.get(
-                index=self.index_name, id=notification_id)['_source']
-            data['id'] = notification_id
-            return Notification(**data)
-
-        except:
-            None
 
     def mark_as_visualized(self, notification_id, data_visualizacao):
         '''

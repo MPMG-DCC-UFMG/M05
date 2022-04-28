@@ -16,7 +16,7 @@ function notification2html(notification) {
     // </li>`
 
     let li = document.createElement('LI');
-    li.className = notification.date_visualized == null ? 'font-weight-bold' : ''; 
+    li.className = notification.data_visualizacao == null ? 'font-weight-bold' : ''; 
 
     let message_wrapper = document.createElement('DIV');
     message_wrapper.className = 'rounded border bg-light p-2'
@@ -25,7 +25,7 @@ function notification2html(notification) {
     message.className = 'p-0 m-0';
 
     let content = document.createElement('SPAN');
-    content.textContent =  notification.message;
+    content.textContent =  notification.texto;
 
     let url = document.createElement('A');
     url.setAttribute('href', get_notification_url(notification.id));
@@ -43,7 +43,7 @@ function notification2html(notification) {
     let time = document.createElement('SPAN');
     time.className = 'small';
 
-    time.textContent = timestamp_converter(notification.date);
+    time.textContent = timestamp_converter(notification.data_criacao);
 
     time_wrapper.appendChild(time);
 

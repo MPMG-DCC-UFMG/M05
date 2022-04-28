@@ -2,11 +2,12 @@
 
 from django.db import migrations
 from mpmg.services.elastic import Elastic
+from elasticsearch_dsl import Keyword
 
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('id_usuario', 'text')
+    m.field('id_usuario', 'text', fields={'keyword': Keyword()})
     m.field('texto', 'text')
     m.field('tipo', 'text')
     m.field('data_criacao', 'date')

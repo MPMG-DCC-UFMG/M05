@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators 
+from mpmg.services.utils import validators, get_data_from_request 
 
 BOOKMARK_FOLDER = BookmarkFolder()
 BOOKMARK = Bookmark()
@@ -251,11 +251,7 @@ class BookmarkFolderView(APIView):
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
     def post(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
+        data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'nome'}    
         optional_fields = {'id_pasta_pai'}    
@@ -281,26 +277,18 @@ class BookmarkFolderView(APIView):
             id_pasta_pai=parent_folder_id
         ))
         
-        if not bool(folder_id):
-            return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if folder_id:
+            return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        
 
-        return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        
+        return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
-        
-        print('*' * 10)
-        print(data)
-        print('*' * 10)
+        data = get_data_from_request(request)
 
         try:
             folder_id = data['id_pasta']
         
-        except:
+        except KeyError:
             message = 'O campo id_pasta com o ID da pasta a ser alterada deve ser informado!'
             return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -344,16 +332,12 @@ class BookmarkFolderView(APIView):
         return Response({'message': 'Não foi possível atualizar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
+        data = get_data_from_request(request)
 
         try:
             folder_id = data['id_pasta']
         
-        except:
+        except KeyError:
             message = 'O campo id_pasta com o ID da pasta a ser alterada deve ser informado!'
             return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 

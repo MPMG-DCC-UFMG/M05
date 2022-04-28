@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators 
+from mpmg.services.utils import validators, get_data_from_request 
 
 class BookmarkView(APIView):
     '''
@@ -84,6 +84,14 @@ class BookmarkView(APIView):
                                     description: Mensagem de erro.
             '404': 
                 description: O bookmark não foi encontrado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem informando que o favorito não foi encontrado.
 
     post:
         description: Persiste a descrição de um bookmark. 
@@ -257,7 +265,7 @@ class BookmarkView(APIView):
 
     def get(self, request):
         if 'id_favorito' in request.GET:
-            bookmark = Bookmark().get(request.GET['id_favorito'])
+            bookmark = BOOKMARK.get(request.GET['id_favorito'])
 
         elif 'indice_documento' in request.GET and 'id_documento' in request.GET and 'id_usuario' in request.GET:
             indice_documento = request.GET['indice_documento']
@@ -273,7 +281,9 @@ class BookmarkView(APIView):
 
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
 
-            bookmarks = BOOKMARK.get_all(id_usuario)
+            query = {'term': {'id_usuario.keyword': id_usuario}}
+            _, bookmarks = BOOKMARK.get_list(query, page='all')
+
             return Response(bookmarks, status=status.HTTP_200_OK)
 
         else:
@@ -289,11 +299,7 @@ class BookmarkView(APIView):
  
 
     def post(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
+        data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
         optional_fields = {'id_sessao', 'id_pasta'}
@@ -343,11 +349,7 @@ class BookmarkView(APIView):
         return Response({'id_favorito': generated_bookmark_id}, status=status.HTTP_201_CREATED)        
 
     def put(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
+        data = get_data_from_request(request)
 
         bookmark_id = data.get('id_favorito')
         if bookmark_id is None:
@@ -390,12 +392,8 @@ class BookmarkView(APIView):
         return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        try:
-            data = request.data.dict()
-        
-        except:
-            data = request.data 
-        
+        data = get_data_from_request(request)
+
         if 'id_favorito' not in data:
             return Response({'message': 'Informe o id_favorito com o ID do bookmark a ser deletado!'}, status.HTTP_400_BAD_REQUEST) 
 

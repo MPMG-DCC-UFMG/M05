@@ -2,6 +2,7 @@ from elasticsearch.exceptions import NotFoundError
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
+from mpmg.services.utils import doc_filter
 
 class ElasticModel(dict):
     '''
