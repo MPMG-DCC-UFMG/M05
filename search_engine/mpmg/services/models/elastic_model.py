@@ -1,4 +1,5 @@
 from elasticsearch.exceptions import NotFoundError
+from sklearn.manifold import trustworthiness
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
@@ -184,6 +185,14 @@ class ElasticModel(dict):
         total = cls.elastic.dsl.Search(
             using=cls.elastic.es, index=cls.index_name).count()
         return total
+
+    @classmethod
+    def item_already_updated(cls, ref: dict, item: dict) -> bool:
+        # se ao menos um campo a ser atualizado é diferente do atual 
+        for field, value in item.items():
+            if ref[field] != value:
+                return False
+        return True
 
     @classmethod
     def get_list(cls, query=None, filter=None, page=1, sort=None):

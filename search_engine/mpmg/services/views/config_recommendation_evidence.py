@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from ..docstring_schema import AutoDocstringSchema
 
 from mpmg.services.models import ConfigRecommendationEvidence
-from mpmg.services.utils import str2bool, get_data_from_request, validators, item_already_updated
+from mpmg.services.utils import str2bool, get_data_from_request, validators
 
 CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
 
@@ -211,7 +211,6 @@ class ConfigRecommendationEvidenceView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
-        CONF_REC_EVIDENCE.parse_data_type(data)
 
         expected_fields = {'nome', 'tipo_evidencia', 'nome_indice', 'quantidade', 'similaridade_minima', 'top_n_recomendacoes', 'ativo'}
         optional_fields = {}
@@ -220,7 +219,11 @@ class ConfigRecommendationEvidenceView(APIView):
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+        conf_evidence = CONF_REC_EVIDENCE.get(data['tipo_evidencia'])
+        if conf_evidence is not None:
+            return Response({'message': 'Só pode haver uma configuração de recomendação de evidência por índice.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        CONF_REC_EVIDENCE.parse_data_type(data)
         conf_evidence_id = CONF_REC_EVIDENCE.save(dict(
                 nome = data['nome'],
                 tipo_evidencia = data['tipo_evidencia'],
@@ -239,7 +242,6 @@ class ConfigRecommendationEvidenceView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-        CONF_REC_EVIDENCE.parse_data_type(data)
 
         evidence_type = data.get('tipo_evidencia')
         evidence_conf_id = data.get('id_conf_evidencia', evidence_type)
@@ -247,8 +249,8 @@ class ConfigRecommendationEvidenceView(APIView):
         if evidence_conf_id is None:
             return Response({'message': 'É necessário informar tipo_evidencia ou id_evidencia para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_ref_evidence = CONF_REC_EVIDENCE.get(evidence_conf_id) 
-        if conf_ref_evidence is None:
+        conf_rec_evidence = CONF_REC_EVIDENCE.get(evidence_conf_id) 
+        if conf_rec_evidence is None:
             return Response({'message': 'Configuração de evidência não existe ou não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         if 'tipo_evidencia' in data:
@@ -263,7 +265,9 @@ class ConfigRecommendationEvidenceView(APIView):
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item_already_updated(conf_ref_evidence, data):
+        CONF_REC_EVIDENCE.parse_data_type(data)
+
+        if CONF_REC_EVIDENCE.item_already_updated(conf_rec_evidence, data):
             return Response({'message': 'A configuração da evidência já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if CONF_REC_EVIDENCE.update(evidence_conf_id, data):

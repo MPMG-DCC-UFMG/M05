@@ -3,7 +3,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from mpmg.services.views.config_recommendation_evidence import CONF_REC_EVIDENCE
+
 from ..docstring_schema import AutoDocstringSchema
+
+from mpmg.services.utils import str2bool, get_data_from_request, validators
+
+CONF_REC_SOURCE = ConfigRecommendationSource()
 
 class ConfigRecommendationSourceView(APIView):
     '''
@@ -168,123 +174,103 @@ class ConfigRecommendationSourceView(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        id_fonte = request.GET.get('id_fonte')
-        nome_indice = request.GET.get('nome_indice')
+        index_name = request.GET.get('nome_indice')
+        source_id = request.GET.get('id_conf_fonte', index_name)
 
-        conf_rec_source = ConfigRecommendationSource()
-
-        if id_fonte or nome_indice:
-            source, msg_error = conf_rec_source.get(id_fonte, nome_indice)
+        if source_id or index_name:
+            source = CONF_REC_SOURCE.get(source_id)
 
             if source is None:
-                return Response({'message': msg_error}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'A configuração de recomendação de fonte não existe ou não foi encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
             return Response(source, status=status.HTTP_200_OK)
 
-        ativo = request.GET.get('ativo')
-        if ativo is not None:
-            if ativo == 'false':
-                ativo = False
+        active = request.GET.get('ativo')
+        if active is not None:
+            active = str2bool(active)
 
-            elif ativo == 'true':
-                ativo = True
-
-            else:
-                ativo = False
-
-        sources, _ = conf_rec_source.get(ativo=ativo)
-        return Response(sources, status=status.HTTP_200_OK)
+        conf_rec_sources = CONF_REC_SOURCE.get(active=active)
+        return Response(conf_rec_sources, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.POST if len(request.POST) > 0 else request.data
+        data = get_data_from_request(request)
 
-        try:
-            source_repr = dict(
-                nome=data['nome'],
-                nome_indice=data['nome_indice'],
-                quantidade=data['quantidade'],
-                ativo=data['ativo'],
-            )
-        except:
-            return Response({'message': 'Informe todos os campos corretamente!'}, status=status.HTTP_400_BAD_REQUEST)
+        expected_fields = {'nome', 'nome_indice', 'quantidade', 'ativo'}
+        optional_fields = {}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
 
-        conf_rec_source = ConfigRecommendationSource()
-        id_fonte, msg_error = conf_rec_source.save(source_repr)
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        if id_fonte:
-            return Response({'id_fonte': id_fonte}, status=status.HTTP_201_CREATED)
+        conf_source = CONF_REC_SOURCE.get(data['nome_indice'])
+        if conf_source is not None:
+            return Response({'message': 'Só pode haver uma configuração de recomendação de fonte por índice.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        CONF_REC_EVIDENCE.parse_data_type(data)
 
-    def _parse_data(self, data: dict):
-        parsed_data = dict()
-        for key, val in data.items():
-            if '[' in key:
-                s_key = key[:-1].split('[')
-                nome_indice, attrib = s_key[0], s_key[1]
+        source_id = CONF_REC_SOURCE.save(dict(
+            nome=data['nome'],
+            nome_indice=data['nome_indice'],
+            quantidade=data['quantidade'],
+            ativo=data['ativo'],
+        ), data['nome_indice'])
 
-                if nome_indice not in parsed_data:
-                    parsed_data[nome_indice] = dict()
-
-                if type(val) is str:
-                    if val == 'false':
-                        val = False
-
-                    elif val == 'true':
-                        val = True
-
-                    else:
-                        val = int(val)
-
-                parsed_data[nome_indice][attrib] = val
-
-        return parsed_data
+        if source_id is None:
+            return Response({'message': 'Não foi possível criar a configuração de fonte de recomendação. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({'id_conf_fonte': source_id}, status=status.HTTP_201_CREATED)
 
     def put(self, request):
-        data = request.data
-        if type(data) is not dict:
-            data = self._parse_data(data.dict())
+        data = get_data_from_request(request)
 
-        conf_rec_source = ConfigRecommendationSource()
+        index_name = data.get('nome_indice')
+        source_conf_id = data.get('id_conf_fonte', index_name) 
 
-        error = dict()
-        all_successfull = True
-        for nome_indice in data:
-            config = data[nome_indice]
-            success, msg_error = conf_rec_source.update(
-                config, nome_indice=nome_indice)
+        if source_conf_id is None:
+            return Response({'message': 'É necessário informar nome_indice ou id_conf_fonte para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not success:
-                all_successfull = False
+        conf_rec_source = CONF_REC_SOURCE.get(source_conf_id)
+        if conf_rec_source is None:
+            return Response({'message': 'Configuração de fonte de recomendação não existe ou não encontrada'}, status=status.HTTP_404_NOT_FOUND)        
 
-            error[nome_indice] = {
-                'success': success,
-                'message': msg_error
-            }
+        if 'nome_indice' in data:
+            del data['nome_indice']
 
-        if all_successfull:
+        if 'id_conf_fonte' in data:
+            del data['id_conf_fonte']
+
+        valid_fields = {'quantidade', 'ativo', 'nome'} 
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
+
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        CONF_REC_SOURCE.parse_data_type(data)
+        if CONF_REC_SOURCE.item_already_updated(conf_rec_source, data):
+            return Response({'message': 'A configuração de fonte de recomendação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if CONF_REC_SOURCE.update(source_conf_id, data):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Não foi possível atualizar a configuração de fonte de recomendação. Tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        data = request.data
-        if type(data) is not dict:
-            data = data.dict()
+        data = get_data_from_request(request)
+        
+        index_name = data.get('nome_indice')
+        conf_source_id = data.get('id_conf_fonte', index_name)
 
-        id_fonte = data.get('id_fonte')
-        nome_indice = data.get('nome_indice')
+        print(data)
+        
+        if conf_source_id is None:
+            return Response({'message': 'É necessário informar id_conf_fonte ou nome_indice!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_rec_source = ConfigRecommendationSource()
+        conf_source = CONF_REC_SOURCE.get(conf_source_id)
+        if conf_source is None:
+            return Response({'message': 'Configuração de fonte de recomendação não encontrada para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 
-        if id_fonte or nome_indice:
-            source, msg_error = conf_rec_source.get(id_fonte, nome_indice)
-            if source is None:
-                return Response({'message': 'Item não encontrado para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
+        if CONF_REC_SOURCE.delete(conf_source_id):
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({'message': 'Não foi possível deletar a configuração de fonte de recomendação. Tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            success, msg_error = conf_rec_source.delete(id_fonte, nome_indice)
-            if success:
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'message': msg_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'É necessário informar "id_fonte" ou "nome_indice"!'}, status=status.HTTP_400_BAD_REQUEST)

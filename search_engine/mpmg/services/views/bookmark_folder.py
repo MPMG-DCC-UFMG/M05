@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators, get_data_from_request, item_already_updated 
+from mpmg.services.utils import validators, get_data_from_request
 
 BOOKMARK_FOLDER = BookmarkFolder()
 BOOKMARK = Bookmark()
@@ -252,7 +252,6 @@ class BookmarkFolderView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
-        BOOKMARK_FOLDER.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'nome'}    
         optional_fields = {'id_pasta_pai'}    
@@ -272,6 +271,8 @@ class BookmarkFolderView(APIView):
         if parent_folder is None:
             return Response({'message': 'A pasta pai da pasta sendo criada não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        BOOKMARK_FOLDER.parse_data_type(data)
+        
         folder_id = BOOKMARK_FOLDER.save(dict(
             criador = user_id,
             nome=data['nome'],
@@ -285,7 +286,6 @@ class BookmarkFolderView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-        BOOKMARK_FOLDER.parse_data_type(data)
         
         try:
             folder_id = data['id_pasta']
@@ -308,7 +308,9 @@ class BookmarkFolderView(APIView):
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item_already_updated(folder, data):
+        BOOKMARK_FOLDER.parse_data_type(data)
+
+        if BOOKMARK_FOLDER.item_already_updated(folder, data):
             return Response({'message': 'A pasta já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if 'id_pasta_pai' in data:

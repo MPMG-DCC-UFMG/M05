@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.utils import validators, get_data_from_request, item_already_updated 
+from mpmg.services.utils import validators, get_data_from_request 
 
 class BookmarkView(APIView):
     '''
@@ -300,7 +300,6 @@ class BookmarkView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
-        BOOKMARK.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
         optional_fields = {'id_sessao', 'id_pasta'}
@@ -329,6 +328,8 @@ class BookmarkView(APIView):
         if bookmark:
             return Response({'message': 'O favorito já existe!'}, status=status.HTTP_400_BAD_REQUEST)
 
+        BOOKMARK.parse_data_type(data)
+        
         BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
 
         session_id = request.POST.get('id_sessao', request.session.session_key)
@@ -351,7 +352,6 @@ class BookmarkView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-        BOOKMARK.parse_data_type(data)
 
         bookmark_id = data.get('id_favorito')
         if bookmark_id is None:
@@ -370,7 +370,8 @@ class BookmarkView(APIView):
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item_already_updated(bookmark, data):
+        BOOKMARK.parse_data_type(data)
+        if BOOKMARK.item_already_updated(bookmark, data):
             return Response({'message': 'O favorito já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if 'id_pasta' in data:

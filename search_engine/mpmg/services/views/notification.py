@@ -244,7 +244,6 @@ class NotificationView(APIView):
 
     def post(self, request):
         data = get_data_from_request(request)
-        NOTIFICATION.parse_data_type(data)
 
         expected_fields = {'id_usuario', 'texto', 'tipo'}    
         optional_fields = {'data_visualizacao'}
@@ -253,6 +252,7 @@ class NotificationView(APIView):
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
         
+        NOTIFICATION.parse_data_type(data)
         id_notificacao = NOTIFICATION.save(dict(
             id_usuario=data['id_usuario'],
             texto=data['texto'],
@@ -267,14 +267,12 @@ class NotificationView(APIView):
 
     def put(self, request):
         data = get_data_from_request(request)
-        NOTIFICATION.parse_data_type(data)
         
         notification_id = data.get('id_notificacao')
         if notification_id is None:
             return Response({'message': 'Informe o ID da notificação a ser editada.'}, status.HTTP_400_BAD_REQUEST)
-
         del data['id_notificacao']
-
+        
         notification = NOTIFICATION.get(notification_id)
 
         if notification is None:
@@ -291,15 +289,9 @@ class NotificationView(APIView):
             data['data_visualizacao'] = get_current_timestamp() if str2bool(data['visualizado']) else None
             del data['visualizado']
 
-        has_updated_fields = False 
-        
-        # se ao menos um campo a ser atualizado é diferente do atual 
-        for field, value in data.items():
-            if notification[field] != value:
-                has_updated_fields = True 
-                break 
+        NOTIFICATION.parse_data_type(data)
 
-        if not has_updated_fields:
+        if NOTIFICATION.item_already_updated(notification, data):
             return Response({'message': 'A notificação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
         success = NOTIFICATION.update(notification_id, data)
