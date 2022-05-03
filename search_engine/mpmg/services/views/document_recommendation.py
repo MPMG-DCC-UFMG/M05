@@ -185,118 +185,20 @@ class DocumentRecommendationView(APIView):
             return Response({'message': 'É necessário informar pelo menos um dos campos: id_usuario, id_notificacao ou id_recomendacao.'})
     
     def post(self, request):
-        id_usuario = request.POST.get('id_usuario', None)
-        notification = Notification()
+        user_id = request.POST.get('id_usuario')
 
-        if id_usuario == None or id_usuario == '':
-            users_ids = DOC_REC.get_users_ids_to_recommend()
+        if user_id in (None, ''):
+            users_id = 'all'
 
         else:
-            users_ids = [id_usuario]
+            # TODO: Checar se o ID passado pelo usuário é valido
+            pass
+        
+        if DOC_REC.reccomend(user_id):
+            return Response(status=status.HTTP_201_CREATED)
+        
+        return None 
 
-        # data da última recomendação de cada usuário
-        user_dates = DOC_REC.get_last_recommendation_date()
-
-
-        # quais os tipos de evidência que devem ser usadas na recomendação
-        config_evidences, _ = self.config_rec_evidences.get(active=True)
-
-        for id_usuario in users_ids:
-
-            # usa como data de referência a data da última recomendação
-            # se o usuário não possui data, usa a semana anterior como data de referência
-            if id_usuario in user_dates:
-                reference_date = user_dates[id_usuario]
-                
-            else:
-                reference_date = '2021-04-01'
-
-            # busca os documentos candidatos a recomendação
-            candidates = DOC_REC.get_candidate_documents(reference_date)
-
-            valid_recommendations = []
-
-            for evidence_item in config_evidences:
-                top_n = evidence_item['top_n_recommendations']
-                min_similarity = evidence_item['min_similarity']
-
-                # busca as evidências do(s) usuário(s)
-                user_evidences = DOC_REC.get_evidences(id_usuario, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
-
-                # computa a similaridade entre os documentos candidatos e a evidência
-                similarity_ranking = []
-
-                evidence_ranking = dict()
-                for evidence_i, evidence_doc in enumerate(user_evidences):
-                    if evidence_i not in evidence_ranking:
-                        evidence_ranking[evidence_i] = []
-
-                    for candidate_i, candidate_doc in enumerate(candidates):
-                        similarity_score = self._cosine_similarity(candidate_doc['embedding'], evidence_doc['embedding']) * 100
-                        if similarity_score >= min_similarity:
-                            evidence_ranking[evidence_i].append((candidate_i, similarity_score, evidence_i))
-                    
-                    evidence_ranking[evidence_i].sort(key = lambda item: item[1], reverse=True)
-
-                num_docs_recommended_in_evidence = 0
-                while True:
-                    candidate_rankings = []
-                    for evidence_i_candidates in evidence_ranking.values():
-                        if len(evidence_i_candidates) > 0:
-                            candidate_rankings.append(evidence_i_candidates.pop(0))
-                    candidate_rankings.sort(key = lambda item: item[1], reverse=True)
-
-                    if len(candidate_rankings) == 0:
-                        break
-
-                    for i in range(min(top_n - num_docs_recommended_in_evidence, len(candidate_rankings))):
-                        num_docs_recommended_in_evidence += 1
-                        
-                        candidate_i, score, evidence_i = candidate_rankings[i]
-
-                        valid_recommendations.append({
-                            'id_usuario': id_usuario,
-                            'id_notificacao': None,
-                            'indice_doc_recomendado': candidates[candidate_i]['index_name'],
-                            'id_doc_recomendado': candidates[candidate_i]['id'],
-                            'recommended_doc_title': candidates[candidate_i]['title'],
-                            'matched_from': evidence_item['evidence_type'],
-                            'titulo_doc_recomendado': user_evidences[evidence_i]['query'],
-                            'evidencia_indice_doc': user_evidences[evidence_i]['index_name'],
-                            'evidencia_id_doc': user_evidences[evidence_i]['id'],
-                            'evidencia_titulo_doc': user_evidences[evidence_i]['title'],
-                            'data_criacao': int(time() * 1000),
-                            'similaridade': score,
-                            'aprovado': None
-                        })
-
-                        del candidates[candidate_i]
-
-                        if num_docs_recommended_in_evidence == top_n:
-                            break
-
-                    if num_docs_recommended_in_evidence == top_n:
-                            break        
-                
-            # se existem recomendações válidas, cria uma notificação e associa o seu ID 
-            # aos registros de recomendação antes de gravá-los
-            if len(valid_recommendations) > 0:
-                # cria a notificação
-                notification_response = notification.create({
-                    'id_usuario': id_usuario,
-                    'message': 'Novos documentos que possam ser do seu interesse.',
-                    'type': 'RECOMMENDATION',
-                    'data_criacao': int(time() * 1000)
-                })
-                id_notificacao = notification_response['_id']
-
-                for recommendation in valid_recommendations:
-                    recommendation['id_notificacao'] = id_notificacao
-                    DOC_REC.save(recommendation)
-
-
-        return Response(status=status.HTTP_201_CREATED)
-    
     def put(self, request):
         data = get_data_from_request(request.data)
 

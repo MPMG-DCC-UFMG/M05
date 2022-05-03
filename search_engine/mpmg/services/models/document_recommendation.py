@@ -31,92 +31,6 @@ class DocumentRecommendation(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get_by_user(self, id_usuario):
-        '''
-        Retorna a lista de recomendações do usuário.
-        '''
-
-        search_obj = self.elastic.dsl.Search(
-            using=self.elastic.es, index=self.index_name)
-        search_obj = search_obj.query(self.elastic.dsl.Q(
-            {"term": {"id_usuario": id_usuario}}))
-
-        # faz a consulta uma vez pra pegar o total de resultados
-        parcial_result = search_obj.execute()
-        total_records = parcial_result.hits.total.value
-
-        # refaz a consulta trazendo todos os resultados
-        search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort({'data_criacao': {'order': 'desc'}})
-        total_result = search_obj.execute()
-
-        recommendations_list = []
-        for item in total_result:
-            dict_data = item.to_dict()
-            dict_data['id'] = item.meta.id
-
-            recommendations_list.append(DocumentRecommendation(**dict_data))
-
-        return recommendations_list
-
-    def get_by_notification_id(self, id_notificacao):
-        '''
-        Retorna as recomendações geradas no id da notificação passada.
-        '''
-
-        search_obj = self.elastic.dsl.Search(
-            using=self.elastic.es, index=self.index_name)
-        search_obj = search_obj.query(self.elastic.dsl.Q(
-            {"term": {"id_notificacao.keyword": id_notificacao}}))
-
-        # faz a consulta uma vez pra pegar o total de segmentos
-        parcial_result = search_obj.execute()
-        total_records = parcial_result.hits.total.value
-
-        # refaz a consulta trazendo todos os resultados
-        search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort({'data_criacao': {'order': 'desc'}})
-        total_result = search_obj.execute()
-
-        recommendations_list = []
-        for item in total_result:
-            dict_data = item.to_dict()
-            dict_data['id'] = item.meta.id
-
-            recommendations_list.append(DocumentRecommendation(**dict_data))
-
-        return recommendations_list
-
-    def update_feedback(self, recommendation_id, aprovado):
-        '''
-        Atualiza o campo aprovado, indicando se o usuário aprovou ou não aquela recomendação.
-        '''
-
-        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={
-                                          "doc": {"aprovado": aprovado, }})
-
-        success = response['result'] == 'updated'
-        msg_error = ''
-        if not success:
-            msg_error = 'Não foi possível atualizar.'
-
-        return success, msg_error
-
-    def mark_as_seen(self, recommendation_id, data_visualizacao):
-        '''
-        Atualiza o campo aprovado, indicando se o usuário aprovou ou não aquela recomendação.
-        '''
-        response = self.elastic.es.update(index=self.index_name, id=recommendation_id, body={
-                                          "doc": {"data_visualizacao": data_visualizacao}})
-
-        success = response['result'] == 'updated'
-        msg_error = ''
-
-        if not success:
-            msg_error = 'Não foi possível atualizar.'
-
-        return success, msg_error
-
     def get_users_ids_to_recommend(self):
         '''
         Retorna uma lista com todos os user_ids da API para fazer a recomendação.
@@ -260,3 +174,6 @@ class DocumentRecommendation(ElasticModel):
                             {'id': doc.meta.id, 'index_name': dtype, 'title': doc['titulo'], 'query': None, 'embedding': doc['embedding']})
 
         return user_evidences
+
+    def reccomend(self, user_ids: list):
+        pass 
