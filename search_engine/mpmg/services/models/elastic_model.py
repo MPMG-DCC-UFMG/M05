@@ -153,8 +153,11 @@ class ElasticModel(dict):
         return index_mapping
 
     @classmethod
-    def parse_data_type(cls, data: dict):
+    def parse_data_type(cls, data: dict, extra_fields: dict = None):
         index_mapping = cls.mapping()
+        if extra_fields is not None:
+            index_mapping.update(extra_fields)
+
         for field, value in data.items():
             field_es_type = index_mapping[field]
             data[field] = ELASTIC_TYPE_TO_PYTHON_TYPE[field_es_type](value)

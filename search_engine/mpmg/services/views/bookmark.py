@@ -293,7 +293,7 @@ class BookmarkView(APIView):
             return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
         if bookmark is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'O favorito não existe ou não foi encontrado.'}, status=status.HTTP_404_NOT_FOUND)
             
         return Response(bookmark, status=status.HTTP_200_OK)
  
@@ -355,7 +355,7 @@ class BookmarkView(APIView):
 
         bookmark_id = data.get('id_favorito')
         if bookmark_id is None:
-            return Response({'message': 'É necessário informar o campo id_favorito!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'É necessário informar o campo id_favorito.'}, status=status.HTTP_400_BAD_REQUEST)
 
         bookmark = Bookmark.get(bookmark_id)
 

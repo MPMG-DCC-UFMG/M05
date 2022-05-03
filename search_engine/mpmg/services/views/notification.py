@@ -289,8 +289,6 @@ class NotificationView(APIView):
             data['data_visualizacao'] = get_current_timestamp() if str2bool(data['visualizado']) else None
             del data['visualizado']
 
-        NOTIFICATION.parse_data_type(data)
-
         if NOTIFICATION.item_already_updated(notification, data):
             return Response({'message': 'A notificação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         

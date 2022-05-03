@@ -9,6 +9,9 @@ from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
 
+from mpmg.services.utils import validators, get_data_from_request, get_current_timestamp, str2bool 
+
+DOC_REC = DocumentRecommendation()
 
 class DocumentRecommendationView(APIView):
     '''
@@ -153,37 +156,46 @@ class DocumentRecommendationView(APIView):
     '''
 
     schema = AutoDocstringSchema()
-    config_rec_evidences = ConfigRecommendationEvidence()
     
     def _cosine_similarity(self, doc1, doc2):
         return np.dot(doc2, doc2)/(np.linalg.norm(doc1)*np.linalg.norm(doc2))
     
     def get(self, request):
-        id_usuario = request.GET['id_usuario']
 
-        id_notificacao = request.GET.get('id_notificacao')
-        if id_notificacao:
-            recommendations_list = DocumentRecommendation().get_by_notification_id(id_notificacao=id_notificacao)
+        if 'id_usuario' in request.GET:
+            user_id = request.GET['id_usuario']
+            query = {'term': {'id_usuario.keyword': user_id}}
+            _, reccomendations = DOC_REC.get_list(query, page='all')
+            return Response(reccomendations, status=status.HTTP_200_OK)
+
+        elif 'id_notificacao' in request.GET:
+            notification_id = request.GET['id_notificacao']
+            query = {'term': {'id_notificacao.keyword': notification_id}}
+            _, reccomendations = DOC_REC.get_list(query, page='all')
+            return Response(reccomendations, status=status.HTTP_200_OK) 
+
+        elif 'id_recomendacao' in request.GET:
+            rec_id = request.GET['id_recomendacao']
+            reccomendation = DOC_REC.get(rec_id)
+            if reccomendation is None:
+                return Response({'message': 'A recomendação não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND) 
+            return Response(reccomendation, status=status.HTTP_200_OK)
 
         else:
-            recommendations_list = DocumentRecommendation().get_by_user(id_usuario=id_usuario)
-        
-        return Response(recommendations_list, status=status.HTTP_200_OK)
-    
+            return Response({'message': 'É necessário informar pelo menos um dos campos: id_usuario, id_notificacao ou id_recomendacao.'})
     
     def post(self, request):
         id_usuario = request.POST.get('id_usuario', None)
-        document_recommendation =  DocumentRecommendation()
         notification = Notification()
 
         if id_usuario == None or id_usuario == '':
-            users_ids = document_recommendation.get_users_ids_to_recommend()
+            users_ids = DOC_REC.get_users_ids_to_recommend()
 
         else:
             users_ids = [id_usuario]
 
         # data da última recomendação de cada usuário
-        user_dates = document_recommendation.get_last_recommendation_date()
+        user_dates = DOC_REC.get_last_recommendation_date()
 
 
         # quais os tipos de evidência que devem ser usadas na recomendação
@@ -200,7 +212,7 @@ class DocumentRecommendationView(APIView):
                 reference_date = '2021-04-01'
 
             # busca os documentos candidatos a recomendação
-            candidates = document_recommendation.get_candidate_documents(reference_date)
+            candidates = DOC_REC.get_candidate_documents(reference_date)
 
             valid_recommendations = []
 
@@ -209,7 +221,7 @@ class DocumentRecommendationView(APIView):
                 min_similarity = evidence_item['min_similarity']
 
                 # busca as evidências do(s) usuário(s)
-                user_evidences = document_recommendation.get_evidences(id_usuario, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
+                user_evidences = DOC_REC.get_evidences(id_usuario, evidence_item['evidence_type'], evidence_item['es_index_name'], evidence_item['amount'])
 
                 # computa a similaridade entre os documentos candidatos e a evidência
                 similarity_ranking = []
@@ -280,57 +292,60 @@ class DocumentRecommendationView(APIView):
 
                 for recommendation in valid_recommendations:
                     recommendation['id_notificacao'] = id_notificacao
-                    document_recommendation.save(recommendation)
+                    DOC_REC.save(recommendation)
 
 
         return Response(status=status.HTTP_201_CREATED)
     
     def put(self, request):
-        data = request.data.dict()
+        data = get_data_from_request(request.data)
 
-        id_recomendacao = data['id_recomendacao']
-        if 'aprovado' not in data and 'data_visualizacao' not in data:
-            return Response({'message': 'É necessário informar o campo aprovado ou data_visualizacao.'}, status=status.HTTP_400_BAD_REQUEST)
+        rec_id = data.get('id_recomendacao')
+        if rec_id is None:
+            return Response({'message': 'É necessário informar o campo id_recomendacao.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if 'aprovado' in data:
-            aprovado = data['aprovado']
-            if aprovado == 'True' or aprovado == 'true':
-                aprovado = True
+        rec = DOC_REC.get(rec_id)
+
+        if rec is None:
+            return Response({'message': 'A recomendação não existe ou não foi encontrada.'})
+
+        del data['id_recomendacao']
+
+        valid_fields = {'data_visualizacao', 'aprovado', 'visualizado'}
+        data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
+
+        if not data_fields_valid:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        DOC_REC.parse_data_type(data)
+        if DOC_REC.item_already_updated(rec, data):
+            return Response({'message': 'A recomendação já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'visualizado' in data:
+            data['data_visualizacao'] = get_current_timestamp() if str2bool(data['visualizado']) else None
+            del data['visualizado']
             
-            elif aprovado == 'false' or aprovado == 'False':
-                aprovado = False
-            
-            elif aprovado == '':
-                aprovado = None
-
-            else:
-                return Response({'message': 'Não foi possível realizar o parsing dos parâmetros passados.'}, status.HTTP_400_BAD_REQUEST)
-
-            success, msg_error = DocumentRecommendation().update_feedback(id_recomendacao, aprovado)
-            if not success:
-                return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
-            
-        if 'data_visualizacao' in data:
-            data_visualizacao = data.get('data_visualizacao')
-            if not data_visualizacao:
-                # TODO: Ter uma biblioteca padronizada para pegar o timestamp em ms
-                data_visualizacao = int(time() * 1000)
-            
-            success, msg_error = DocumentRecommendation().mark_as_seen(id_recomendacao, data_visualizacao)
-            if not success:
-                return Response({'message': msg_error}, status=status.HTTP_400_BAD_REQUEST)
-            
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def delete(self, request):
-        data = request.data.dict()
-
-        id_recomendacao = data.get('id_recomendacao')
-        if id_recomendacao is None:
-            return Response({'message': 'Informe o ID da notificação deletada.'}, status.HTTP_400_BAD_REQUEST)
+        if DOC_REC.item_already_updated(rec, data):
+            return Response({'message': 'A recomendação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        success, msg_error = DocumentRecommendation().remove(id_recomendacao)
-        if success:
+        if DOC_REC.update(rec_id, data):
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'message': 'Não foi possível atualizar a recomendação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    def delete(self, request):
+        data = get_data_from_request(request.data)
+
+        if 'id_recomendacao' not in data:
+            return Response({'message': 'Informe o ID da recomendação a ser deletada.'}, status.HTTP_400_BAD_REQUEST)
+        
+        rec_id = data['id_recomendacao']
+        
+        rec = DOC_REC.get(rec_id)
+        if rec is None:
+            return Response({'message': 'A recomendação não existe ou não foi encontrada.'}, status=status.HTTP_400_BAD_REQUEST) 
+
+        if DOC_REC.delete(rec_id):
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': msg_error}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Não foi possível remover a recomendação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
