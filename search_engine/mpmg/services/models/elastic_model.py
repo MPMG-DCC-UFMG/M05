@@ -1,3 +1,4 @@
+from typing import Tuple
 from elasticsearch.exceptions import NotFoundError
 from sklearn.manifold import trustworthiness
 
@@ -5,6 +6,7 @@ from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
 from mpmg.services.utils import str2bool
 
+# TODO: aumentar cobertura
 ELASTIC_TYPE_TO_PYTHON_TYPE = {
     'text': str,
     'boolean': str2bool,
@@ -198,7 +200,7 @@ class ElasticModel(dict):
         return True
 
     @classmethod
-    def get_list(cls, query=None, filter=None, page=1, sort=None):
+    def get_list(cls, query=None, filter=None, page=1, sort=None) -> Tuple[int, list]:
         '''
         Busca uma lista de documentos do índice. Cada item da lista é uma instância da classe
         em questão. É possível passar parâmetros de ordenação em sort, e também parâmetros de 

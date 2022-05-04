@@ -139,8 +139,11 @@ class Query:
     def execute(self):
         '''
         Executa a consulta no ElasticSearch.
+        
         A consulta é construida considerando clásulas MUST, SHOULD e filtros selecionados pelo usuário.
+        
         Além de executar a consulta é gravado o log com dados da execução da consulta.
+        
         Também é gerado dinamicamente as opções para o filtro de entidades, que nesta primeira versão é 
         computado baseado nos documentos retornados pela consulta.
 
@@ -158,8 +161,7 @@ class Query:
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
         
-        # FIXME reativar isso
-        # self._log()
+        self._log()
 
         return self.total_docs, self.total_pages, self.documents, self.response_time
 
@@ -174,7 +176,7 @@ class Query:
             id_sessao = self.sid,
             id_consulta = self.qid,
             id_usuario = self.user_id,
-            text_consulta = self.query,
+            texto_consulta = self.query,
             data_criacao = self.data_criacao,
             tempo_resposta = self.response_time,
             documentos=[i['tipo']+':'+i['id']

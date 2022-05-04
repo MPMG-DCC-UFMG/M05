@@ -16,9 +16,9 @@ def create_index(apps, schema_editor):
 
 def insert_data(apps, schema_editor):
     elastic = Elastic()
-    elastic.es.index(index='config_recommendation_sources', id=1, body={'nome': 'Diários', 'nome_indice': 'diarios_segmentado', 'quantidade':1000, 'ativo': True})
-    elastic.es.index(index='config_recommendation_sources', id=2, body={'nome': 'Processos', 'nome_indice': 'processos', 'quantidade':1000, 'ativo': True})
-    elastic.es.index(index='config_recommendation_sources', id=3, body={'nome': 'Licitações', 'nome_indice': 'licitacoes', 'quantidade':1000, 'ativo': True})
+    elastic.es.index(index='config_recommendation_sources', id='diarios_segmentado', body={'nome': 'Diários', 'nome_indice': 'diarios_segmentado', 'quantidade':1000, 'ativo': True})
+    elastic.es.index(index='config_recommendation_sources', id='processos', body={'nome': 'Processos', 'nome_indice': 'processos', 'quantidade':1000, 'ativo': True})
+    elastic.es.index(index='config_recommendation_sources', id='licitacoes', body={'nome': 'Licitações', 'nome_indice': 'licitacoes', 'quantidade':1000, 'ativo': True})
     
 
 class Migration(migrations.Migration):

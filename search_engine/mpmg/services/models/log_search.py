@@ -12,7 +12,7 @@ class LogSearch(ElasticModel):
             'id_sessao',
             'id_consulta',
             'id_usuario',
-            'text_consulta',
+            'texto_consulta',
             'data_criacao',
             'tempo_resposta',
             'tempo_resposta_total',
@@ -69,7 +69,7 @@ class LogSearch(ElasticModel):
         if text_consulta:
             query_param["bool"]["must"].append({
                 "term": {
-                    "text_consulta": text_consulta
+                    "texto_consulta": text_consulta
 
                 }
             })

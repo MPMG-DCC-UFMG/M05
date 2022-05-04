@@ -1,3 +1,4 @@
+from ctypes import Union
 from mpmg.services.models import ElasticModel
 
 class ConfigRecommendationSource(ElasticModel):

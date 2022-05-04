@@ -53,16 +53,6 @@ def change_vector_precision(vector, precision=24):
     vector = np.array(vector, dtype=np.float16)
     return vector.tolist()
 
-
-def parse_date(text):
-    for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
-        try:
-            return datetime.datetime.strptime(text, fmt)
-        except ValueError:
-            pass
-    raise ValueError('no valid date format found')
-
-
 def parse_date(text):
     for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
         try:
@@ -125,6 +115,13 @@ class Indexer:
                         element = parse_date(line[field])
                         timestamp = datetime.datetime.timestamp(element)
                         doc[field_name] = timestamp
+
+                elif field_name == 'data_indexacao':
+                    if line[field] != '':
+                        element = parse_date(line[field])
+                        timestamp = datetime.datetime.timestamp(element)
+                        doc[field_name] = timestamp
+
                 else:
                     doc[field_name] = line[field]
 

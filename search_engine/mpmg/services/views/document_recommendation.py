@@ -188,7 +188,7 @@ class DocumentRecommendationView(APIView):
         user_id = request.POST.get('id_usuario')
 
         if user_id in (None, ''):
-            users_id = 'all'
+            user_id = 'all'
 
         else:
             # TODO: Checar se o ID passado pelo usuário é valido

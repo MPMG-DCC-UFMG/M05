@@ -19,11 +19,11 @@ def create_index(apps, schema_editor):
 
 def insert_data(apps, schema_editor):
     elastic = Elastic()
-    elastic.es.index(index='config_recommendation_evidences', id=1, body={
+    elastic.es.index(index='config_recommendation_evidences', id='bookmark', body={
                      'nome': 'Favoritos', 'tipo_evidencia': 'bookmark', 'nome_indice': 'bookmark', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
-    elastic.es.index(index='config_recommendation_evidences', id=2, body={
+    elastic.es.index(index='config_recommendation_evidences', id='query', body={
                      'nome': 'Consultas', 'tipo_evidencia': 'query', 'nome_indice': 'log_buscas', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
-    elastic.es.index(index='config_recommendation_evidences', id=3, body={
+    elastic.es.index(index='config_recommendation_evidences', id='click', body={
                      'nome': 'Cliques', 'tipo_evidencia': 'click', 'nome_indice': 'log_clicks', 'quantidade': 5, 'similaridade_minima': 60, 'top_n_recomendacoes': 5, 'ativo': True})
 class Migration(migrations.Migration):
 
