@@ -13,12 +13,12 @@ pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pyto
 
 # Install ElasticSearch
 echo "Check if ElasticSearch is installed..."
-if ! [[ -d "elasticsearch-8.1.1" ]]; then
-    rm elasticsearch-8.1.1-linux-x86_64.tar.gz*
+if ! [[ -d "elasticsearch-7.10.2" ]]; then
+    rm elasticsearch-7.10.2-linux-x86_64.tar.gz*
     echo "Installing ElasticSearch..."
-    wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.1.1-linux-x86_64.tar.gz
-    tar -xvzf elasticsearch-8.1.1-linux-x86_64.tar.gz
-    rm elasticsearch-8.1.1-linux-x86_64.tar.gz
+    wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.2-linux-x86_64.tar.gz
+    tar -xvzf elasticsearch-7.10.2-linux-x86_64.tar.gz
+    rm elasticsearch-7.10.2-linux-x86_64.tar.gz
 fi
 
 ########################################
@@ -27,7 +27,7 @@ fi
 echo "Checking if ElasticSearch is ON..."
 if [[ -z $(fuser 9200/tcp) ]]; then
     echo "Initializing ElasticSearch..."
-    cd ./elasticsearch-8.1.1
+    cd ./elasticsearch-7.10.2
 
     # remove configuracoes de segurança
     echo xpack.ml.enabled: false >>  config/elasticsearch.yml
