@@ -8,6 +8,8 @@ parser.add_argument("-f", nargs='+', help="List of csv files to index")
 parser.add_argument("-d", nargs='+', help="List of directories which all files will be indexed")
 parser.add_argument("-t", help="Threadpool size to use for the bulk requests")
 parser.add_argument("-elastic_address", default="localhost:9200", help="Elasticsearch address. Format: <ip>:<port>")
+parser.add_argument("-username", nargs='?', help="Username to access elasticsearch if needed.")
+parser.add_argument("-password", nargs='?', help="Password to access elasticsearch if needed.")
 parser.add_argument("-model_path", default="neuralmind/bert-base-portuguese-cased", help="Model Path")
 args = vars(parser.parse_args()) 
 
@@ -32,7 +34,7 @@ if args["strategy"] == "parallel":
         thread_count = int(args['t'])
 
 # Index all the csv files in the list
-csv_indexer = Indexer(elastic_address=args['elastic_address'], model_path=args['model_path'])
+csv_indexer = Indexer(elastic_address=args['elastic_address'], model_path=args['model_path'], username=args['username'], password=args['password'])
 if args['strategy'] == 'simple':
     csv_indexer.simple_indexer( files_to_index, index)
 elif args['strategy'] == 'parallel':
