@@ -100,7 +100,7 @@ function document_context_menu(doc_id) {
 }
 
 function get_document_url(bookmark) {
-    return `${SERVER_ADDRESS}/aduna/document/${bookmark.indice_documento}/${bookmark.id_documento}`;
+    return `${SERVER_ADDRESS}/aduna/documento/${bookmark.indice_documento}/${bookmark.id_documento}`;
 }
 
 function attach_document_context_menu(doc_id) {
