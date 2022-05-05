@@ -10,6 +10,8 @@ from ..semantic_model import SemanticModel
 from .config_recommendation_source import ConfigRecommendationSource
 from .config_recommendation_evidence import ConfigRecommendationEvidence
 
+from scipy.spatial.distance import cosine as scipy_cosine_distance
+
 CONF_REC_SOURCE = ConfigRecommendationSource()
 CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
 
@@ -117,7 +119,7 @@ class DocumentRecommendation(ElasticModel):
 
     def _parse_query_evidences(self, evidences: list) -> List[Dict]:
         user_evidences = list()
-        semantic_model = SemanticModel()
+        semantic_model = SemanticModel(model_path='prajjwal1/bert-tiny')
         
         for doc in evidences:
             embbeded_query = semantic_model.get_dense_vector(doc['texto_consulta'])
@@ -219,13 +221,35 @@ class DocumentRecommendation(ElasticModel):
             raise ValueError(f'"{evidence_type}" não é válido. Valores compatíveis são: query, click ou bookmark.')
 
     def _cosine_similarity(self, doc_vec_1: np.ndarray, doc_vec_2: np.ndarray) -> float:
-        return np.dot(doc_vec_2, doc_vec_2) / (np.linalg.norm(doc_vec_1) * np.linalg.norm(doc_vec_2))
+        # Scipy retorna a distância do cossento, e não a similaridade. 
+
+        print(doc_vec_1.shape, doc_vec_2.shape)
+
+        return 1.0 - scipy_cosine_distance(doc_vec_1, doc_vec_2)
+
+    def _create_doc_rec(self, user_id: str, doc_recommended: dict, evidence_source: dict, evidence_type: str, score: float) -> dict:
+        return {
+            'id_usuario': user_id,
+            'id_notificacao': None,
+            'indice_doc_recomendado': doc_recommended['index_name'],
+            'id_doc_recomendado': doc_recommended['id'],
+            'titulo_doc_recomendado': doc_recommended['title'],
+            'evidencia': evidence_type,
+            'evidencia_texto_consulta': evidence_source.get('query'),
+            'evidencia_indice_doc': evidence_source.get('index_name'),
+            'evidencia_id_doc': evidence_source.get('id'),
+            'evidencia_titulo_doc': evidence_source.get('title'),
+            'similaridade': score,
+            'aprovado': None,
+            'data_visualizacao': None
+        }
 
     def _recommend(self, user_id: str) -> List[Dict]:
         ref_date = self._get_last_recommendation_date(user_id)
         doc_candidates = self._get_candidate_documents(ref_date)
 
-        configs_rec_evidences = CONF_REC_EVIDENCE.get(active=True)
+        configs_rec_evidences = CONF_REC_EVIDENCE.get(active=True)        
+        valid_recommendations = list()
 
         for conf_rec_evidence in configs_rec_evidences:
             top_n = conf_rec_evidence['top_n_recomendacoes']
@@ -254,9 +278,36 @@ class DocumentRecommendation(ElasticModel):
                 
                 evidence_ranking[evidence_idx].sort(key = lambda item: item[1], reverse=True)                
 
-            print('*' * 15)
-            print(evidence_ranking)
-            print('*' * 15)
+            num_docs_recommended_in_evidence = 0
+            while True:
+                candidate_rankings = []
+                for evidence_i_candidates in evidence_ranking.values():
+                    if len(evidence_i_candidates) > 0:
+                        candidate_rankings.append(evidence_i_candidates.pop(0))
+
+                candidate_rankings.sort(key = lambda item: item[1], reverse=True)
+
+                if len(candidate_rankings) == 0:
+                    break
+
+                for i in range(min(top_n - num_docs_recommended_in_evidence, len(candidate_rankings))):
+                    candidate_i, score, evidence_i = candidate_rankings[i]
+                    doc_rec = self._create_doc_rec(user_id, 
+                                                    doc_candidates[candidate_i], 
+                                                    user_evidences[evidence_i], 
+                                                    evidence_type, score)
+                    valid_recommendations.append(doc_rec)
+
+                    del doc_candidates[candidate_i]
+
+                    num_docs_recommended_in_evidence += 1
+                    if num_docs_recommended_in_evidence == top_n:
+                        break
+
+                if num_docs_recommended_in_evidence == top_n:
+                        break 
+
+        print(valid_recommendations)
 
     def reccomend(self, user_id: str):
         user_ids = self._get_users_ids_to_recommend() if user_id == 'all' else user_id
