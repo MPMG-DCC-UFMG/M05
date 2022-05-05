@@ -317,11 +317,13 @@ class DocumentRecommendation(ElasticModel):
             for recommendation in recommendations:
                 recommendation['id_notificacao'] = notification_id
                 self.save(recommendation)
+        
+        return recommendations
 
-    def recommend(self, user_id: str):
+    def recommend(self, user_id: str) -> Union[List[dict], dict]:
         user_ids = self._get_users_ids_to_recommend() if user_id == 'all' else user_id
         
         if type(user_ids) is list:
-            return [self._recommend(user_id) for user_id in user_ids]
+            return {user_id: self._recommend(user_id) for user_id in user_ids}
 
         return self._recommend(user_id)

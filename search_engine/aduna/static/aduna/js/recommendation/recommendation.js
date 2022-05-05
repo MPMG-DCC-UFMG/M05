@@ -400,6 +400,9 @@ function show_recommendations() {
 function mark_recommendation_as_seen(recommendation_id) {
     for (let i = 0; i< RECOMMENDATIONS.length;i++) {
         if (RECOMMENDATIONS[i].id == recommendation_id) {
+            if (RECOMMENDATIONS[i].data_visualizacao)
+                return;
+
             RECOMMENDATIONS[i].data_visualizacao = Date.now();
             update_filters_label();
             show_recommendations();
@@ -417,10 +420,11 @@ function mark_recommendation_as_seen(recommendation_id) {
         },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
-            console.log('tudo ok');
+            // console.log('tudo ok');
         },
         error: function (data) {
-            alert('Não foi possível atualizar o status da recomendação. Tente novamente!');
+            console.error(data)
+            // alert('Não foi possível atualizar o status da recomendação. Tente novamente!');
         }
     });   
 }

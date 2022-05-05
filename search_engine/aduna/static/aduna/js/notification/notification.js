@@ -63,7 +63,7 @@ function parse_notifications(notifications) {
 
         notification_lis.push(notification2html(notification));
 
-        if (notification.date_visualized == null)
+        if (notification.data_visualizacao == null)
             has_new_notifications = true;
     }
 

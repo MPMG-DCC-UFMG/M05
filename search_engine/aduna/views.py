@@ -445,10 +445,6 @@ def recommendations(request):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
 
-    params = {
-        'user_id': request.session.get('user_info')['user_id']
-    }
-
     notification_id = request.GET.get('notification_id', '')
     if notification_id:
         # Informa que a notificação foi visualizada

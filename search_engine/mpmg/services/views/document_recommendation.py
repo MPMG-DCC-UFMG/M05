@@ -2,6 +2,7 @@ from os import stat
 from time import time
 
 import numpy as np
+from aduna.views import recommendations
 from mpmg.services.models import (ConfigRecommendationEvidence,
                                   DocumentRecommendation, Notification)
 from rest_framework import status
@@ -191,14 +192,12 @@ class DocumentRecommendationView(APIView):
             # TODO: Checar se o ID passado pelo usuário é valido
             pass
         
-        if DOC_REC.recommend(user_id):
-            return Response(status=status.HTTP_201_CREATED)
-        
-        return None 
+        recommendations = DOC_REC.recommend(user_id) 
+        return Response(recommendations, status=status.HTTP_201_CREATED)
 
     def put(self, request):
         data = get_data_from_request(request)
-        
+
         rec_id = data.get('id_recomendacao')
         if rec_id is None:
             return Response({'message': 'É necessário informar o campo id_recomendacao.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -241,7 +240,7 @@ class DocumentRecommendationView(APIView):
         return Response({'message': 'Não foi possível atualizar a recomendação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
             
     def delete(self, request):
-        data = get_data_from_request(request.data)
+        data = get_data_from_request(request)
 
         if 'id_recomendacao' not in data:
             return Response({'message': 'Informe o ID da recomendação a ser deletada.'}, status.HTTP_400_BAD_REQUEST)
