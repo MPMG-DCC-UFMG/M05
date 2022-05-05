@@ -27,3 +27,10 @@ curl -XPOST http://localhost:9200/licitacoes/_clone/licitacoes-replica;
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}' http://localhost:9200/licitacoes/_settings;
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":false}}' http://localhost:9200/licitacoes-replica/_settings;
 
+curl -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d'
+{
+  "persistent" : {
+    "indices.id_field_data.enabled": true
+  }
+}
+'
