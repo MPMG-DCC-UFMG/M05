@@ -7,7 +7,7 @@ from elasticsearch_dsl import Keyword
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('id_usuario', 'text')
+    m.field('id_usuario', 'text', fields={'keyword': Keyword()})
     m.field('id_notificacao',  'text', fields={'keyword': Keyword()})
     m.field('indice_doc_recomendado', 'text')
     m.field('id_doc_recomendado', 'text')

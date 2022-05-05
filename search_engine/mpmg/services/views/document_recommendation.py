@@ -1,3 +1,4 @@
+from os import stat
 from time import time
 
 import numpy as np
@@ -157,16 +158,13 @@ class DocumentRecommendationView(APIView):
 
     schema = AutoDocstringSchema()
     
-    def _cosine_similarity(self, doc1, doc2):
-        return np.dot(doc2, doc2)/(np.linalg.norm(doc1)*np.linalg.norm(doc2))
-    
     def get(self, request):
-
-        if 'id_usuario' in request.GET:
-            user_id = request.GET['id_usuario']
-            query = {'term': {'id_usuario.keyword': user_id}}
-            _, reccomendations = DOC_REC.get_list(query, page='all')
-            return Response(reccomendations, status=status.HTTP_200_OK)
+        if 'id_recomendacao' in request.GET:
+            rec_id = request.GET['id_recomendacao']
+            reccomendation = DOC_REC.get(rec_id)
+            if reccomendation is None:
+                return Response({'message': 'A recomendação não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND) 
+            return Response(reccomendation, status=status.HTTP_200_OK)
 
         elif 'id_notificacao' in request.GET:
             notification_id = request.GET['id_notificacao']
@@ -174,12 +172,11 @@ class DocumentRecommendationView(APIView):
             _, reccomendations = DOC_REC.get_list(query, page='all')
             return Response(reccomendations, status=status.HTTP_200_OK) 
 
-        elif 'id_recomendacao' in request.GET:
-            rec_id = request.GET['id_recomendacao']
-            reccomendation = DOC_REC.get(rec_id)
-            if reccomendation is None:
-                return Response({'message': 'A recomendação não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND) 
-            return Response(reccomendation, status=status.HTTP_200_OK)
+        elif 'id_usuario' in request.GET:
+            user_id = request.GET['id_usuario']
+            query = {'term': {'id_usuario.keyword': user_id}}
+            _, reccomendations = DOC_REC.get_list(query, page='all')
+            return Response(reccomendations, status=status.HTTP_200_OK)
 
         else:
             return Response({'message': 'É necessário informar pelo menos um dos campos: id_usuario, id_notificacao ou id_recomendacao.'})
@@ -194,14 +191,14 @@ class DocumentRecommendationView(APIView):
             # TODO: Checar se o ID passado pelo usuário é valido
             pass
         
-        if DOC_REC.reccomend(user_id):
+        if DOC_REC.recommend(user_id):
             return Response(status=status.HTTP_201_CREATED)
         
         return None 
 
     def put(self, request):
-        data = get_data_from_request(request.data)
-
+        data = get_data_from_request(request)
+        
         rec_id = data.get('id_recomendacao')
         if rec_id is None:
             return Response({'message': 'É necessário informar o campo id_recomendacao.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,20 +210,28 @@ class DocumentRecommendationView(APIView):
 
         del data['id_recomendacao']
 
-        valid_fields = {'data_visualizacao', 'aprovado', 'visualizado'}
+        valid_fields = {'aprovado', 'visualizado'}
         data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
 
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        DOC_REC.parse_data_type(data)
-        if DOC_REC.item_already_updated(rec, data):
-            return Response({'message': 'A recomendação já está atualizado.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        update_visualized = False 
+        mark_as_visualized = False 
+    
         if 'visualizado' in data:
-            data['data_visualizacao'] = get_current_timestamp() if str2bool(data['visualizado']) else None
+            update_visualized = True
+            mark_as_visualized = str2bool(data['visualizado'])
             del data['visualizado']
-            
+
+        if mark_as_visualized and rec['data_visualizacao'] is not None:
+            return Response({'message': 'A recomendação já foi visualizada.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        DOC_REC.parse_data_type(data)
+
+        if update_visualized:
+            data['data_visualizacao'] = get_current_timestamp() if mark_as_visualized else None
+        
         if DOC_REC.item_already_updated(rec, data):
             return Response({'message': 'A recomendação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)
         

@@ -451,21 +451,18 @@ def recommendations(request):
 
     notification_id = request.GET.get('notification_id', '')
     if notification_id:
-        params['notification_id'] = notification_id
-
         # Informa que a notificação foi visualizada
-        headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+        headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
         service_response = requests.put(settings.SERVICES_URL+'notification', 
-                                        data={'notification_id': notification_id}, 
+                                        data={
+                                            'id_notificacao': notification_id,
+                                            'visualizado': True
+                                        }, 
                                         headers=headers)
 
         # atrasa um pouco a resposta para que haja tempo de o ES atualize o index
         if service_response.status_code == 204:
             time.sleep(.5)
-            
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
-    service_response = requests.get(settings.SERVICES_URL + 'document_recommendation', params, headers=headers)
-    response_content = service_response.json()
 
     ctx = {
         'auth_token': request.session.get('auth_token'),

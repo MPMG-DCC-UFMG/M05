@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 from elasticsearch.exceptions import NotFoundError
 from sklearn.manifold import trustworthiness
 
@@ -92,7 +92,7 @@ class ElasticModel(dict):
 
         return dict_data
 
-    def save(self, dict_data=None, item_id: str = None):
+    def save(self, dict_data=None, item_id: str = None) -> Union[str, None]:
         '''
         Salva o objeto no índice. Os valores a serem salvos podem ser passados em dict_data.
         '''

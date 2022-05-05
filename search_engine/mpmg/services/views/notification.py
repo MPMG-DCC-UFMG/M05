@@ -279,15 +279,28 @@ class NotificationView(APIView):
             return Response({'message': 'A notificação não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
         # campos que o usuário pode editar
-        valid_fields = {'texto', 'tipo', 'data_visualizacao', 'visualizado'} 
+        valid_fields = {'texto', 'tipo', 'visualizado'} 
         data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
 
         if not data_fields_valid:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
+
+        update_visualized = False 
+        mark_as_visualized = False 
+    
         if 'visualizado' in data:
-            data['data_visualizacao'] = get_current_timestamp() if str2bool(data['visualizado']) else None
+            update_visualized = True
+            mark_as_visualized = str2bool(data['visualizado'])
             del data['visualizado']
+
+        if mark_as_visualized and notification['data_visualizacao'] is not None:
+            return Response({'message': 'A notificação já foi visualizada.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        NOTIFICATION.parse_data_type(data)
+        
+        if update_visualized:
+            data['data_visualizacao'] = get_current_timestamp() if mark_as_visualized else None
 
         if NOTIFICATION.item_already_updated(notification, data):
             return Response({'message': 'A notificação já está atualizada.'}, status=status.HTTP_400_BAD_REQUEST)

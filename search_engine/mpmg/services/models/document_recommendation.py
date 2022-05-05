@@ -9,11 +9,14 @@ from mpmg.services.models.elastic_model import ElasticModel
 from ..semantic_model import SemanticModel
 from .config_recommendation_source import ConfigRecommendationSource
 from .config_recommendation_evidence import ConfigRecommendationEvidence
-
+from .notification import Notification
 from scipy.spatial.distance import cosine as scipy_cosine_distance
+
+from mpmg.services.models import notification
 
 CONF_REC_SOURCE = ConfigRecommendationSource()
 CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
+NOTIFICATION = Notification()
 
 class DocumentRecommendation(ElasticModel):
     index_name = 'doc_recommendations'
@@ -222,9 +225,6 @@ class DocumentRecommendation(ElasticModel):
 
     def _cosine_similarity(self, doc_vec_1: np.ndarray, doc_vec_2: np.ndarray) -> float:
         # Scipy retorna a distância do cossento, e não a similaridade. 
-
-        print(doc_vec_1.shape, doc_vec_2.shape)
-
         return 1.0 - scipy_cosine_distance(doc_vec_1, doc_vec_2)
 
     def _create_doc_rec(self, user_id: str, doc_recommended: dict, evidence_source: dict, evidence_type: str, score: float) -> dict:
@@ -233,12 +233,12 @@ class DocumentRecommendation(ElasticModel):
             'id_notificacao': None,
             'indice_doc_recomendado': doc_recommended['index_name'],
             'id_doc_recomendado': doc_recommended['id'],
-            'titulo_doc_recomendado': doc_recommended['title'],
+            'titulo_doc_recomendado': doc_recommended['title'].strip(),
             'evidencia': evidence_type,
             'evidencia_texto_consulta': evidence_source.get('query'),
             'evidencia_indice_doc': evidence_source.get('index_name'),
             'evidencia_id_doc': evidence_source.get('id'),
-            'evidencia_titulo_doc': evidence_source.get('title'),
+            'evidencia_titulo_doc': evidence_source['title'].strip() if 'title' in evidence_source else None,
             'similaridade': score,
             'aprovado': None,
             'data_visualizacao': None
@@ -249,7 +249,7 @@ class DocumentRecommendation(ElasticModel):
         doc_candidates = self._get_candidate_documents(ref_date)
 
         configs_rec_evidences = CONF_REC_EVIDENCE.get(active=True)        
-        valid_recommendations = list()
+        recommendations = list()
 
         for conf_rec_evidence in configs_rec_evidences:
             top_n = conf_rec_evidence['top_n_recomendacoes']
@@ -296,7 +296,7 @@ class DocumentRecommendation(ElasticModel):
                                                     doc_candidates[candidate_i], 
                                                     user_evidences[evidence_i], 
                                                     evidence_type, score)
-                    valid_recommendations.append(doc_rec)
+                    recommendations.append(doc_rec)
 
                     del doc_candidates[candidate_i]
 
@@ -306,10 +306,19 @@ class DocumentRecommendation(ElasticModel):
 
                 if num_docs_recommended_in_evidence == top_n:
                         break 
+        
+        if len(recommendations) > 0:
+            notification_id = NOTIFICATION.save({
+                'id_usuario': user_id,
+                'texto': 'Novos documentos que possam ser do seu interesse.',
+                'tipo': 'RECOMMENDATION'
+            })     
 
-        print(valid_recommendations)
+            for recommendation in recommendations:
+                recommendation['id_notificacao'] = notification_id
+                self.save(recommendation)
 
-    def reccomend(self, user_id: str):
+    def recommend(self, user_id: str):
         user_ids = self._get_users_ids_to_recommend() if user_id == 'all' else user_id
         
         if type(user_ids) is list:

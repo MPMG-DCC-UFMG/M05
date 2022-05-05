@@ -4,7 +4,7 @@ var RECOMMENDATIONS;
 var ACTIVE_FILTER = 'all';
 
 function get_doc_url(doc_index, doc_id) {
-    return `/aduna/document/${doc_index}/${doc_id}`
+    return `/aduna/documento/${doc_index}/${doc_id}`
 }
 
 function titleize(s) {
@@ -22,12 +22,11 @@ function update_feedback(recommendation_id, feedback_value) {
         type: 'put',
         dataType: 'json',
         data: {
-            recommendation_id: recommendation_id,
-            accepted: feedback_value
+            id_recomendacao: recommendation_id,
+            aprovado: feedback_value
         },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
-            console.log('tudo ok');
         },
         error: function (data) {
             alert('Não foi possível atualizar o feedback da recomendação. Tente novamente!');
@@ -65,16 +64,16 @@ function create_reccomendation_line(recommendation) {
     
     let link = document.createElement('A');
 
-    link.textContent = titleize(recommendation.recommended_doc_title);
+    link.textContent = titleize(recommendation.titulo_doc_recomendado);
     link.id = `link_rec-${recommendation.id}`;
-    link.className = recommendation.date_visualized == null ? 'font-weight-bold' : '';
-    link.setAttribute('href', get_doc_url(recommendation.recommended_doc_index, recommendation.recommended_doc_id));
+    link.className = recommendation.data_visualizacao == null ? 'font-weight-bold' : '';
+    link.setAttribute('href', get_doc_url(recommendation.indice_doc_recomendado, recommendation.id_doc_recomendado));
     link.setAttribute('target', '_blank');
 
     let feedback = document.createElement('DIV');
     feedback.id = recommendation.id;
     feedback.className = 'border rounded-pill px-3';
-    feedback.value = recommendation.accepted;
+    feedback.value = recommendation.aprovado;
 
     let btn_positive_feedback = document.createElement('BUTTON');
     btn_positive_feedback.id = `btn-negative-feedback-${recommendation.id}`
@@ -139,7 +138,7 @@ function create_reccomendation_line(recommendation) {
 
         for (let i = 0; i< RECOMMENDATIONS.length;i++) {
             if (RECOMMENDATIONS[i].id == feedback.id) {
-                RECOMMENDATIONS[i].accepted = feedback.value;
+                RECOMMENDATIONS[i].aprovado = feedback.value;
                 break;
             }
         }
@@ -168,11 +167,11 @@ function create_reccomendation_line(recommendation) {
 
     let recommendation_reason = document.createElement('SMALL');
 
-    if (recommendation.matched_from == "bookmark") {
+    if (recommendation.evidencia == "bookmark") {
         let doc_link = document.createElement('A');
 
-        doc_link.textContent = titleize(recommendation.evidence_doc_title);
-        doc_link.setAttribute('href', get_doc_url(recommendation.evidence_doc_index, recommendation.evidence_doc_id));
+        doc_link.textContent = titleize(recommendation.evidencia_titulo_doc);
+        doc_link.setAttribute('href', get_doc_url(recommendation.evidencia_indice_doc, recommendation.evidencia_id_doc));
         doc_link.setAttribute('target', '_blank');
         
         recommendation_reason.append('Similar ao "');
@@ -180,15 +179,15 @@ function create_reccomendation_line(recommendation) {
         recommendation_reason.append('" que você favoritou');
     }
 
-    else if (recommendation.matched_from == "query") {
-        recommendation_reason.textContent = `Porque você pesquisou por "${titleize(recommendation.evidence_query_text)}"`;
+    else if (recommendation.evidencia == "query") {
+        recommendation_reason.textContent = `Porque você pesquisou por "${titleize(recommendation.evidencia_texto_consulta)}"`;
     }
 
-    else if(recommendation.matched_from == "click") {
+    else if (recommendation.evidencia == "click") {
         let doc_link = document.createElement('A');
 
-        doc_link.textContent = titleize(recommendation.evidence_doc_title);
-        doc_link.setAttribute('href', get_doc_url(recommendation.evidence_doc_index, recommendation.evidence_doc_id));
+        doc_link.textContent = titleize(recommendation.evidencia_titulo_doc);
+        doc_link.setAttribute('href', get_doc_url(recommendation.evidencia_indice_doc, recommendation.evidencia_id_doc));
         doc_link.setAttribute('target', '_blank');
         
         recommendation_reason.append('Similar ao "');
@@ -197,7 +196,7 @@ function create_reccomendation_line(recommendation) {
     }
 
     let date_of_rec = document.createElement('SMALL');
-    date_of_rec.textContent = timestamp_converter(recommendation.date);
+    date_of_rec.textContent = timestamp_converter(recommendation.data_criacao);
     date_of_rec.className = 'small font-italic';
     date_of_rec.style.fontSize = '.75rem';
 
@@ -239,7 +238,7 @@ function create_reccomendation_line(recommendation) {
 
     let action_wrapper = document.createElement('DIV');
 
-    if (recommendation.date_visualized == null) {
+    if (recommendation.data_visualizacao == null) {
         feedback.classList.add('d-none');
         action_wrapper.appendChild(mark_as_seen_wrapper);
         action_wrapper.appendChild(feedback);
@@ -352,11 +351,11 @@ function add_filters() {
 
 function update_filters_label() {
     let recommendations_seen = RECOMMENDATIONS.filter(function (rec) {
-        return rec.date_visualized != null;
+        return rec.data_visualizacao != null;
     });
 
     let recommendations_not_seen = RECOMMENDATIONS.filter(function (rec) {
-        return rec.date_visualized == null;
+        return rec.data_visualizacao == null;
     });
 
     $("#filter-all").text(`Tudo (${RECOMMENDATIONS.length})`);
@@ -369,12 +368,12 @@ function show_recommendations() {
     
     if (ACTIVE_FILTER == 'seen')
         recommendations = RECOMMENDATIONS.filter(function (rec) {
-            return rec.date_visualized != null;
+            return rec.data_visualizacao != null;
         });
     
     else if (ACTIVE_FILTER == 'not_seen')
         recommendations = RECOMMENDATIONS.filter(function (rec) {
-            return rec.date_visualized == null;
+            return rec.data_visualizacao == null;
         });
 
     else 
@@ -401,7 +400,7 @@ function show_recommendations() {
 function mark_recommendation_as_seen(recommendation_id) {
     for (let i = 0; i< RECOMMENDATIONS.length;i++) {
         if (RECOMMENDATIONS[i].id == recommendation_id) {
-            RECOMMENDATIONS[i].date_visualized = Date.now();
+            RECOMMENDATIONS[i].data_visualizacao = Date.now();
             update_filters_label();
             show_recommendations();
             break;
@@ -413,8 +412,8 @@ function mark_recommendation_as_seen(recommendation_id) {
         type: 'put',
         dataType: 'json',
         data: {
-            recommendation_id: recommendation_id,
-            date_visualized: null
+            id_recomendacao: recommendation_id,
+            visualizado: true
         },
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
@@ -428,11 +427,11 @@ function mark_recommendation_as_seen(recommendation_id) {
 
 function get_recommendations() {
     let data = {
-        user_id: USER_ID
+        id_usuario: USER_ID
     }
 
     if (NOTIFICATION_ID.length > 0)
-        data.notification_id = NOTIFICATION_ID;
+        data.id_notificacao = NOTIFICATION_ID;
      
     $.ajax({
         url: RECOMMENDATION_SERVICES_URL,
