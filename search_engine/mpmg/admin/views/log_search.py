@@ -16,7 +16,7 @@ class LogSearchView(admin.AdminSite):
         id_sessao = request.GET.get('id_sessao', '')
         id_consulta = request.GET.get('id_consulta', '')
         id_usuario = request.GET.get('id_usuario', '')
-        text_consulta = request.GET.get('text_consulta', '')
+        text_consulta = request.GET.get('texto_consulta', '')
         algoritmo = request.GET.get('algoritmo', '')
         page = int(request.GET.get('page', 1))
         start_date = request.GET.get('start_date', '')
@@ -84,7 +84,7 @@ class LogSearchView(admin.AdminSite):
             
             if item.id_consulta not in session_detail['consultas']:
                 session_detail['consultas'][item.id_consulta] = {
-                'text_consulta': item.text_consulta,
+                'texto_consulta': item.texto_consulta,
                 'algoritmo': item.algoritmo,
                 'resultados_por_pagina': int(item.resultados_por_pagina),
                 'paginas': {}
@@ -102,7 +102,7 @@ class LogSearchView(admin.AdminSite):
             resultados_por_pagina = session_detail['consultas'][item.id_consulta]['resultados_por_pagina']
             posicao = int(item.posicao) - ((int(item.pagina)-1) * resultados_por_pagina) #desconta as páginas anteriores pra ter uma posição entre 1 a 10
             posicao = posicao - 1 # os índices do array começam no zero
-            session_detail['consultas'][item.id_consulta]['paginas'][str(item.pagina)]['cliques'][posicao] = (datetime.fromtimestamp(item.timestamp/1000)).strftime("%H:%M:%S")
+            session_detail['consultas'][item.id_consulta]['paginas'][str(item.pagina)]['cliques'][posicao] = (datetime.fromtimestamp(item.data_criacao / 1000)).strftime("%H:%M:%S")
 
         context = dict(session_detail=session_detail)
         return JsonResponse(context)        
