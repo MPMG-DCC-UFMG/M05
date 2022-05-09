@@ -403,8 +403,6 @@ function update_gallery() {
         `;
     }
 
-    console.error(pasta);
-
     if ((pasta.favoritos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
             ${back_folder_li}
