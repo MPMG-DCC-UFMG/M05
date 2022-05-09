@@ -208,6 +208,8 @@ services.rename_folder = function(folder_id, new_name) {
 }
 
 services.remove_folder = function(folder_id) {
+    console.log(`Removendo ${folder_id}`);
+    
     $.ajax({
         url: SERVICES_URL + 'bookmark_folder',
         type: 'delete',

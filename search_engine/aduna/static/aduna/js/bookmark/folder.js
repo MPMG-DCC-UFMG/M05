@@ -403,6 +403,8 @@ function update_gallery() {
         `;
     }
 
+    console.error(pasta);
+
     if ((pasta.favoritos.length + pasta.subpastas.length) == 0) {
         folder_items.html(`
             ${back_folder_li}
@@ -589,7 +591,8 @@ function remove_folder() {
     
     $(`#${folder_to_remove}`).remove();
 
-    let pasta_pai = folder_tree[folder_to_remove].pasta_pai;
+    let pasta_pai = folder_tree[folder_to_remove].id_pasta_pai;
+
     if (pasta_pai) {
         let idx = folder_tree[pasta_pai].subpastas.findIndex(pasta => pasta.id === folder_to_remove);
         if (idx >= 0)
@@ -1171,7 +1174,8 @@ $(document).ready(function () {
     // tree = { "name": "Favoritos de Elves", "id": 123, "children": [{ "name": "Processos", "id": 797, "children": [{ "name": "Estaduais", "id": 63, "children": [{ "name": "Minas Gerais", "id": 630, "children": [{ "name": "Municípios", "id": 6340, "children": [] }] }] }, { "name": "Federais", "id": 31, "children": [] }] }, { "name": "Diários", "id": 89, "created_at": "Apr. 2012", "children": [] }] }
 
     // // Inserindo após converter o json com estrutura de pastas do usuário em HTML
-    // $('#bookmark-folder').append(parse_folder_tree(tree))
+    if (running_in_document_page())
+        $('#bookmark-folder').append(parse_folder_tree(tree))
 
     // Habilita o evento de menu de contexto
     enable_context_menu_event(tree)
