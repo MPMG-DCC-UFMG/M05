@@ -46,7 +46,7 @@ if __name__ == "__main__":
     
     parser.add_argument("-force_creation", action='store_true', help="Força a recriação dos índices que já existem")
     parser.add_argument("-mappings_path", default="mappings.json", help="Caminho do arquivo de mappings")
-    parser.add_argument("-elastic_address", default="localhost:9200", help="Elasticsearch address. Format: <ip>:<port>")
+    parser.add_argument("-elastic_address", default="http://localhost:9200", help="Elasticsearch address. Format: <ip>:<port>")
     parser.add_argument("-username", nargs='?', help="Username to access elasticsearch if needed.")
     parser.add_argument("-password", nargs='?', help="Password to access elasticsearch if needed.")
 
