@@ -12,8 +12,6 @@ from .config_recommendation_evidence import ConfigRecommendationEvidence
 from .notification import Notification
 from scipy.spatial.distance import cosine as scipy_cosine_distance
 
-from mpmg.services.models import notification
-
 CONF_REC_SOURCE = ConfigRecommendationSource()
 CONF_REC_EVIDENCE = ConfigRecommendationEvidence()
 NOTIFICATION = Notification()

@@ -3,7 +3,7 @@ from sentence_transformers import SentenceTransformer, models
 
 class SemanticModel:
 
-    def __init__(self, model_path="neuralmind/bert-base-portuguese-cased", max_seq_length=500):
+    def __init__(self, model_path='prajjwal1/bert-tiny', max_seq_length=500):
         super().__init__()
         self.model_path = model_path
         self.max_seq_length = max_seq_length
