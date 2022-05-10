@@ -98,7 +98,7 @@ class DocumentRecommendationView(APIView):
                         type: object
                         properties:
                             id_usuario:
-                                description: ID do usuário que receberá as recomendações. Deixe em branco para recomendar para todos os usuários.
+                                description: ID do usuário que receberá as recomendações. Passe "all" para recomendar para todos usuários.
                                 type: string
         responses:
             '201':
@@ -116,11 +116,11 @@ class DocumentRecommendationView(APIView):
                                 description: ID da recomendação a ser alterada.
                                 type: string
                             aprovado:
-                                description: booleando indicando se o usuário aprovou a recomendação. Caso não haja opinião, passar o campo em branco.
+                                description: Booleando indicando se o usuário aprovou a recomendação. Caso não haja opinião, passar o campo em branco.
                                 type: boolean
                                 nullable: true
-                            data_visualizacao:
-                                description: Inteiro representando o timestamp de quando a recomendação foi vista. Se em branco, o próprio sistema preencherá o campo.
+                            visualizado:
+                                description: Booleando informando se o usuário visualizou a recomendação. Se em branco, caso queira remover essa informação.
                                 type:
                                     - int
                         required:

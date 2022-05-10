@@ -12,7 +12,7 @@ BOOKMARK = Bookmark()
 class BookmarkFolderView(APIView):
     '''
     get:
-        description: Retorna uma pasta específica, se id_pasta for informado, ou a árvore de pastas do usuário, se id_usuario for passado ao invés de id_pasta.
+        description: Retorna uma pasta específica, se id_pasta for informado, ou a árvore de pastas do usuário, se id_usuario for passado ao invés de id_pasta. Uma árvore de pastas é um objeto que possui a pasta raiz do usuário (Favoritos) e, recursivamente, todas as pastas criadas pelo usuário como subpastas de determinada pasta. 
         parameters:
             - name: id_pasta
               in: query
@@ -54,14 +54,42 @@ class BookmarkFolderView(APIView):
                                     description: ID da pasta pai, que esta pasta está contida. 
                                 subpastas:
                                     type: array
-                                    description: Lista de subpastas.
+                                    description: Lista de subpastas, que seguem a mesma estrutura da pasta pai.
                                     items:
                                         type: object
                                 favoritos:
                                     type: array
                                     description: Lista de favoritos da pasta.
                                     items:
-                                        type: string 
+                                        type: object 
+                                        properties: 
+                                            id: 
+                                                type: string
+                                                description: ID do bookmark.
+                                            id_pasta:
+                                                type: string
+                                                description: ID da pasta onde está salvo o bookmark.
+                                            indice_documento:
+                                                type: string
+                                                description: Índice do documento salvo pelo bookmark.
+                                            id_documento:
+                                                type: string
+                                                description: ID do documento salvo pelo bookmark.
+                                            id_consulta:
+                                                type: string
+                                                description: ID da consulta que originou a criação do bookmark.
+                                            id_sessao:
+                                                type: string
+                                                description: ID da sessão de criação do bookmark.
+                                            nome:
+                                                type: string
+                                                description: Nome do bookmark.
+                                            data_criacao:
+                                                type: number
+                                                description: Timestamp de quando o bookmark foi criado.
+                                            data_modificacao:
+                                                type: number
+                                                description: Timestamp da última modificação do bookmark.
             '400':
                 description: O campo id_pasta e id_usuario não foram informados.
                 content:
@@ -99,14 +127,14 @@ class BookmarkFolderView(APIView):
                                 type: string
                             id_pasta_pai:
                                 description: ID da pasta que a pasta a ser criada será colocada. Se o campo não for
-                                        informado, a pasta será criada na pasta default.
+                                        informado, a pasta será criada na pasta genérica "Favoritos" do usuário.
                                 type: string
                         required:
                             - nome
                             - id_usuario
         responses:
             '201':
-                description: O bookmark foi criado com sucesso.
+                description: O bookmark foi criado com sucesso. Retorna o ID da pasta recém-criada.
                 content:
                     application/json:
                         schema:
@@ -136,7 +164,7 @@ class BookmarkFolderView(APIView):
                                     type: string
                                     description: Mensagem de erro.
     put:
-        description: Permite atualizar uma pasta já salva. 
+        description: Permite alterar a pasta pai de determinada pasta ou seu nome.
         requestBody:
             content:
                 application/x-www-form-urlencoded:

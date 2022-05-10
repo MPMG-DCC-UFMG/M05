@@ -10,8 +10,8 @@ from mpmg.services.utils import validators, get_data_from_request
 class BookmarkView(APIView):
     '''
     get:
-        description: Busca o conteúdo de um favorito por meio de seu ID único ou pelo índice, ID do documento e ID do usuaŕio
-            que criou o favorito. Se somente o id do usuário for informao, retorna a lista de todos favoritos do usuário.
+        description: Busca o conteúdo de um favorito por meio de seu ID único. Também é possível buscar um favorito informando o índice e o ID do documento salvo pelo favorito, junto com o ID do usuaŕio
+            que criou o favorito. Se somente o id do usuário for informado, retorna a lista de todos favoritos dele.
         parameters:
             - name: id_favorito
               in: query
@@ -94,7 +94,7 @@ class BookmarkView(APIView):
                                     description: Mensagem informando que o favorito não foi encontrado.
 
     post:
-        description: Persiste a descrição de um bookmark. 
+        description: Persiste a descrição de um favorito. 
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -105,13 +105,13 @@ class BookmarkView(APIView):
                                 description: ID do usuário que está criando o favorito. 
                                 type: string
                             id_pasta:
-                                description: ID da pasta onde será salvo o bookmark. Se esse campo não for informado, o bookmark será salvo na pasta default. 
+                                description: ID da pasta onde será salvo o favorito. Se esse campo não for informado, o favorito será salvo na pasta padrão "Favoritos" do usuário. 
                                 type: string
                             indice_documento:
-                                description: Índice do documento salvo pelo bookmark.
+                                description: Índice do documento salvo pelo favorito.
                                 type: string
                             id_documento:
-                                description: ID do documento salvo pelo bookmark.
+                                description: ID do documento salvo pelo favorito.
                                 type: string
                             id_consulta:
                                 description: ID da consulta.
@@ -120,7 +120,7 @@ class BookmarkView(APIView):
                                 description: ID da sessao. Se não for informado, será preenchido automaticamente com o ID da sessão atual.
                                 type: string
                             nome:
-                                description: Nome do bookmark.
+                                description: Nome do favorito.
                                 type: string
                         required:
                             - id_usuario
@@ -130,7 +130,7 @@ class BookmarkView(APIView):
                             - nome
         responses:
             '201':
-                description: O bookmark foi criado com sucesso.
+                description: O favorito foi criado com sucesso. Retorna o ID do favorito recém-criado.
                 content:
                     application/json:
                         schema:
@@ -138,7 +138,7 @@ class BookmarkView(APIView):
                             properties: 
                                 id_favorito: 
                                     type: string
-                                    description: ID do bookmark criado.
+                                    description: ID do favorito criado.
             '400':
                 description: Algum(ns) do(s) campo(s) de criação foi(ram) informado(s) incorretamente.
                 content:
@@ -150,7 +150,7 @@ class BookmarkView(APIView):
                                     type: string
                                     description: Mensagem de erro.
             '500':
-                description: Houve algum erro interno do servidor ao criar o bookmark.
+                description: Houve algum erro interno do servidor ao criar o favorito.
                 content: 
                     application/json:
                         schema:
@@ -161,7 +161,7 @@ class BookmarkView(APIView):
                                     description: Mensagem de erro.
 
     put:
-        description: Permite atualizar o nome e/ou pasta onde o bookmark foi salvo. 
+        description: Permite atualizar o nome e/ou pasta onde o favorito foi salvo. É possível alterar o 
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -169,13 +169,13 @@ class BookmarkView(APIView):
                         type: object
                         properties:
                             id_favorito:
-                                description: ID do bookmark a ser alterado.
+                                description: ID do favorito a ser alterado.
                                 type: string
                             id_pasta:
-                                description: Nova pasta do bookmark, para onde ele será movido. 
+                                description: Nova pasta do favorito, para onde ele será movido. 
                                 type: string
                             nome:
-                                description: Novo nome do bookmark.
+                                description: Novo nome do favorito.
                                 type: string
                         required:
                             - id_favorito
@@ -183,7 +183,7 @@ class BookmarkView(APIView):
             '204':
                 description: As alterações a serem feitas foram executadas com sucesso.
             '400':
-                description: Algum campo editável do bookmark foi informado incorretamente.
+                description: Algum campo editável do favorito foi informado incorretamente.
                 content:
                     application/json:
                         schema:
@@ -193,7 +193,7 @@ class BookmarkView(APIView):
                                     type: string
                                     description: Mensagem de erro.
             '404':
-                description: O bookmark a ser alterado não existe ou não foi encontrado.
+                description: O favorito a ser alterado não existe ou não foi encontrado.
                 content:
                     application/json:
                         schema:
@@ -214,7 +214,7 @@ class BookmarkView(APIView):
                                     description: Mensagem de erro.
 
     delete:
-        description: Apaga um bookmark.
+        description: Apaga um favorito.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -222,13 +222,13 @@ class BookmarkView(APIView):
                         type: object
                         properties:
                             id_favorito:
-                                description: ID do bookmark a ser removido.
+                                description: ID do favorito a ser removido.
                                 type: string
                         required:
                             - id_favorito      
         responses:
             '204':
-                description: O bookmark foi removido com sucesso.
+                description: O favorito foi removido com sucesso.
             '400':
                 description: O campo id_favorito não foi informado.
                 content:
@@ -240,7 +240,7 @@ class BookmarkView(APIView):
                                     type: string
                                     description: Mensagem de erro.
             '404':
-                description: O bookmark a ser deletado não existe ou não foi encontrado.
+                description: O favorito a ser deletado não existe ou não foi encontrado.
                 content:
                     application/json:
                         schema:

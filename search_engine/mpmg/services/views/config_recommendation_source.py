@@ -14,17 +14,11 @@ CONF_REC_SOURCE = ConfigRecommendationSource()
 class ConfigRecommendationSourceView(APIView):
     '''
     get:
-        description: Retorna a lista de configuração de sources, podendo ser filtradas por ativas, ou uma configuração de source específica, se o ID ou índice do source for informado.
+        description: Retorna a lista de configuração de fontes de recomendação, podendo ser filtradas por ativas, ou uma configuração de fonte específica, se o ID for informado.
         parameters:
-            - name: id_fonte
+            - name: id_conf_fonte
               in: query
               description: ID do source a ser recuperada.
-              required: false
-              schema:
-                    type: string
-            - name: nome_indice
-              in: query
-              description: Índice que a source remete.
               required: false
               schema:
                     type: string
@@ -59,8 +53,18 @@ class ConfigRecommendationSourceView(APIView):
                                     ativo:
                                         type: boolean
                                         description: Se a source deve ou não ser considerado para gerar recomendações.
+            '404': 
+                description: A configuração de fonte de recomendação não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem informando que a configuração de fonte de recomendação não existe ou não foi encontrada.
     post:
-        description: Cria uma nova source.
+        description: Cria uma nova configuração de fonte de recomendação.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -69,16 +73,16 @@ class ConfigRecommendationSourceView(APIView):
                         properties:
                             nome:
                                 type: string
-                                description: Nome amigável que aparecerá ao usuário representando a source.
+                                description: Nome amigável que aparecerá ao usuário representando a configuração de fonte de recomendação.
                             nome_indice:
                                 type: string
-                                description: Índice que a source remente.
+                                description: Índice que a configuração de fonte de recomendação remete.
                             quantidade:
                                 type: integer
-                                description: Quantidade de documentos do índice que será buscado.
+                                description: Quantidade de documentos do índice que serão buscados.
                             ativo:
                                 type: boolean
-                                description: Se a source deve ou não ser considerado para gerar recomendações.
+                                description: Se a fonte de recomendação deve ou não ser considerado para gerar recomendações.
                         required:
                             - nome
                             - nome_indice
@@ -86,7 +90,7 @@ class ConfigRecommendationSourceView(APIView):
                             - ativo
         responses:
             '201':
-                description: A source foi criada com sucesso.
+                description: A configuração de fonte de recomendação foi criada com sucesso.
                 content:
                     application/json:
                         schema:
@@ -94,7 +98,17 @@ class ConfigRecommendationSourceView(APIView):
                             properties: 
                                 id_fonte: 
                                     type: string
-                                    description: ID da source criada.
+                                    description: ID da configuração de fonte de recomendação criada.
+            '400':
+                description: Algum(ns) do(s) campo(s) de criação foi(ram) informado(s) incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
             '500':
                 description: Houve algum(ns) erro(s) interno durante o processamento.
                 content:
@@ -107,23 +121,42 @@ class ConfigRecommendationSourceView(APIView):
                                     description: Mensagem de erro.
 
     put:
-        description: Atualiza determinada source. Para alterar uma source, passe um dicionário cuja chave seja o nome do índice que ela está atribuída e o valor é um dicionário com seus atributos alterados.
+        description: Atualiza determinada configuração de fonte de recomendação.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
                     schema:
                         type: object
                         properties:
-                            nome_indice:
-                                description: Dicionário onde a chave é o índice que a source está associada e o valor é um dicionário com os campos a serem alterados.
-                                type: object                            
+                            id_conf_fonte:
+                                type: string
+                                description: ID da configuração de fonte de recomendação a ser alterada.
+                            nome:
+                                type: string
+                                description: Nome amigável que aparecerá ao usuário representando a configuração de fonte de recomendação.
+                            quantidade:
+                                type: integer
+                                description: Quantidade de documentos do índice que serão buscados.
+                            ativo:
+                                type: boolean
+                                description: Se a fonte de recomendação deve ou não ser considerado para gerar recomendações.                            
                         required:
-                            - nome_indice
+                            - id_conf_fonte
         responses:
             '204':
                 description: As alterações foram executadas com sucesso.
+            '404':
+                description: A configuração de fonte de recomendação a ser alterada não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
             '400':
-                description: Algum campo foi informado incorretamente.
+                description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
                 content:
                     application/json:
                         schema:
@@ -140,17 +173,16 @@ class ConfigRecommendationSourceView(APIView):
                     schema:
                         type: object
                         properties:
-                            id_fonte:
+                            id_conf_fonte:
                                 type: string    
                                 description: ID da source a ser removida.
-                            nome_indice:
-                                type: string
-                                description: Índice associado ao source a ser removido.
+                        required:
+                            - id_conf_fonte
         responses:
             '204':
                 description: Deleção com sucesso.
             '400':
-                description: Nenhum dos campos foi enviado.
+                description: Não foi informado id_conf_fonte.
                 content:
                     application/json:
                         schema:
@@ -158,7 +190,17 @@ class ConfigRecommendationSourceView(APIView):
                             properties: 
                                 message: 
                                     type: string
-                                    description: Menciona a necessidade de informar pelo menos um dos campos válido.
+                                    description: Menciona a necessidade de informar id_conf_fonte.
+            '404':
+                description: A configuração de fonte de recomendação a ser deletada não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
             '500':
                 description: Houve algum(ns) erro(s) interno durante o processamento.
                 content:
@@ -169,15 +211,13 @@ class ConfigRecommendationSourceView(APIView):
                                 message: 
                                     type: string
                                     description: Mensagem de erro.
-
     '''
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        index_name = request.GET.get('nome_indice')
-        source_id = request.GET.get('id_conf_fonte', index_name)
+        source_id = request.GET.get('id_conf_fonte')
 
-        if source_id or index_name:
+        if source_id:
             source = CONF_REC_SOURCE.get(source_id)
 
             if source is None:
@@ -223,8 +263,7 @@ class ConfigRecommendationSourceView(APIView):
     def put(self, request):
         data = get_data_from_request(request)
 
-        index_name = data.get('nome_indice')
-        source_conf_id = data.get('id_conf_fonte', index_name) 
+        source_conf_id = data.get('id_conf_fonte') 
 
         if source_conf_id is None:
             return Response({'message': 'É necessário informar nome_indice ou id_conf_fonte para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -255,13 +294,9 @@ class ConfigRecommendationSourceView(APIView):
         return Response({'message': 'Não foi possível atualizar a configuração de fonte de recomendação. Tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request):
-        data = get_data_from_request(request)
-        
-        index_name = data.get('nome_indice')
-        conf_source_id = data.get('id_conf_fonte', index_name)
+        data = get_data_from_request(request)        
+        conf_source_id = data.get('id_conf_fonte')
 
-        print(data)
-        
         if conf_source_id is None:
             return Response({'message': 'É necessário informar id_conf_fonte ou nome_indice!'}, status=status.HTTP_400_BAD_REQUEST)
 

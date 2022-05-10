@@ -15,7 +15,7 @@ class NotificationView(APIView):
 
     '''
     get:
-        description: Retorna uma lista de notificações de de um usuário se o ID dele for informado ou uma notificação específica, se o id dela for passado.
+        description: Retorna uma lista de notificações de um usuário se o ID dele for informado ou uma notificação específica, se o ID dela for passado.
         parameters:
             - name: id_usuario
               in: query
@@ -80,7 +80,7 @@ class NotificationView(APIView):
                                     description: Mensagem informando que a notificação não foi encontrada.
 
     post:
-        description: Cria uma notificação.
+        description: Cria uma notificação e retorna seu ID.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -133,7 +133,7 @@ class NotificationView(APIView):
                                     description: Mensagem de erro.
 
     put:
-        description: Atualiza os campos de uma notificação.
+        description: Atualiza os campos de uma notificação. Os campos disponíveis para atualização são: visualizado, texto e tipo.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
@@ -143,11 +143,8 @@ class NotificationView(APIView):
                             id_notificacao:
                                 description: ID da notificação a ser alterada.
                                 type: string
-                            data_visualizacao:
-                                description: Timestamp da visualização da notificação.
-                                type: string
                             visualizado:
-                                description: Informa se a notificação foi visualizada ou não.
+                                description: Informa se a notificação foi visualizada ou não. É possível enviar null para remover a informação de que se foi visualizado ou não.
                                 type: boolean
                             texto:
                                 description: Texto da notificação.
