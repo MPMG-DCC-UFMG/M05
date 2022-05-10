@@ -2,10 +2,10 @@
     "mappings" : {
         "properties" : {
             "data_criacao" : {
-                "type" : "float"
+                "type" : "date"
             },
             "data_modificacao" : {
-                "type" : "float"
+                "type" : "date"
             },
             "id_consulta" : {
                 "type" : "text",

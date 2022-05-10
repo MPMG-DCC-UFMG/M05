@@ -21,7 +21,7 @@
                     }
                 }
             },
-            "data":{
+            "data_criacao":{
                 "type": "date"
             },
             "data_indexacao": {
@@ -45,7 +45,7 @@
                     }
                 }
             },
-            "embedding_vector": {
+            "embedding": {
                 "type": "dense_vector",
                 "dims": 128
             },
@@ -131,6 +131,15 @@
                 }
             },
             "entidade_municipio":{
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "tipo_documento": {
                 "type": "text",
                 "fields": {
                     "keyword": {

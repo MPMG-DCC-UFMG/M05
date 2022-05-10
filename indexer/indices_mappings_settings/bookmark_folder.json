@@ -1,16 +1,7 @@
 {
     "mappings" : {
         "properties" : {
-            "arquivos" : {
-                "type" : "text",
-                "fields" : {
-                    "keyword" : {
-                        "type" : "keyword",
-                        "ignore_above" : 256
-                    }
-                }
-            },
-            "criador" : {
+            "id_usuario" : {
                 "type" : "text",
                 "fields" : {
                     "keyword" : {
@@ -20,10 +11,10 @@
                 }
             },
             "data_criacao" : {
-                "type" : "float"
+                "type" : "date"
             },
             "data_modificacao" : {
-                "type" : "float"
+                "type" : "date"
             },
             "nome" : {
                 "type" : "text",
@@ -34,16 +25,7 @@
                     }
                 }
             },
-            "pasta_pai" : {
-                "type" : "text",
-                "fields" : {
-                    "keyword" : {
-                        "type" : "keyword",
-                        "ignore_above" : 256
-                    }
-                }
-            },
-            "subpastas" : {
+            "id_pasta_pai" : {
                 "type" : "text",
                 "fields" : {
                     "keyword" : {

@@ -88,11 +88,11 @@
             "num_segmento_global": {
                 "type": "integer"
             },
-            "embedding_vector": {
+            "embedding": {
                 "type": "dense_vector",
                 "dims": 128
             },
-            "data": {
+            "data_criacao": {
                 "type": "date"
             }, 
             "data_indexacao": {

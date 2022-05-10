@@ -43,7 +43,7 @@
             "posicao": {
                 "type": "long"
             },
-            "data_hora": {
+            "data_criacao": {
                 "type": "date"
             }
         }

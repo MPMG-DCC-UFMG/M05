@@ -1,16 +1,16 @@
 {
     "mappings" : {
         "properties" : {
-            "active" : {
+            "ativo" : {
                 "type" : "boolean"
             },
-            "amount" : {
+            "quantidade" : {
                 "type" : "integer"
             },
-            "es_index_name" : {
+            "nome_indice" : {
                 "type" : "text"
             },
-            "evidence_type" : {
+            "tipo_evidencia" : {
                 "type" : "text",
                 "fields" : {
                     "keyword" : {
@@ -18,13 +18,13 @@
                     }
                 }
             },
-            "min_similarity" : {
+            "similaridade_minima" : {
                 "type" : "integer"
             },
-            "top_n_recommendations" : {
+            "top_n_recomendacoes" : {
                 "type" : "integer"
             },
-            "ui_name" : {
+            "nome" : {
                 "type" : "text"
             }
         }

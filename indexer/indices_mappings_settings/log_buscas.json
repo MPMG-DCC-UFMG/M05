@@ -32,7 +32,7 @@
                 "type": "search_as_you_type",
                 "max_shingle_size": 3
             },
-            "data_hora": {
+            "data_criacao": {
                 "type": "date"
             },
             "tempo_resposta": {

@@ -1,13 +1,13 @@
 {
     "mappings" : {
         "properties" : {
-            "active" : {
+            "ativo" : {
                 "type" : "boolean"
             },
-            "amount" : {
+            "quantidade" : {
                 "type" : "integer"
             },
-            "es_index_name" : {
+            "nome_indice" : {
                 "type" : "text",
                 "fields" : {
                     "keyword" : {
@@ -15,7 +15,7 @@
                     }
                 }
             },
-            "ui_name" : {
+            "nome" : {
                 "type" : "text"
             }
         }
