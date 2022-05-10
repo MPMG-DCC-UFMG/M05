@@ -47,6 +47,7 @@ echo ""
 echo "Indexing documents..."
 cd ./indexer
 if [[ -z $(curl -X GET "localhost:9200/_cat/indices/*") ]]; then
+    python create_mappings.py -force_creation
     ./indexing_script.sh
 fi
 
