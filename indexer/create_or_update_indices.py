@@ -4,6 +4,34 @@ import os
 from elasticsearch import Elasticsearch
 
 
+def same_keys_values(local_dict, elastic_dict):
+    '''
+    dicts podem ser comparados assim: dict1 == dict2
+    Acontece que, ao adicionar um mapping ou um setting no elastic e buscá-lo
+    de volta, ele vem com informações a mais, fazendo com que dict1 seja diferente de dict2,
+    sendo que na verdade, ele só possui informações a mais.
+    Essa função verifica apenas se os mappings e settings locais estão com os mesmos valores
+    do elastic, ignorando os campos a mais acrescentados por ele
+    '''
+    def compare_values(local_item, elastic_item, are_equal):
+        if are_equal == True:
+            if type(local_item) != type(elastic_item):
+                are_equal = False
+            elif type(local_item) is dict and type(elastic_item) is dict:
+                for k in local_item.keys():
+                    if k in elastic_item:
+                        are_equal = compare_values(local_item[k], elastic_item[k], are_equal)
+                    else:
+                        are_equal = False
+                        break
+            else:
+                are_equal = local_item == elastic_item
+        return are_equal
+
+    are_equal = True
+    are_equal = compare_values(local_dict, elastic_dict, are_equal)
+    return are_equal
+
 
 def main(maps_sets_path, default_data_path, elastic_address, elastic_username=None, elastic_password=None, force_creation=[]):
 
@@ -50,7 +78,7 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
             c += 1
         
         # deleta o índice caso ele seja diferente do mappings do directory
-        if index_name in elastic_indices and elastic_indices[index_name]['mappings'] != directory_indices[index_name]['mappings']:
+        if index_name in elastic_indices and not same_keys_values(directory_indices[index_name]['mappings'], elastic_indices[index_name]['mappings']):
             es.indices.delete(index=index_name)
             del elastic_indices[index_name]
             print('Índice removido por estar diferente:', index_name)
@@ -75,18 +103,9 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         
         # atualiza o settings caso esteja definido no directory e exista diferença com o elastic
         # se o índice acabou de ser criado, esse passo pode ser pulado (pq não haverá diferença lol)
-        # (pra computar a diferença preciso remover alguns campos de settings que vem por 
-        #  default no settings do elastic e que não estarão no settings do directory)
         if just_created == False and 'settings' in directory_indices[index_name]:
-            del elastic_indices[index_name]['settings']['index']['creation_date']
-            del elastic_indices[index_name]['settings']['index']['number_of_shards']
-            del elastic_indices[index_name]['settings']['index']['number_of_replicas']
-            del elastic_indices[index_name]['settings']['index']['uuid']
-            del elastic_indices[index_name]['settings']['index']['version']
-            del elastic_indices[index_name]['settings']['index']['provided_name']
-            del elastic_indices[index_name]['settings']['index']['routing']
 
-            if elastic_indices[index_name]['settings'] != directory_indices[index_name]['settings']:
+            if not same_keys_values(directory_indices[index_name]['settings'], elastic_indices[index_name]['settings']):
                 es.indices.put_settings(index = index_name, body = directory_indices[index_name]['settings'])
                 print('Settings atualizado:', index_name)
                 c += 1
