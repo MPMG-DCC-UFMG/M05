@@ -12,5 +12,7 @@
                 "type": "date"
             }
         }
+    },
+    "settings":{
     }
 }

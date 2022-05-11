@@ -1,20 +1,25 @@
 {
     "mappings" : {
         "properties" : {
-            "date" : {
+            "data_criacao" : {
                 "type" : "date"
             },
-            "date_visualized" : {
+            "data_visualizacao" : {
                 "type" : "date"
             },
-            "message" : {
+            "texto" : {
                 "type" : "text"
             },
-            "type" : {
+            "tipo" : {
                 "type" : "text"
             },
-            "user_id" : {
-                "type" : "text"
+            "id_usuario" : {
+                "type" : "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
             }
         }
     }

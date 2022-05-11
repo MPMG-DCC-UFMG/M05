@@ -21,9 +21,9 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         index_map_set = json.load(open(os.path.join(maps_sets_path, filename)))
         directory_indices[index_name] = index_map_set
         
-        if es.indices.exists(index_name):
-            elastic_map = es.indices.get_mapping(index_name)
-            elastic_set = es.indices.get_settings(index_name)
+        if es.indices.exists(index=index_name):
+            elastic_map = es.indices.get_mapping(index=index_name)
+            elastic_set = es.indices.get_settings(index=index_name)
             elastic_indices[index_name] = {
                 'mappings': elastic_map[index_name]['mappings'],
                 'settings': elastic_set[index_name]['settings']
@@ -51,7 +51,7 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         
         # deleta o índice caso ele seja diferente do mappings do directory
         if index_name in elastic_indices and elastic_indices[index_name]['mappings'] != directory_indices[index_name]['mappings']:
-            es.indices.delete(index_name)
+            es.indices.delete(index=index_name)
             del elastic_indices[index_name]
             print('Índice removido por estar diferente:', index_name)
             c += 1
@@ -59,7 +59,9 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         # cria o índice caso não exista no elastic
         if index_name not in elastic_indices:
             just_created = True
-            es.indices.create(index_name, body = directory_indices[index_name])
+            index_mappings = directory_indices[index_name]['mappings']
+            index_settings = directory_indices[index_name]['settings'] if 'settings' in directory_indices[index_name] else {}
+            es.indices.create(index=index_name, mappings=index_mappings, settings=index_settings)
             print('Índice criado:', index_name)
             c += 1
             # insere os dados default, caso existam
@@ -82,6 +84,7 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
             del elastic_indices[index_name]['settings']['index']['uuid']
             del elastic_indices[index_name]['settings']['index']['version']
             del elastic_indices[index_name]['settings']['index']['provided_name']
+            del elastic_indices[index_name]['settings']['index']['routing']
 
             if elastic_indices[index_name]['settings'] != directory_indices[index_name]['settings']:
                 es.indices.put_settings(index = index_name, body = directory_indices[index_name]['settings'])
