@@ -12,7 +12,7 @@ click==8.0.4
 cymem==2.0.6
 Django==3.0.5
 django-jenkins==0.110.0
-djangorestframework==3.13.1
+djangorestframework==3.11.1
 elasticsearch==7.17.1
 elasticsearch-dsl==7.4.0
 filelock==3.6.0
