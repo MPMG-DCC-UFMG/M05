@@ -2,6 +2,12 @@
 {% load static %}
 {% load aduna_extras %}
 {% block body_tags %}class="view-as-page"{% endblock %}
+{% block goback %}
+<a href="javascript:history.back()" class="btn btn-danger my-2 my-sm-0 mr-3" type="button">
+    <i class="fas fa-arrow-alt-circle-left"></i>
+    Voltar
+</a>
+{% endblock %}
 {% block content %}
     <div class="container">
         <div class="page">
