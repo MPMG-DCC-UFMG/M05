@@ -140,6 +140,7 @@ $(window).bind('scroll', function() {
 });
 
 $(document).ready(function() {
+    menu.removeClass('fixed-top');
     $("body").tooltip({ selector: '[data-toggle=tooltip]' });
 });
 

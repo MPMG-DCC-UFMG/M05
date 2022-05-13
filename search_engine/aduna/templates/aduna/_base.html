@@ -20,6 +20,8 @@
                 <div class="container">
                     {% block goback %}
                     {% endblock %}
+                    
+                    {% block search_page_actions %}
                     <a class="navbar-brand" href="{% url 'aduna:index' %}">Áduna</a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                         aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +37,9 @@
                             <input type="hidden" name="sid" id="sid" value="{{ sid }}">
                         </form>
                     </div>
-                    <ul class="navbar-nav mr-auto d-flex align-items-center">
+                    {% endblock %}
+
+                    <ul class="navbar-nav ml-auto">
                         <li id="notification" class="nav-item mr-2">
                             <div class="dropdown btn-group text-center">
                                 <a class="nav-link dropdown-toggle" href="#" id="dropdownNotification" data-toggle="dropdown"
