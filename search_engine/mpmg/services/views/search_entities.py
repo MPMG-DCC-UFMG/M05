@@ -5,25 +5,13 @@ from ..elastic import Elastic
 from ..query_filter import QueryFilter
 from ..docstring_schema import AutoDocstringSchema
 from mpmg.services.models import APIConfig
-
+import math
 
 class SearchEntities(APIView):
     '''
     get:
-        description: Classe responsável por retornar a lista de itens das diferentes opções de filtros de busca
+        description: Classe responsável por retornar a lista de entidades relacionadas
         parameters:
-            -   name: filter_name
-                in: path
-                description: Nome do filtro que vc deseja buscar as opções. Passe "all" caso queira trazer as opções \
-                    de todos os filtros. Lembrando que ao usar "all", vc deve passar o parâmetro query também.
-                required: true
-                schema:
-                    type: string
-                    enum:
-                        - all
-                        - instances
-                        - doc_types
-                        - entities
             -   name: query
                 in: query
                 description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filter_name="all" ou filter_Name="entities"
@@ -89,11 +77,42 @@ class SearchEntities(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
-        data = self._get_entities(request)
+    def get(self, request, strategy):
+        data = self._get_entities(request, strategy)
         return Response(data)
 
-    def _get_entities(self, request):
+    def _aggregate_strategies(self, total, score, strategy):
+        if strategy == "votes":
+            return 1
+        if strategy == "combsum":
+            return score
+        if strategy == "expcombsum":
+            return math.exp(score)
+        if strategy == "max":
+            return max(total, score)
+
+    def _aggregate_scores(self, response, tipos_entidades, strategy):
+        entities = {}
+        for t in tipos_entidades:
+            entities[t] = defaultdict(int)
+
+        for doc in response:
+            for campo_entidade in tipos_entidades:
+                try:
+                   entities_list = eval(doc[campo_entidade])
+                except:
+                    entities_list = []
+                for ent in entities_list:
+                    entities[campo_entidade][ent.lower()] += \
+                        self._aggregate_strategies(
+                            entities[campo_entidade][ent.lower()],
+                            doc.meta.score,
+                            strategy
+                        )
+        return entities
+
+    def _get_entities(self, request, strategy):
+        print(strategy)
         query = request.GET['query']
 
         query_filter = QueryFilter.create_from_request(request)
@@ -116,19 +135,8 @@ class SearchEntities(APIView):
 
         response = elastic_request.execute()
 
-
-        entities = {}
-        for t in tipos_entidades:
-            entities[t] = defaultdict(int)
-
-        for doc in response:
-            for campo_entidade in tipos_entidades:
-                try:
-                   entities_list = eval(doc[campo_entidade])
-                except:
-                    entities_list = []
-                for ent in entities_list:
-                    entities[campo_entidade][ent.lower()] += 1
+        entities =  self._aggregate_scores(response, tipos_entidades, strategy)
+        print(entities)
         # pegas as 10 entidades que mais aparecem
         selected_entities = {}
         for campo_entidade in tipos_entidades:

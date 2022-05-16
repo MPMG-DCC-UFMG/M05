@@ -20,7 +20,6 @@ class SearchFilterView(APIView):
                         - all
                         - instances
                         - doc_types
-                        - entities
             -   name: query
                 in: query
                 description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filter_name="all" ou filter_Name="entities"
