@@ -10,13 +10,13 @@ def main(args):
     force_creation = args["force_creation"]
 
     if args['username'] != None and args['password'] != None:
-        es = Elasticsearch([elastic_address], http_auth=(args['username'], args['password']))
+        es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True, http_auth=(args['username'], args['password']))
     else:
-        es = Elasticsearch([elastic_address])
+        es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True)
 
     mappings_json = json.load(open(mappings_path))
 
-    local_indices = [index for index in mappings_json.keys() if es.indices.exists(index)]
+    local_indices = [index for index in mappings_json.keys() if es.indices.exists(index=index)]
 
     c = 0
     for index_name in mappings_json.keys():

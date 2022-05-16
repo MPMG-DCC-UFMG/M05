@@ -1,6 +1,7 @@
 import json
 import elasticsearch
 import elasticsearch_dsl
+from elasticsearch_dsl import connections
 import requests
 import traceback
 import sys
@@ -14,13 +15,27 @@ class Elastic:
         self.ELASTIC_ADDRESS = settings.ELASTICSEARCH_DSL['default']['hosts']
         self.es = elasticsearch.Elasticsearch([self.ELASTIC_ADDRESS], timeout=120)
         self.dsl = elasticsearch_dsl
+        self.dsl_connection = connections.create_connection(hosts=[self.ELASTIC_ADDRESS], timeout=120)
         self.helpers = helpers
         
-        self.all_searchable_indices = []
-        for group, indices in settings.SEARCHABLE_INDICES.items():
-            for index_name, class_name in indices.items():
-                self.all_searchable_indices.append(index_name)
     
+    def _searchable_indices(self, group=None):
+        # Não consigo aproveitar a classe APIConfig pra buscar os índices porque dá loop de imports
+        # então reescrevi aqui. Isso será revisto em breve.
+
+        searchable_indices = []
+        search_obj = self.dsl.Search(using=self.es, index='config_indices')
+        search_obj = search_obj.query(self.dsl.Q({"term": { "active": True }}))
+        if group != None:
+            search_obj = search_obj.query(self.dsl.Q({"term": { "group": group }}))
+        elastic_result = search_obj.execute()
+
+        for item in elastic_result:
+            searchable_indices.append(item['es_index_name'])
+        
+        return searchable_indices
+    
+
     def close_then_modify(self, index, body):
         """
         Função helper para alterar configurações estáticas que requerem o fechamento do índice.
@@ -45,7 +60,7 @@ class Elastic:
         A aplicação garantirá que todos os índices do grupo estarão configurados com mesmo algoritmo
         Portanto, pega a configuração do primeiro índice que der e retorna.
         '''
-        for index in list(settings.SEARCHABLE_INDICES[group].keys()):
+        for index in self._searchable_indices(group):
             try:
                 resp = self.es.indices.get_settings(index=index, name='*sim*')
                 sim_settings = resp[index]['settings']['index']['similarity']['default']
@@ -59,7 +74,7 @@ class Elastic:
         algo = kwargs.get('algorithm')
         group = kwargs.get('compare')
         
-        for index in list(settings.SEARCHABLE_INDICES[group].keys()):
+        for index in self._searchable_indices(group):
             
             cur_settings = self.es.indices.get_settings(index=index, name='*sim*')
             body = {'similarity': {'default': {}}}
@@ -154,7 +169,7 @@ class Elastic:
         return resp
 
     def get_cur_replicas(self):
-        for index in self.all_searchable_indices:
+        for index in self._searchable_indices():
             try:
                 resp = self.es.indices.get_settings(index=index, name='*replicas')
                 num_repl = resp[index]['settings']['index']['number_of_replicas']
@@ -165,7 +180,7 @@ class Elastic:
         return False
     
     def set_cur_replicas(self, value):
-        for index in self.all_searchable_indices:
+        for index in self._searchable_indices():
             try:
                 resp = self.es.indices.put_settings(body={'number_of_replicas': value}, index=index)
             except:
@@ -174,7 +189,7 @@ class Elastic:
         return resp
 
     def get_max_result_window(self):
-        for index in self.all_searchable_indices:
+        for index in self._searchable_indices():
             try:
                 resp = self.es.indices.get_settings(index=index, name='*max_result_window')
                 max_result_window = resp[index]['settings']['index']['max_result_window']
@@ -186,7 +201,7 @@ class Elastic:
         return 10000 # Default value
     
     def set_max_result_window(self, value):
-        for index in self.all_searchable_indices:
+        for index in self._searchable_indices():
             try:
                 resp = self.es.indices.put_settings(body={'max_result_window': value}, index=index)
             except:

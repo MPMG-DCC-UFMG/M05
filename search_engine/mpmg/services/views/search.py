@@ -1,23 +1,12 @@
-import sys
 import time
-
-import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.conf import settings
-from mpmg.services.models import LogSearch, Document
-from mpmg.services.models import SearchConfigs
 from ..elastic import Elastic
 from ..reranker import Reranker
-from ..features_extractor import FeaturesExtractor
-from ..ranking.tf_idf import TF_IDF
-from ..features_extractor import TermVectorsFeaturesExtractor
 from ..query import Query
 from ..query_filter import QueryFilter
 from ..docstring_schema import AutoDocstringSchema
-
 
 
 class SearchView(APIView):

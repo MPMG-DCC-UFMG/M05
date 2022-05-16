@@ -34,11 +34,11 @@ def main(args):
         print("Created new directory: indexer/indices")
 
     if args['username'] != None and args['password'] != None:
-        es = Elasticsearch([elastic_address], http_auth=(args['username'], args['password']))
+        es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True, http_auth=(args['username'], args['password']))
     else:
-        es = Elasticsearch([elastic_address])
+        es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True)
 
-    
+
 
     settings = json.load(open('additional_settings.json'))
     updated_mappings = json.load(open(mappings_path))
@@ -46,24 +46,24 @@ def main(args):
     local_mappings = es.indices.get_mapping(local_indices)
 
     replica_indices = dict([(index, 0) for index in updated_mappings.keys() if 'conteudo' in updated_mappings[index]['mappings']['properties'].keys()])
-    
+
     csv_indexer = indexer.Indexer(elastic_address = elastic_address)
     for index in updated_mappings.keys():
-        
+
         print("Checking " + index + "...")
-        
+
         index_folder = "indices/"+index
         if not os.path.isdir(index_folder):
             os.mkdir(index_folder)
             print("Created new directory: " + index_folder)
-        
+
         # se o indice ja existe e o mapping eh diferente ou se esta na lista de force_reindexation
         if (index in local_indices) and (local_mappings[index] != updated_mappings[index] or index in force_reindexation): 
             es.indices.delete(index)
             print("Existing index deleted: " + index)
             local_indices.remove(index)
             update_settings.append(index)
-        
+
         if index not in local_indices: # caso o indice ainda nao exista ou foi excluido
             es.indices.create(index, body = updated_mappings[index] ) # cria indice
             print("New index created: " + index)
@@ -81,7 +81,7 @@ def main(args):
                     es.indices.delete(replica)
                 print("Cloning replica of index: " + index)
                 clone_index(es, index, replica)
-        
+
         if index in update_settings:
             if index in settings:
                 es.indices.put_settings(index = index, body = settings[index]["settings"]) # atualiza settings
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Verifica se o indice sofreu alguma alteracao e, nesse caso,\
             cria o indice novamente com o dado mapping. Força update dos settings dos dados indices.')
-    
+
     parser.add_argument("-force_reindexation", nargs='+', help="List of indices to force reindexation")
     parser.add_argument("-update_settings", nargs='+', help="List of indices to force settings update")
     parser.add_argument("-mappings_path", default="mappings.json", help="Path of the mappings json file that will be used")

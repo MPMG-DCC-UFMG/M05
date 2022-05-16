@@ -38,10 +38,28 @@
             </ul>
             </div>
         </li>
-        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config' %}active{%endif%}">
-            <a class="nav-link" href="{% url 'admin:config' %}">
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_cluster' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_cluster' %}">
             <i class="menu-icon typcn typcn-th-large-outline"></i>
-            <span class="menu-title" >Configurações do Cluster</span>
+            <span class="menu-title" >Configurar Algoritmo</span>
+            </a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_indices' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_indices' %}">
+            <i class="menu-icon typcn typcn-th-large-outline"></i>
+            <span class="menu-title" >Configurar Índices</span>
+            </a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_fields' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_fields' %}">
+            <i class="menu-icon typcn typcn-th-large-outline"></i>
+            <span class="menu-title" >Configurar Campos</span>
+            </a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_options' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_options' %}">
+            <i class="menu-icon typcn typcn-th-large-outline"></i>
+            <span class="menu-title" >Configurar Opções</span>
             </a>
         </li>
     </ul>
