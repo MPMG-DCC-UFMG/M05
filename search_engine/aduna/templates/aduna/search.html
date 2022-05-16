@@ -67,11 +67,11 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        {% if filter_entities_list.entidade_pessoa|length > 0 %}
+                        {% if entities_list.entidade_pessoa|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir pessoa:</label>
                             <select id="filter_entidade_pessoa" name="filter_entidade_pessoa" multiple="multiple">
-                                {% for item in filter_entities_list.entidade_pessoa %}
+                                {% for item in entities_list.entidade_pessoa %}
                                     <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_pessoa %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
@@ -80,11 +80,11 @@
                         </div>
                         {% endif %}
 
-                        {% if filter_entities_list.entidade_municipio|length > 0 %}
+                        {% if entities_list.entidade_municipio|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir município:</label>
                             <select id="filter_entidade_municipio" name="filter_entidade_municipio" multiple="multiple">
-                                {% for item in filter_entities_list.entidade_municipio %}
+                                {% for item in entities_list.entidade_municipio %}
                                     <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_municipio %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
@@ -93,11 +93,11 @@
                         </div>
                         {% endif %}
 
-                        {% if filter_entities_list.entidade_organizacao|length > 0 %}
+                        {% if entities_list.entidade_organizacao|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir organização:</label>
                             <select id="filter_entidade_organizacao" name="filter_entidade_organizacao" multiple="multiple">
-                                {% for item in filter_entities_list.entidade_organizacao %}
+                                {% for item in entities_list.entidade_organizacao %}
                                     <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_organizacao %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>
@@ -106,11 +106,11 @@
                         </div>
                         {% endif %}
 
-                        {% if filter_entities_list.entidade_local|length > 0 %}
+                        {% if entities_list.entidade_local|length > 0 %}
                         <div class="form-group">
                             <label class="control-label mb-0">Incluir local:</label>
                             <select id="filter_entidade_local" name="filter_entidade_local" multiple="multiple">
-                                {% for item in filter_entities_list.entidade_local %}
+                                {% for item in entities_list.entidade_local %}
                                     <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_local %}selected="selected"{% endif %}>
                                     {{ item }}
                                     </option>

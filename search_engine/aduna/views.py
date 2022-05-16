@@ -62,7 +62,8 @@ def search(request):
     filter_content = filter_response.json()
     filter_instances_list = filter_content['instances']
     filter_doc_types_list = filter_content['doc_types']
-    filter_entities_list = filter_content['entities']
+    
+    entities_list = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
 
 
     
@@ -108,13 +109,13 @@ def search(request):
             'documents': response_content['documents'],
             'total_pages': response_content['total_pages'],
             'results_pagination_bar': range(min(9, response_content['total_pages'])), # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
+            'entities_list': entities_list,
             'filter_start_date': datetime.strptime(response_content['filter_start_date'], '%Y-%m-%d') if response_content['filter_start_date'] != None else None,
             'filter_end_date': datetime.strptime(response_content['filter_end_date'], '%Y-%m-%d') if response_content['filter_end_date'] != None else None,
             'filter_instances': response_content['filter_instances'],
             'filter_doc_types': response_content['filter_doc_types'],
             'filter_instances_list': filter_instances_list,
             'filter_doc_types_list': filter_doc_types_list,
-            'filter_entities_list': filter_entities_list,
             'filter_entidade_pessoa': filter_entidade_pessoa,
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,

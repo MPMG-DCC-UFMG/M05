@@ -1,5 +1,6 @@
 from .search import *
 from .search_filter import *
+from .search_entities import *
 from .document import *
 from .log import *
 from .authentication import *
