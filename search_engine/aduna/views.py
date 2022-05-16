@@ -62,11 +62,11 @@ def search(request):
     filter_content = filter_response.json()
     filter_instances_list = filter_content['instances']
     filter_doc_types_list = filter_content['doc_types']
-    
+
+    # busca entidades além de buscar a consulta
     entities_list = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
+    entities_list = entities_list.json()
 
-
-    
     # faz a busca
     params = {
         'query': query, 

@@ -90,8 +90,7 @@ class SearchEntities(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request):
-        data = {}
-        self._get_entities(request)
+        data = self._get_entities(request)
         return Response(data)
 
     def _get_entities(self, request):
@@ -130,7 +129,6 @@ class SearchEntities(APIView):
                     entities_list = []
                 for ent in entities_list:
                     entities[campo_entidade][ent.lower()] += 1
-
         # pegas as 10 entidades que mais aparecem
         selected_entities = {}
         for campo_entidade in tipos_entidades:
