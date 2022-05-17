@@ -14,20 +14,20 @@ class DocumentView(APIView):
       description: Busca o conteúdo completo de um documento específico.
       parameters:
         - name: id_documento
-            in: query
-            description: ID do documento
-            required: true
-            schema:
-                type: string
+          in: query
+          description: ID do documento
+          required: true
+          schema:
+            type: string
         - name: tipo_documento
-            in: query
-            description: Tipo do documento
-            schema:
-                type: string
-                enum:
-                    - diarios
-                    - processos
-                    - licitacoes
+          in: query
+          description: Tipo do documento
+          schema:
+            type: string
+            enum:
+              - diarios
+              - processos
+              - licitacoes
     '''
 
     # permission_classes = (IsAuthenticated,)

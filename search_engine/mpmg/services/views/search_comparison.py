@@ -16,70 +16,69 @@ class CompareView(APIView):
                    Os algoritmos são configurados na interface de administração da API.
       parameters:
         - name: query
-            in: query
-            description: texto da consulta
-            required: true
-            schema:
-                type: string
+          in: query
+          description: texto da consulta
+          required: true
+          schema:
+            type: string
         - name: page
-            in: query
-            description: Página do resultado de busca
-            required: true
-            schema:
-                type: integer
-                minimum: 1
-                default: 1
+          in: query
+          description: Página do resultado de busca
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
         - name: sid
-            in: query
-            description: ID da sessão do usuário na aplicação
-            required: true
-            schema:
-                type: string
+          in: query
+          description: ID da sessão do usuário na aplicação
+          required: true
+          schema:
+            type: string
         - name: qid
-            in: query
-            description: ID da consulta. Quando _page=1_ passe vazio e este método irá cria-lo. \
-                        Quando _page>1_ passe o qid retornado na primeira chamada.
-            schema:
-                type: string
+          in: query
+          description: ID da consulta. Quando _page=1_ passe vazio e este método irá cria-lo. \
+                       Quando _page>1_ passe o qid retornado na primeira chamada.
+          schema:
+            type: string
         - name: instances
-            in: query
-            description: Filtro com uma lista de nomes de cidades às quais o documento deve pertencer
-            schema:
-                type: array
-                items:
-                type: string
+          in: query
+          description: Filtro com uma lista de nomes de cidades às quais o documento deve pertencer
+          schema:
+            type: array
+            items:
+              type: string
         - name: doc_types
-            in: query
-            description: Filtro com uma lista de tipos de documentos que devem ser retornados
-            schema:
-                type: array
-                items:
-                type: string
-                enum:
-                    - Diario
-                    - Processo
-                    - Licitacao
+          in: query
+          description: Filtro com uma lista de tipos de documentos que devem ser retornados
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - Diario
+                - Processo
+                - Licitacao
         - name: start_date
-            in: query
-            description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
-            schema:
-                type: string
+          in: query
+          description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
+          schema:
+            type: string
         - name: end_date
-            in: query
-            description: Filtra documentos cuja data de publicação seja anterior à data informada. Data no formato YYYY-MM-DD
-            schema:
-                type: string
-
+          in: query
+          description: Filtra documentos cuja data de publicação seja anterior à data informada. Data no formato YYYY-MM-DD
+          schema:
+            type: string
       responses:
         '200':
-            description: Retorna uma lista com os documentos encontrados
-            content:
-                application/json:
-                schema:
-                    type: object
-                    properties: {}
+          description: Retorna uma lista com os documentos encontrados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
         '401':
-            description: Requisição não autorizada caso não seja fornecido um token válido
+          description: Requisição não autorizada caso não seja fornecido um token válido
     '''
 
     # permission_classes = (IsAuthenticated,)

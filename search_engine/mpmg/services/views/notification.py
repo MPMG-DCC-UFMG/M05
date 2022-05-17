@@ -133,7 +133,7 @@ class NotificationView(APIView):
                                     description: Mensagem de erro.
 
     put:
-        description: Atualiza os campos de uma notificação. Os campos disponíveis para atualização são: visualizado, texto e tipo.
+        description: Atualiza os campos de uma notificação. Os campos disponíveis para atualização são visualizado, texto e tipo.
         requestBody:
             content:
                 application/x-www-form-urlencoded:
