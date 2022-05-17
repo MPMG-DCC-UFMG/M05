@@ -105,7 +105,6 @@ class SearchFilterView(APIView):
         return Response(data)
 
     def _get_dynamic_entities_filter(self, request):
-        print(request.GET)
 
         consulta = request.GET['consulta']
         query_filter = QueryFilter.create_from_request(request)
@@ -118,7 +117,7 @@ class SearchFilterView(APIView):
         if len(query_filter.doc_types) > 0:
             indices = query_filter.doc_types
 
-        must_clause = [elastic.dsl.Q('query_string', query=query, fields=APIConfig.searchable_fields())]
+        must_clause = [elastic.dsl.Q('query_string', query=consulta, fields=APIConfig.searchable_fields())]
         filter_clause = query_filter.get_filters_clause()
 
         elastic_request = elastic.dsl.Search(using=elastic.es, index=indices) \
