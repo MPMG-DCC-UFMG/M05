@@ -1,6 +1,6 @@
-from django.conf import settings
-from mpmg.services.models import *
 from mpmg.services.elastic import Elastic
+from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
+from mpmg.services.models.api_config import APIConfig
 
 class Document:
     '''
@@ -18,14 +18,11 @@ class Document:
     def __init__(self):
         self.elastic = Elastic()
 
-        self.retrievable_fields = settings.RETRIEVABLE_FIELDS
-        self.highlight_field = settings.HIGHLIGHT_FIELD
-
+        self.retrievable_fields = APIConfig.retrievable_fields()
+        self.highlight_field = APIConfig.highlight_field()
+        
         # relaciona o nome do índice com a classe Django que o representa
-        self.index_to_class = {}
-        for _, indices in settings.SEARCHABLE_INDICES.items():
-            for index_name, class_name in indices.items():
-                self.index_to_class[index_name] = eval(class_name)
+        self.index_to_class = APIConfig.searchable_index_to_class()
 
     def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
         start = results_per_page * (page_number - 1)
@@ -56,8 +53,6 @@ class Document:
                 (page_number-1) + (i+1)
 
             dict_data['tipo'] = item.meta.index
-
-            print('>>> ', item)
 
             result_class = self.index_to_class[item.meta.index]
 

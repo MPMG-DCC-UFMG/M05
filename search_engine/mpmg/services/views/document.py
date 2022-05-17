@@ -38,8 +38,7 @@ class DocumentView(APIView):
         id_documento = request.GET['id_documento']
 
         # instancia a classe apropriada e busca o registro no índice
-        index_model_class_name = settings.SEARCHABLE_INDICES['regular'][tipo_documento]
-        index_class = eval(index_model_class_name)
+        index_class = APIConfig.searchable_index_to_class('regular')[tipo_documento]
 
         try:
             document = index_class.get(id_documento)

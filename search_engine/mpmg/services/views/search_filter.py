@@ -1,13 +1,11 @@
 from collections import defaultdict
-
-from django.conf import settings
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from mpmg.services.models import APIConfig
 from ..docstring_schema import AutoDocstringSchema
 from ..elastic import Elastic
 from ..query_filter import QueryFilter
+
 
 class SearchFilterView(APIView):
     '''
@@ -115,13 +113,12 @@ class SearchFilterView(APIView):
         tipos_entidades = ['entidade_pessoa', 'entidade_municipio',
                            'entidade_local', 'entidade_organizacao']
         elastic = Elastic()
-
-        indices = list(settings.SEARCHABLE_INDICES['regular'].keys())
+        
+        indices = APIConfig.searchable_indices('regular')
         if len(query_filter.doc_types) > 0:
             indices = query_filter.doc_types
 
-        must_clause = [elastic.dsl.Q(
-            'query_string', query=consulta, fields=settings.SEARCHABLE_FIELDS)]
+        must_clause = [elastic.dsl.Q('query_string', query=query, fields=APIConfig.searchable_fields())]
         filter_clause = query_filter.get_filters_clause()
 
         elastic_request = elastic.dsl.Search(using=elastic.es, index=indices) \

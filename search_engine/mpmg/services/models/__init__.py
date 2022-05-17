@@ -15,3 +15,4 @@ from .notification import Notification
 from .document_recommendation import DocumentRecommendation
 from .config_recommendation_evidence import ConfigRecommendationEvidence
 from .config_recommendation_source import ConfigRecommendationSource
+from .api_config import APIConfig

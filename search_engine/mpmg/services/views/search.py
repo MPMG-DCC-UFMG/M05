@@ -1,15 +1,13 @@
 import time
-
-from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from ..docstring_schema import AutoDocstringSchema
 from ..elastic import Elastic
 from ..query import Query
 from ..query_filter import QueryFilter
 from ..reranker import Reranker
+
 
 class SearchView(APIView):
     '''
