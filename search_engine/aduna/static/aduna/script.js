@@ -125,7 +125,7 @@ $(window).bind('scroll', function() {
     var position = $(window).scrollTop() - menuPosition;
     if(position >= 50){
         if(!menu.hasClass('fixed-top')){
-            searchBody.css('margin-top', bodyPosition);
+            searchBody.css('margin-top', '97px');
             menu.addClass('fixed-top');
             
             menu.css('top', '-57px');

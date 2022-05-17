@@ -123,9 +123,9 @@ mark.active{
 #doc-navbar{
     position: fixed;
     width: 250px;
-    top: 73px;
+    top: 57px;
     left: 0px;
-    height: calc(100% - 73px);
+    height: calc(100% - 57px);
     background-color: #ddd;
     border: 1px solid #aaa;
     z-index: 2000;
