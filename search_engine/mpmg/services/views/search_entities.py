@@ -143,13 +143,15 @@ class SearchEntities(APIView):
         response = elastic_request.execute()
 
         entities =  self._aggregate_scores(response, tipos_entidades, strategy)
-    
-        # pegas as 10 entidades que mais aparecem
+        
+        num_entities = int(request.GET.get('num_entities', '10'))
+
+        # pegas as num_entities entidades que mais aparecem
         selected_entities = {}
         for campo_entidade in tipos_entidades:
             entities[campo_entidade] = sorted(entities[campo_entidade].items(), key=lambda x: x[1], reverse=True)
             selected_entities[campo_entidade] = []
-            for i in range(10):
+            for i in range(num_entities):
                 try:
                     selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
                 except:
