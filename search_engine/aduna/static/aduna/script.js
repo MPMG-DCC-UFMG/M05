@@ -7,11 +7,12 @@ function log_search_click(link){
         dataType: 'json',
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
-            rank_number: $(link).data('rank-number'),
-            item_id: $(link).data('item-id'),
-            item_type: $(link).data('item-type'),
+            id_usuario: USER_ID,
+            posicao: $(link).data('rank-number'),
+            id_documento: $(link).data('item-id'),
+            tipo_documento: $(link).data('item-type'),
             qid: QID,
-            page: PAGE,
+            pagina: PAGE,
         }
     });
 }
@@ -23,7 +24,7 @@ function log_suggestion_click(item){
         dataType: 'json',
         headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
-            rank_number: item['rank_number'],
+            posicao_ranking: item['posicao_ranking'],
             suggestion: item['value'],
         }
     });
@@ -38,7 +39,7 @@ $(function(){
                 dataType: 'json',
                 headers:{'Authorization': 'Token ' + AUTH_TOKEN},
                 data:{
-                    query: request.term
+                    consulta: request.term
                 }
             });
 
@@ -124,7 +125,7 @@ $(window).bind('scroll', function() {
     var position = $(window).scrollTop() - menuPosition;
     if(position >= 50){
         if(!menu.hasClass('fixed-top')){
-            searchBody.css('margin-top', bodyPosition);
+            searchBody.css('margin-top', '97px');
             menu.addClass('fixed-top');
             
             menu.css('top', '-57px');
@@ -139,5 +140,23 @@ $(window).bind('scroll', function() {
 });
 
 $(document).ready(function() {
+    menu.removeClass('fixed-top');
     $("body").tooltip({ selector: '[data-toggle=tooltip]' });
 });
+
+function pad_time(time) {
+    return time >= 10 ? time : '0' + time;
+}
+
+function timestamp_converter(timestamp) {
+    let date = new Date(timestamp);
+
+    let days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    let months = ['Jan', 'Fev', 'Mar', 'Abr', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    let cur_date = new Date();
+
+    let year = cur_date.getFullYear() != date.getFullYear() ? date.getFullYear() : '';
+
+    return `${days[date.getDay()]}, ${pad_time(date.getDate())} de ${months[date.getMonth()]} ${year} - ${pad_time(date.getHours())}h${pad_time(date.getMinutes())}`;
+}

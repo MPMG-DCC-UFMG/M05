@@ -26,6 +26,7 @@ class AdunaAdmin(admin.AdminSite):
             path('config_rec_entities/', self.admin_view(ConfigRecEntitiesView().view_rec_entities), name='config_rec_entities'),
             path('config/', self.admin_view(ConfigView().view_config), name='config_cluster'),
             path('save_config/', self.admin_view(ConfigView().view_save_config), name='save_config'),
+            path('config_recommendations/', self.admin_view(ConfigRecommendationsView().view_config), name='config_recommendations'),
         ]
         return new_urls + native_urls
     

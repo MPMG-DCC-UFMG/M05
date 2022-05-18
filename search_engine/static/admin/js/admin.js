@@ -80,7 +80,7 @@ $(function(){
 				// pega o template para consultas e preenche com os dados
 				var template_consulta = $($("#detalhe-template-consulta .detalhe-item-consulta").get(0).outerHTML);
 				template_consulta.find('.detalhe-id-consulta').html(id_consulta);
-				template_consulta.find('.detalhe-texto-consulta').html(response['consultas'][id_consulta]['text_consulta']);
+				template_consulta.find('.detalhe-texto-consulta').html(response['consultas'][id_consulta]['texto_consulta']);
 				template_consulta.find('.detalhe-algoritmo').html(response['consultas'][id_consulta]['algoritmo']);
 
 				// o template da consulta já tem uma página de resultados, se precisar de mais páginas, faz um clone
@@ -103,7 +103,7 @@ $(function(){
 					tab.find('.detalhe-numero-pagina').html(num_pagina);
 					tab.attr('href', '#c-'+num_consulta+'-p-'+num_pagina)
 					tab_content.attr('id', 'c-'+num_consulta+'-p-'+num_pagina)
-					tab_content.find('.detalhe-data-hora').html(response['consultas'][id_consulta]['paginas'][num_pagina]['data_hora']);
+					tab_content.find('.detalhe-data-hora').html(response['consultas'][id_consulta]['paginas'][num_pagina]['data_criacao']);
 					tab_content.find('.detalhe-tempo-resposta').html(response['consultas'][id_consulta]['paginas'][num_pagina]['tempo_resposta_total']);
 					tab_content.find('.detalhe-documentos tbody').html('');
 					// lista de resultados com info de cliques
@@ -112,7 +112,7 @@ $(function(){
 						var doc_type = response['consultas'][id_consulta]['paginas'][num_pagina]['tipos'][i];
 						var doc_id = response['consultas'][id_consulta]['paginas'][num_pagina]['documentos'][i];
 						var clicked = response['consultas'][id_consulta]['paginas'][num_pagina]['cliques'][i];
-						var link = '/aduna/document/'+doc_type+'/'+doc_id;
+						var link = '/aduna/documento/'+doc_type+'/'+doc_id;
 						tab_content.find('.detalhe-documentos tbody').append(
 							'<tr><td align="center">'+num+'</td>'+
 							'<td>'+doc_type+'</td>'+

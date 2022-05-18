@@ -20,6 +20,7 @@ class DashboardView(admin.AdminSite):
         if start_date != None and end_date != None:
             start_date = datetime.strptime(start_date, '%d/%m/%Y')
             end_date = datetime.strptime(end_date, '%d/%m/%Y')
+            
         else:
             end_date = datetime.today().date() #+ timedelta(days=1)
             start_date = end_date - timedelta(days=14)
@@ -95,9 +96,11 @@ class DashboardView(admin.AdminSite):
         
         # Buscas por dia
         if len(metrics.query_log) > 0:
-            queries_list = metrics.query_log.fillna('-').sort_values(by='data_hora', ascending=False).to_dict('records')
+            queries_list = metrics.query_log.fillna('-').sort_values(by='query_log_data_criacao', ascending=False).to_dict('records')
+
         else:
             queries_list = []
+
         total_queries_per_day = dict.fromkeys(days_labels, 0)
         for item in queries_list:
             d = item['dia']

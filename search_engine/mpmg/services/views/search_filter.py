@@ -9,10 +9,11 @@ class SearchFilterView(APIView):
     get:
         description: Classe responsável por retornar a lista de itens das diferentes opções de filtros de busca
         parameters:
-            -   name: filter_name
+            -   name: filtro
                 in: path
                 description: Nome do filtro que vc deseja buscar as opções. Passe "all" caso queira trazer as opções \
-                    de todos os filtros. Lembrando que ao usar "all", vc deve passar o parâmetro query também.
+                    de todos os filtros. Lembrando que ao usar "all", vc deve passar o parâmetro consulta também e se \
+                        usar o filtro entities também.
                 required: true
                 schema:
                     type: string
@@ -20,27 +21,27 @@ class SearchFilterView(APIView):
                         - all
                         - instances
                         - doc_types
-            -   name: query
+            -   name: consulta
                 in: query
-                description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filter_name="all" ou filter_Name="entities"
+                description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filtro="all" ou filtro="entities"
                 schema:
                     type: string
-            -   name: filter_instances
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: string
-            -   name: filter_start_date
+            -   name: filtro_instancias
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: string
-            -   name: filter_end_date
+            -   name: filtro_data_inicio
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: string
-            -   name: filter_doc_types
+            -   name: filtro_data_fim
+                in: query
+                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
+                schema:
+                    type: string
+            -   name: filtro_tipo_documento
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
@@ -52,28 +53,28 @@ class SearchFilterView(APIView):
                             - processos
                             - licitacoes
                             - diarios_segmentado
-            -   name: filter_entidade_pessoa
+            -   name: filtro_entidade_pessoa
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: array
                     items:
                         type: string
-            -   name: filter_entidade_municipio
+            -   name: filtro_entidade_municipio
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: array
                     items:
                         type: string
-            -   name: filter_entidade_organizacao
+            -   name: filtro_entidade_organizacao
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: array
                     items:
                         type: string
-            -   name: filter_entidade_local
+            -   name: filtro_entidade_local
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
@@ -85,7 +86,7 @@ class SearchFilterView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request, filter_name):
+    def get(self, request, filtro):
         data = {}
 
         if filter_name == 'instances' or filter_name == 'all':
@@ -99,4 +100,4 @@ class SearchFilterView(APIView):
         return [('Diários Oficiais','diarios'), ('Diários Segmentados', 'diarios_segmentado'), ('Processos','processos'), ('Licitações','licitacoes')]
 
     def _get_instances(self):
-        return ['Belo Horizonte', 'Uberlândia', 'São Lourenço', 'Minas Gerais', 'Ipatinga', 'Associação Mineira de Municípios', 'Governador Valadares', 'Uberaba', 'Araguari', 'Poços de Caldas', 'Varginha', 'Tribunal Regional Federal da 2ª Região - TRF2','Obras TCE']
+        return ['Belo Horizonte', 'Uberlândia', 'São Lourenço', 'Minas Gerais', 'Ipatinga', 'Associação Mineira de Municípios', 'Governador Valadares', 'Uberaba', 'Araguari', 'Poços de Caldas', 'Varginha', 'Tribunal Regional Federal da 2ª Região - TRF2', 'Obras TCE']

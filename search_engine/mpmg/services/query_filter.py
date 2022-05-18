@@ -1,5 +1,15 @@
 from .elastic import Elastic
+from datetime import datetime
 
+INVALID_VALS = [[''], [], '', None, [None]]
+
+def parse_date(text):
+    for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
+        try:
+            return datetime.strptime(text, fmt)
+        except ValueError:
+            pass
+    raise ValueError('no valid date format found')
 
 class QueryFilter:
     '''
@@ -17,39 +27,46 @@ class QueryFilter:
         self.start_date = start_date
         self.end_date = end_date
         self.entity_filter = entity_filter
-        if self.instances == [] or self.instances == None or self.instances == "":
-            self.instances = [] 
-        if self.doc_types == [] or self.doc_types == None or self.doc_types == "":
-            self.doc_types = [] 
-        if self.start_date == "":
-            self.start_date = None
-        if self.end_date == "":
-            self.end_date = None
         
+        if self.instances in INVALID_VALS:
+            self.instances = [] 
+        
+        if self.doc_types in INVALID_VALS:
+            self.doc_types = [] 
+        
+        if self.start_date in INVALID_VALS:
+            self.start_date = None
+        
+        if self.end_date in INVALID_VALS:
+            self.end_date = None
     
     @staticmethod
     def create_from_request(request):
         '''
         Cria uma instância desta classe lendo diretamente os parâmetros do request
         '''
-        instances = request.GET.getlist('filter_instances', [])
-        start_date = request.GET.get('filter_start_date', None)
-        end_date = request.GET.get('filter_end_date', None)
-        doc_types = request.GET.getlist('filter_doc_types', [])
+        instances = request.GET.getlist('filtro_instancias', [])
+        start_date = request.GET.get('filtro_data_inicio', None)
+        end_date = request.GET.get('filtro_data_fim', None)
+        doc_types = request.GET.getlist('filtro_tipos_documentos', [])
 
+        entidade_pessoa_filter = request.GET.getlist('filtro_entidade_pessoa', [])
+        entidade_municipio_filter = request.GET.getlist('filtro_entidade_municipio', [])
+        entidade_organizacao_filter = request.GET.getlist('filtro_entidade_organizacao', [])
+        entidade_local_filter = request.GET.getlist('filtro_entidade_local', [])
         
-        entidade_pessoa_filter = request.GET.getlist('filter_entidade_pessoa', [])
-        entidade_municipio_filter = request.GET.getlist('filter_entidade_municipio', [])
-        entidade_organizacao_filter = request.GET.getlist('filter_entidade_organizacao', [])
-        entidade_local_filter = request.GET.getlist('filter_entidade_local', [])
         filter_entities_selected = {}
-        if len(entidade_pessoa_filter) > 0:
+
+        if entidade_pessoa_filter not in INVALID_VALS:
             filter_entities_selected['entidade_pessoa'] = entidade_pessoa_filter
-        if len(entidade_municipio_filter) > 0:
+
+        if entidade_municipio_filter not in INVALID_VALS:
             filter_entities_selected['entidade_municipio'] = entidade_municipio_filter
-        if len(entidade_organizacao_filter) > 0:
+        
+        if entidade_organizacao_filter not in INVALID_VALS:
             filter_entities_selected['entidade_organizacao'] = entidade_organizacao_filter
-        if len(entidade_local_filter) > 0:
+        
+        if entidade_local_filter not in INVALID_VALS:
             filter_entities_selected['entidade_local'] = entidade_local_filter
 
         return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected)
@@ -62,18 +79,25 @@ class QueryFilter:
         '''
 
         filters_queries = []
-        if self.instances != None and self.instances != []:
+        if self.instances not in INVALID_VALS:
             filters_queries.append(
                 Elastic().dsl.Q({'terms': {'instancia.keyword': self.instances}})
             )
-        if self.start_date != None and self.start_date != "":
+
+        if self.start_date not in INVALID_VALS:
+            start_date = parse_date(self.start_date)
+
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'gte': self.start_date }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'gte': start_date.timestamp() }}})
             )
-        if self.end_date != None and self.end_date != "":
+
+        if self.end_date not in INVALID_VALS:
+            end_date = parse_date(self.end_date)
+
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data': {'lte': self.end_date }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'lte': end_date.timestamp() }}})
             )
+
         for entity_field_name in self.entity_filter.keys():
             for entity_name in self.entity_filter[entity_field_name]:
                 filters_queries.append(

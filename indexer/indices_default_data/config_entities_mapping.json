@@ -1,0 +1,15 @@
+{
+    "data": [
+        {"id": 1,  "body": {"entity_type": "PESSOA",               "field_name": "entidade_pessoa"}},
+        {"id": 2,  "body": {"entity_type": "ORGANIZACAO",          "field_name": "entidade_organizacao"}},
+        {"id": 3,  "body": {"entity_type": "LOCAL",                "field_name": "entidade_local"}},
+        {"id": 4,  "body": {"entity_type": "TEMPO",                "field_name": "entidade_tempo"}},
+        {"id": 5,  "body": {"entity_type": "LEGISLACAO",           "field_name": "entidade_legislacao"}},
+        {"id": 6,  "body": {"entity_type": "JURISPRUDENCIA",       "field_name": "entidade_jurisprudencia"}},
+        {"id": 7,  "body": {"entity_type": "CPF",                  "field_name": "entidade_cpf"}},
+        {"id": 8,  "body": {"entity_type": "CNPJ",                 "field_name": "entidade_cnpj"}},
+        {"id": 9,  "body": {"entity_type": "CEP",                  "field_name": "entidade_cep"}},
+        {"id": 10, "body": {"entity_type": "MUNICIPIO",            "field_name": "entidade_municipio"}},
+        {"id": 11, "body": {"entity_type": "NUM_LICIT_OU_MODALID", "field_name": "entidade_processo_licitacao"}}
+    ]
+}

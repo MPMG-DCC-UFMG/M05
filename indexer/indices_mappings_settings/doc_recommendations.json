@@ -1,0 +1,58 @@
+{
+    "mappings" : {
+        "properties" : {
+            "aprovado" : {
+                "type" : "boolean"
+            },
+            "data_criacao" : {
+                "type" : "date"
+            },
+            "data_visualizacao" : {
+                "type" : "date"
+            },
+            "evidencia_id_doc" : {
+                "type" : "text"
+            },
+            "evidencia_indice_doc" : {
+                "type" : "text"
+            },
+            "evidencia_titulo_doc" : {
+                "type" : "text"
+            },
+            "evidencia_texto_consulta" : {
+                "type" : "text"
+            },
+            "evidencia" : {
+                "type" : "text"
+            },
+            "id_notificacao" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword"
+                    }
+                }
+            },
+            "id_doc_recomendado" : {
+                "type" : "text"
+            },
+            "indice_doc_recomendado" : {
+                "type" : "text"
+            },
+            "titulo_doc_recomendado" : {
+                "type" : "text"
+            },
+            "similaridade" : {
+                "type" : "float"
+            },
+            "id_usuario" : {
+                "type" : "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        }
+    }
+}

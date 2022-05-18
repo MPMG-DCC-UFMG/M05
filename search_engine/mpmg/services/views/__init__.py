@@ -10,3 +10,9 @@ from .search_comparison import *
 from .search_comparison_entity import *
 from .document_navigation import *
 from .conf_rec_entitties import *
+from .bookmark_folder import *
+from .bookmark import *
+from .notification import *
+from .document_recommendation import *
+from .config_recommendation_evidence import *
+from .config_recommendation_source import *

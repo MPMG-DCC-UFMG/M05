@@ -191,7 +191,7 @@ com o parâmetro acima. Aqui listamos todos os campos que devem ser
 retornados, alguns não fazem parte da busca, mas contém informações
 que precisam ser recuperadas.
 '''
-RETRIEVABLE_FIELDS = ['fonte', 'titulo', 'conteudo', 'entidade_pessoa', 'entidade_organizacao', 'entidade_municipio', 'entidade_local', 'embedding_vector']
+RETRIEVABLE_FIELDS = ['fonte', 'titulo', 'conteudo', 'entidade_pessoa', 'entidade_organizacao', 'entidade_municipio', 'entidade_local', 'embedding']
 
 
 '''
@@ -227,3 +227,13 @@ ENTITY_TYPE_TO_INDEX_FIELD = {
 
 
 USE_ENTITIES_IN_SEARCH = False
+
+'''
+Nome padrão da pasta de favoritos do usuário
+'''
+DEFAULT_BOOKMARK_FOLDER_NAME = 'Favoritos'
+
+'''
+Nome do índice de bookmarks
+'''
+BOOKMARK_INDEX = 'bookmark'

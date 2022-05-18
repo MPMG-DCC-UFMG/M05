@@ -1,34 +1,8 @@
 {% extends "./_base.html" %}
 {% load aduna_extras %}
+{% load static %}
+
 {% block content %}
-    <header>
-        <nav class="searchbar navbar navbar-expand-md navbar-light bg-light">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'aduna:index' %}">Áduna</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <form action="{% url 'aduna:search' %}" method="GET" class="form-inline mt-2 mt-md-0">
-                        <input id="query" name="query" class="form-control mr-sm-2" type="text" placeholder="Sua consulta aqui..." aria-label="Consulta" value="{{ query }}" oninvalid="setCustomValidity('A consulta requer pelo menos 2 caracteres não vazios.')" oninput="setCustomValidity('')" required pattern="\s*(\S\s*){2,}" autofocus>
-                        <button class="btn btn-primary my-2 my-sm-0" type="submit">Pesquisar</button>
-                        <input type="hidden" name="sid" id="sid" value="{{ sid }}">
-                    </form>
-                </div>
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-user"></i>
-                            {{ user_name }}
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="dropdown07">
-                            <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
@@ -36,20 +10,20 @@
                 <div class="filter-box">
                     <p class="h5">Filtros</p>
                     <form action="{% url 'aduna:search' %}" method="GET">
-                        <input type="hidden" name="query" id="query" value="{{ query }}">
+                        <input type="hidden" name="consulta" id="query" value="{{ query }}">
                         <div class="form-group">
                             <label class="control-label mb-0">Data inicial:</label> 
                             <input type="text" id="filter_start_date_display" class="form-control border-secondary" value="{{ filter_start_date|date:'d/m/Y' }}" autocomplete="off">
-                            <input type="hidden", name="filter_start_date", id="filter_start_date" value="{{ filter_start_date|date:'Y-m-d' }}">
+                            <input type="hidden", name="filtro_data_inicio", id="filter_start_date" value="{{ filter_start_date|date:'Y-m-d' }}">
                         </div>    
                         <div class="form-group">
                             <label class="control-label mb-0">Data final:</label>
                             <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
-                            <input type="hidden", name="filter_end_date", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
+                            <input type="hidden", name="filtro_data_fim", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
                         </div>
                         <div class="form-group">
                             <label class="control-label mb-0">Instância:</label>
-                            <select id="filter_instances" name="filter_instances" multiple="multiple">
+                            <select id="filter_instances" name="filtro_instancias" multiple="multiple">
                                 {% for item in filter_instances_list %}
                                     <option value="{{ item }}" {% if item in filter_instances %}selected="selected"{% endif %}>
                                     {{ item }}
@@ -59,7 +33,7 @@
                         </div>
                         <div class="form-group">
                             <label class="control-label mb-0">Tipo de documento:</label>
-                            <select id="filter_doc_types" name="filter_doc_types" multiple="multiple">
+                            <select id="filter_doc_types" name="filtro_tipos_documentos" multiple="multiple">
                                 {% for name, value in filter_doc_types_list %}
                                     <option value="{{ value }}" style="text-transform: capitalize;" {% if value in filter_doc_types %}selected="selected"{% endif %}>
                                     {{ name }}
@@ -134,9 +108,14 @@
                     <div id="results-container" data-executed-query="{{ query }}">
                     {% for doc in documents %}
                         <div class="result-item">
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type doc.id %}?query={{ query }}{{ filter_url }}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" >{{ doc.titulo }}</a></h3>
+                            <h3>
+                                <a class="result-link" href="{% url 'aduna:document' doc.tipo doc.id %}?consulta={{ query }}{{ filter_url }}"
+                                    data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.tipo }}">
+                                    {{doc.titulo }}
+                                </a>
+                            </h3>
                             <div class="result-description">
-                                {{ doc.description|safe }}
+                                {{ doc.descricao|safe }}
                             </div>
                             <div class="source-description">
                                 Fonte: {{ doc.fonte }}
@@ -152,26 +131,26 @@
                         {% else %}
                             <li class="page-item">
                         {% endif %}
-                            <a class="page-link" href="{% url 'aduna:search' %}?query={{ query }}&page={{ page|add:'-1' }}&sid={{ sid }}&qid={{ qid }}" tabindex="-1" aria-disabled="true">Previous</a>
+                            <a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:'-1' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}" tabindex="-1" aria-disabled="true">Previous</a>
                         </li>
                         {% for _ in results_pagination_bar %}
                             {% if page < 6  %}
                                 {% if forloop.counter == page %}
                                 <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ forloop.counter }}</a></li>
                                 {% else %}
-                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?query={{ query }}&page={{ forloop.counter }}&sid={{ sid }}&qid={{ qid }}">{{ forloop.counter }}</a></li>
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ forloop.counter }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ forloop.counter }}</a></li>
                                 {% endif %}
                             {% elif page > total_pages|add:'-5'%}
                                 {% if total_pages|add:forloop.counter|subtract:results_pagination_bar == page %}
                                 <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
                                 {% else %}
-                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?query={{ query }}&page={{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}&sid={{ sid }}&qid={{ qid }}">{{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}</a></li>
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}</a></li>
                                 {% endif %}
                             {% else %} 
                                 {% if forloop.counter == 5 %}
                                 <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
                                 {% else %}
-                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?query={{ query }}&page={{ page|add:forloop.counter|add:'-5' }}&sid={{ sid }}&qid={{ qid }}">{{ page|add:forloop.counter|add:'-5' }}</a></li>
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:forloop.counter|add:'-5' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ page|add:forloop.counter|add:'-5' }}</a></li>
                                 {% endif %}
                             {% endif %}
                         {% endfor %}
@@ -180,7 +159,7 @@
                         {% else %}
                             <li class="page-item">
                         {% endif %}
-                            <a class="page-link" href="{% url 'aduna:search' %}?query={{ query }}&page={{ page|add:'1' }}&sid={{ sid }}&qid={{ qid }}">Next</a>
+                            <a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:'1' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">Next</a>
                         </li>
                         </ul>
                     </nav>
@@ -223,5 +202,10 @@
         SERVICES_URL = "{{ services_url }}";
         QID = "{{ qid }}";
         PAGE = "{{ page }}";
+        USER_ID = "{{ user_id }}";
     </script>
+{% endblock %}
+
+{% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
 {% endblock %}

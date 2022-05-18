@@ -1,14 +1,20 @@
-import time
-from datetime import datetime, timedelta
+import hashlib
 import random
 import string
-import hashlib
+import time
+from datetime import datetime, timedelta
+
+from django.contrib.auth.models import User
+from mpmg.services.models import (LogSearch, LogSearchClick,
+                                  LogSugestoes)
+from mpmg.services.query import Query
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from mpmg.services.models import LogSearch, LogSearchClick, LogSugestoes, Document
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from ..docstring_schema import AutoDocstringSchema
+from ..elastic import Elastic
 
 
 class LogSearchView(APIView):
@@ -61,10 +67,8 @@ class LogSearchView(APIView):
             data_final=request.POST['data_final'],
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        # FIXME: Retorna o status HTTP correto
+        return Response({"success": len(response[1]) == 0})
 
 
 class LogSearchClickView(APIView):
@@ -77,32 +81,36 @@ class LogSearchClickView(APIView):
             schema:
               type: object
               properties:
-                item_id:
+                id_usuario: 
+                  description: ID do usuário que clicou no item
+                  type: string
+                id_documento:
                   description: ID do documento clicado
                   type: string
                 qid:
                   description: ID da consulta executada (É sempre retornado pelo método search)
                   type: string
-                rank_number:
+                posicao:
                   description: Posição do documento clicado na lista de documentos retornados
                   type: integer
-                item_type:
+                tipo_documento:
                   description: Tipo do documento clicado
                   type: string
                   enum:
                   - diarios
                   - processos
                   - licitacoes
-                page:
+                pagina:
                   description: Número da página onde estava o documento
                   type: integer
                   minimum: 1
               required:
-                - item_id
+                - id_usuario
+                - id_documento
                 - qid
-                - rank_number
-                - item_type
-                - page
+                - posicao
+                - tipo_documento
+                - pagina
 
     '''
 
@@ -120,19 +128,19 @@ class LogSearchClickView(APIView):
     '''
 
     def post(self, request):
+
         response = LogSearchClick().save(dict(
-            id_documento=request.POST['item_id'],
+            id_usuario=request.POST['id_usuario'],
+            id_documento=request.POST['id_documento'],
             id_consulta=request.POST['qid'],
-            posicao=request.POST['rank_number'],
-            tipo_documento=request.POST['item_type'],
-            pagina=request.POST['page'],
+            posicao=request.POST['posicao'],
+            tipo_documento=request.POST['tipo_documento'],
+            pagina=request.POST['pagina'],
+            # FIXME: Usar método padronizado para obter timestamp
             timestamp=int(time.time() * 1000),
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        return Response({"success": len(response[1]) == 0})
 
 
 class LogQuerySuggestionView(APIView):
@@ -154,42 +162,36 @@ class LogQuerySuggestionClickView(APIView):
             schema:
               type: object
               properties:
-                suggestion:
+                sugestao:
                   description: Texto da sugestão clicada
                   type: string
-                rank_number:
+                posicao:
                   description: Posição da sugestão clicada na lista de sugestões
                   type: integer
                   minimum: 1
               required:
-                - suggestion
-                - rank_number
+                - sugestao
+                - posicao
     '''
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
     def post(self, request):
+        # FIXME: Criar método padronizado para obter timestamp
         timestamp = int(time.time() * 1000)
-        rank_number = request.POST.get('rank_number', None)
-        suggestion = request.POST.get('suggestion', None)
-        
+
+        posicao = request.POST.get('posicao', None)
+        sugestao = request.POST.get('sugestao', None)
+
         response = LogSugestoes().save(dict(
-            sugestao = suggestion,
-            posicao = rank_number,
-            timestamp = timestamp
+            sugestao=sugestao,
+            posicao=posicao,
+            timestamp=timestamp
         ))
 
-        if len(response[1]) == 0:
-            return Response({"success": True})
-        else:
-            return Response({"success": False})
+        return Response({"success": len(response[1]) == 0})
 
 
-   
-
-from django.contrib.auth.models import User
-from ..elastic import Elastic
-from mpmg.services.query import Query
 class LogDataGeneratorView():
     '''
     Entre no shell do django: 
@@ -201,12 +203,13 @@ class LogDataGeneratorView():
     '''
 
     def generate(self, start_date, end_date):
-        MAX_USERS = 10
         MAX_QUERIES_PER_DAY = 50
-        POSSIBLE_QUERIES = ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros', 'Ribeirão das Neves', 'Uberaba', 'Governador Valadares', 'Ipatinga', 'Sete Lagoas', 'Divinópolis', 'Santa Luzia', 'Ibirité', 'Poços de Caldas', 'Patos de Minas', 'Pouso Alegre', 'Teófilo Otoni', 'Barbacena', 'Sabará', 'Varginha', 'Conselheiro Lafaiete', 'Vespasiano', 'Itabira', 'Araguari', 'Ubá', 'Passos', 'Coronel Fabriciano', 'Muriaé', 'Araxá', 'Ituiutaba', 'Lavras', 'Nova Serrana', 'Itajubá', 'Nova Lima', 'Pará de Minas', 'Itaúna', 'Paracatu', 'Caratinga', 'Patrocínio', 'Manhuaçu', 'São João del Rei', 'Timóteo', 'Unaí', 'Curvelo', 'Alfenas', 'João Monlevade', 'Três Corações', 'Viçosa', 'Cataguases', 'Ouro Preto', 'Janaúba', 'São Sebastião do Paraíso', 'Esmeraldas', 'Januária', 'Formiga', 'Lagoa Santa', 'Pedro Leopoldo', 'Mariana', 'Ponte Nova', 'Frutal', 'Três Pontas', 'Pirapora', 'São Francisco', 'Congonhas', 'Campo Belo', 'Leopoldina', 'Lagoa da Prata', 'Guaxupé', 'Itabirito', 'Bom Despacho', 'Bocaiúva', 'Monte Carmelo', 'Diamantina', 'João Pinheiro', 'Santos Dumont', 'São Lourenço', 'Caeté', 'Santa Rita do Sapucaí', 'Igarapé', 'Visconde do Rio Branco', 'Machado', 'Almenara', 'Oliveira', 'Salinas', 'Andradas', 'Nanuque', 'Boa Esperança', 'Brumadinho', 'Arcos', 'Ouro Branco', 'Várzea da Palma', 'Iturama', 'Jaíba', 'Porteirinha', 'Matozinhos', 'Capelinha', 'Araçuaí', 'Extrema', 'São Gotardo',]
+        POSSIBLE_QUERIES = ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros', 'Ribeirão das Neves', 'Uberaba', 'Governador Valadares', 'Ipatinga', 'Sete Lagoas', 'Divinópolis', 'Santa Luzia', 'Ibirité', 'Poços de Caldas', 'Patos de Minas', 'Pouso Alegre', 'Teófilo Otoni', 'Barbacena', 'Sabará', 'Varginha', 'Conselheiro Lafaiete', 'Vespasiano', 'Itabira', 'Araguari', 'Ubá', 'Passos', 'Coronel Fabriciano', 'Muriaé', 'Araxá', 'Ituiutaba', 'Lavras', 'Nova Serrana', 'Itajubá', 'Nova Lima', 'Pará de Minas', 'Itaúna', 'Paracatu', 'Caratinga', 'Patrocínio', 'Manhuaçu', 'São João del Rei', 'Timóteo', 'Unaí', 'Curvelo', 'Alfenas', 'João Monlevade', 'Três Corações', 'Viçosa', 'Cataguases',
+                            'Ouro Preto', 'Janaúba', 'São Sebastião do Paraíso', 'Esmeraldas', 'Januária', 'Formiga', 'Lagoa Santa', 'Pedro Leopoldo', 'Mariana', 'Ponte Nova', 'Frutal', 'Três Pontas', 'Pirapora', 'São Francisco', 'Congonhas', 'Campo Belo', 'Leopoldina', 'Lagoa da Prata', 'Guaxupé', 'Itabirito', 'Bom Despacho', 'Bocaiúva', 'Monte Carmelo', 'Diamantina', 'João Pinheiro', 'Santos Dumont', 'São Lourenço', 'Caeté', 'Santa Rita do Sapucaí', 'Igarapé', 'Visconde do Rio Branco', 'Machado', 'Almenara', 'Oliveira', 'Salinas', 'Andradas', 'Nanuque', 'Boa Esperança', 'Brumadinho', 'Arcos', 'Ouro Branco', 'Várzea da Palma', 'Iturama', 'Jaíba', 'Porteirinha', 'Matozinhos', 'Capelinha', 'Araçuaí', 'Extrema', 'São Gotardo', ]
+
         start_date = datetime.strptime(start_date, '%d/%m/%Y')
         end_date = datetime.strptime(end_date, '%d/%m/%Y')
-        document = Document()
+
         user_ids = []
         for user in User.objects.all():
             user_ids.append(user.id)
@@ -214,27 +217,30 @@ class LogDataGeneratorView():
         # num_days = (start_date - end_date).days
         current_date = start_date
         while current_date < end_date:
-            current_timestamp = int(datetime(year=current_date.year, month=current_date.month, day=current_date.day).timestamp() * 1000)
-            
+            current_timestamp = int(datetime(
+                year=current_date.year, month=current_date.month, day=current_date.day).timestamp() * 1000)
+
             # queries of the day
             num_queries = random.randrange(MAX_QUERIES_PER_DAY)
             day_queries = random.sample(POSSIBLE_QUERIES, num_queries)
 
             # add some random weird queries (to make sure we dont get results)
-            num_weird_queries = int(num_queries * random.random()) # the number is based on the number of normal queries
-            num_words = random.randrange(2) + 1 # up to 3 words
+            # the number is based on the number of normal queries
+            num_weird_queries = int(num_queries * random.random())
+            num_words = random.randrange(2) + 1  # up to 3 words
             for q in range(num_weird_queries):
                 weird_query = []
                 for w in range(num_words+1):
-                    word_length = random.randrange(6) + 4 # from 4 to 10 words' length
+                    # from 4 to 10 words' length
+                    word_length = random.randrange(6) + 4
                     letters = string.ascii_lowercase
-                    weird_query.append(''.join(random.choice(letters) for i in range(word_length)))
+                    weird_query.append(''.join(random.choice(letters)
+                                       for i in range(word_length)))
                 weird_query = ' '.join(weird_query)
                 day_queries.append(weird_query)
             # shuffle normal and weird queries
             random.shuffle(day_queries)
 
-            
             print(current_date, num_queries)
 
             # execute queries
@@ -243,30 +249,31 @@ class LogDataGeneratorView():
                 sid = random.getrandbits(128)
                 id_usuario = random.sample(user_ids, 1)[0]
 
-                query_timestamp = current_timestamp + random.randrange(60*60*23)*1000, # add some hours and minutes
-                query_timestamp = query_timestamp[0] # I dont know why, the operation above returns a tuple
+                query_timestamp = current_timestamp + \
+                    random.randrange(60*60*23) * \
+                    1000  # add some hours and minutes
+                query_timestamp = query_timestamp
 
                 qid = hashlib.sha1()
-                qid.update(bytes(str(query_timestamp) + str(id_usuario) + q + str(sid), encoding='utf-8'))
+                qid.update(bytes(str(query_timestamp) +
+                           str(id_usuario) + q + str(sid), encoding='utf-8'))
                 qid = qid.hexdigest()
 
                 try:
-                    query_obj = Query(q,1,qid,sid,id_usuario, use_entities=False)
+                    query_obj = Query(
+                        q, 1, qid, sid, id_usuario, use_entities=False)
                     query_obj.data_hora = query_timestamp
                     total_docs, total_pages, documents, took = query_obj.execute()
                 except:
                     print('ERRO:', current_date, q)
                     continue
-                
-
 
                 # result click
                 num_clicks = 0
                 if len(documents) > 0:
-                    # clicked = random.choices([True, False], [click_prob, 1])
-                    # clicked = clicked[0]
-                    # clicked = random.choice([True, False])
-                    num_clicks = random.choices([0,1,2,3,4], [5, 5, 1, 1, 1])
+                    num_clicks = random.choices(
+                        [0, 1, 2, 3, 4], [5, 5, 1, 1, 1])
+
                     for _ in range(num_clicks[0]):
                         clicked_doc = random.sample(documents, 1)
                         clicked_doc = clicked_doc[0]
@@ -274,21 +281,24 @@ class LogDataGeneratorView():
                         LogSearchClick().save(dict(
                             id_documento=clicked_doc.id,
                             id_consulta=qid,
-                            posicao=clicked_doc.rank_number,
+                            posicao=clicked_doc.posicao,
                             tipo_documento=clicked_doc.type,
                             pagina=1,
-                            timestamp=(query_timestamp + random.randrange(60)*1000) # up to one minute to click in the result
+                            # up to one minute to click in the result
+                            timestamp=(query_timestamp + \
+                                       random.randrange(60)*1000)
                         ))
-                
-                print(qid, q, 'vazio:',len(documents)==0, 'clicks:', num_clicks)
-            
+
+                print(qid, q, 'vazio:', len(documents)
+                      == 0, 'clicks:', num_clicks)
+
             current_date = current_date + timedelta(days=1)
         print('Finished')
-    
+
     def clear_logs(self):
         elastic = Elastic()
         s = elastic.dsl.Search(using=elastic.es, index=['log_buscas', 'log_clicks'])\
             .update_from_dict({"query": {"match_all": {}}})
-        
+
         response = s.delete()
         print(response)

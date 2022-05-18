@@ -1,11 +1,12 @@
 #!/bin/sh
 
+python create_or_update_indices.py -force_creation all;
+
 python elastic_indexer.py -strategy simple -index licitacoes -d indices-sample/licitacoes -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index processos -d indices-sample/processos -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index diarios_segmentado -d indices-sample/diarios_segmentado -model_path prajjwal1/bert-tiny;
 
-python create_mappings.py;
 
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":true}}' http://localhost:9200/diarios/_settings;
 curl -XPOST http://localhost:9200/diarios/_clone/diarios-replica;

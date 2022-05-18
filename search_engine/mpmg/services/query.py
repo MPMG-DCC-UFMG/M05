@@ -39,7 +39,7 @@ class Query:
         self.user_id = user_id
         self.group = group
         self.query_filter = query_filter
-        self.data_hora = int(time.time()*1000)
+        self.data_criacao = int(time.time()*1000)
         self.use_entities = APIConfig.identify_entities_in_query()
         self.results_per_page =  APIConfig.results_per_page()
         self.weighted_fields = APIConfig.searchable_fields()
@@ -74,6 +74,7 @@ class Query:
             entities = NER().execute(self.raw_query)
             entities_fields = list(entities.keys())
             return entities, entities_fields
+
         else:
             return {}, []
 
@@ -87,7 +88,7 @@ class Query:
         '''
         if not self.qid:
             pre_qid = hashlib.sha1()
-            pre_qid.update(bytes(str(self.data_hora) + str(self.user_id) + self.query + self.sid, encoding='utf-8'))
+            pre_qid.update(bytes(str(self.data_criacao) + str(self.user_id) + self.query + self.sid, encoding='utf-8'))
             self.qid = pre_qid.hexdigest()
 
 
@@ -135,8 +136,11 @@ class Query:
     def execute(self):
         '''
         Executa a consulta no ElasticSearch.
+        
         A consulta é construida considerando clásulas MUST, SHOULD e filtros selecionados pelo usuário.
+        
         Além de executar a consulta é gravado o log com dados da execução da consulta.
+        
         Também é gerado dinamicamente as opções para o filtro de entidades, que nesta primeira versão é 
         computado baseado nos documentos retornados pela consulta.
 
@@ -149,11 +153,11 @@ class Query:
         '''
         must_clause = self._get_must_clause()
         should_clause = self._get_should_clause()
-        filter_clause = self.query_filter.get_filters_clause()
+        filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
         
         self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
-
+        
         self._log()
 
         return self.total_docs, self.total_pages, self.documents, self.response_time
@@ -169,10 +173,11 @@ class Query:
             id_sessao = self.sid,
             id_consulta = self.qid,
             id_usuario = self.user_id,
-            text_consulta = self.query,
-            data_hora = self.data_hora,
+            texto_consulta = self.query,
+            data_criacao = self.data_criacao,
             tempo_resposta = self.response_time,
-            documentos = [ i['type']+':'+i['id'] for i in sorted(self.documents, key = lambda x: x['rank_number']) ],
+            documentos=[i['tipo']+':'+i['id']
+                        for i in sorted(self.documents, key=lambda x: x['posicao_ranking'])],
             pagina = self.page,
             resultados_por_pagina = self.results_per_page,
             tempo_resposta_total = time.time() - self.start_time,
@@ -183,9 +188,9 @@ class Query:
 
             campos_ponderados = self.weighted_fields,
 
-            instancias =  self.query_filter.instances,
-            data_inicial = self.query_filter.start_date,
-            data_final = self.query_filter.end_date,
+            instancias =  self.query_filter.instances if self.query_filter != None else [],
+            data_inicial = self.query_filter.start_date if self.query_filter != None else '',
+            data_final = self.query_filter.end_date if self.query_filter != None else '',
 
             filtros = {} if self.query_filter is None else self.query_filter.get_representation()
 

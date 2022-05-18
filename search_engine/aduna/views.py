@@ -1,12 +1,9 @@
 import re
 import requests
+import time
 from datetime import datetime
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, response
 from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from collections import defaultdict
 
@@ -16,10 +13,12 @@ def index(request):
         return redirect('/aduna/login')
     
     context = {
+        'user_id': request.session.get('user_info')['user_id'],
         'user_name': request.session.get('user_info')['first_name'],
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
     }
+    
     return render(request, 'aduna/index.html', context)
 
 
@@ -30,34 +29,41 @@ def search(request):
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
     sid = request.session.session_key
-    query = request.GET['query']
+    query = request.GET['consulta']
     qid = request.GET.get('qid', '')
-    page = int(request.GET.get('page', 1))
-    filter_instances = request.GET.getlist('filter_instances', [])
-    filter_doc_types = request.GET.getlist('filter_doc_types', [])
-    filter_start_date = request.GET.get('filter_start_date', None)
+    page = int(request.GET.get('pagina', 1))
+    
+    filter_instances = request.GET.getlist('filtro_instancias', [])
+    filter_doc_types = request.GET.getlist('filtro_tipos_documentos', [])
+
+    filter_start_date = request.GET.get('filtro_data_inicio', None)
     if filter_start_date == "":
         filter_start_date = None
-    filter_end_date = request.GET.get('filter_end_date', None)
+    
+    filter_end_date = request.GET.get('filtro_data_fim', None)
     if filter_end_date == "":
         filter_end_date = None
-    filter_entidade_pessoa = request.GET.getlist('filter_entidade_pessoa', [])
-    filter_entidade_municipio = request.GET.getlist('filter_entidade_municipio', [])
-    filter_entidade_organizacao = request.GET.getlist('filter_entidade_organizacao', [])
-    filter_entidade_local = request.GET.getlist('filter_entidade_local', [])
+
+    filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
+    filter_entidade_municipio = request.GET.getlist('filtro_entidade_municipio', [])
+    filter_entidade_organizacao = request.GET.getlist('filtro_entidade_organizacao', [])
+    filter_entidade_local = request.GET.getlist('filtro_entidade_local', [])
 
     # busca as opções do filtro
     params = {
-        'query': query, 
-        'filter_instances': filter_instances, 
-        'filter_doc_types': filter_doc_types,
-        'filter_start_date': filter_start_date,
-        'filter_end_date': filter_end_date,
-        'filter_entidade_pessoa': filter_entidade_pessoa,
-        'filter_entidade_municipio': filter_entidade_municipio,
-        'filter_entidade_organizacao': filter_entidade_organizacao,
-        'filter_entidade_local': filter_entidade_local,
+        'consulta': query, 
+        'filtro_instancias': filter_instances, 
+        'filtro_tipos_documentos': filter_doc_types,
+        'filtro_data_inicio': filter_start_date,
+        'filtro_data_fim': filter_end_date,
+        'filtro_entidade_pessoa': filter_entidade_pessoa,
+        'filtro_entidade_municipio': filter_entidade_municipio,
+        'filtro_entidade_organizacao': filter_entidade_organizacao,
+        'filtro_entidade_local': filter_entidade_local,
     }
+
+    print(params)
+
     filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
     filter_content = filter_response.json()
     filter_instances_list = filter_content['instances']
@@ -95,19 +101,20 @@ def search(request):
 
     # faz a busca
     params = {
-        'query': query, 
-        'page': page, 
+        'consulta': query, 
+        'pagina': page, 
         'sid': sid, 
         'qid': qid, 
-        'filter_instances': filter_instances, 
-        'filter_doc_types': filter_doc_types,
-        'filter_start_date': filter_start_date,
-        'filter_end_date': filter_end_date,
-        'filter_entidade_pessoa': filter_entidade_pessoa,
-        'filter_entidade_municipio': filter_entidade_municipio,
-        'filter_entidade_organizacao': filter_entidade_organizacao,
-        'filter_entidade_local': filter_entidade_local,
+        'filtro_instancias': filter_instances, 
+        'filtro_tipos_documentos': filter_doc_types,
+        'filtro_data_inicio': filter_start_date,
+        'filtro_data_fim': filter_end_date,
+        'filtro_entidade_pessoa': filter_entidade_pessoa,
+        'filtro_entidade_municipio': filter_entidade_municipio,
+        'filtro_entidade_organizacao': filter_entidade_organizacao,
+        'filtro_entidade_local': filter_entidade_local,
     }
+
     service_response = requests.get(settings.SERVICES_URL+'search', params, headers=headers)
     response_content = service_response.json()
 
@@ -121,9 +128,25 @@ def search(request):
         return redirect('/aduna/login')
 
     else:
+        # criar automaticamente o filter_urls a partir de params
+        ignore_keys = {'consulta', 'pagina', 'sid', 'qid'}
+
+        filter_url = ''
+        for key, val in params.items():
+            if key in ignore_keys:
+                continue
+
+            filter_item = f'&{key}='
+            if type(val) is list:
+                filter_url += filter_item + filter_item.join(val)
+
+            else:
+                filter_url += filter_item + val if val else filter_item 
+
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -148,41 +171,41 @@ def search(request):
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,
             'filter_entidade_local': filter_entidade_local,
-            'filter_url': '&pessoa='+'&pessoa='.join(filter_entidade_pessoa)+'&municipio='+'&municipio='.join(filter_entidade_municipio)+'&organizacao='+'&organizacao='.join(filter_entidade_organizacao)+'&local='+'&local='.join(filter_entidade_local)
+            'filter_url': filter_url
         }
         
         return render(request, 'aduna/search.html', context)
     
 
-def document(request, doc_type, doc_id):
+def document(request, tipo_documento, id_documento):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
     
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
     sid = request.session.session_key
-    service_response = requests.get(settings.SERVICES_URL+'document', {'doc_type': doc_type, 'doc_id': doc_id}, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+'document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
 
     if service_response.status_code == 401:
         request.session['auth_token'] = None
         request.session['user_info'] = None
         return redirect('/aduna/login')
     else:
-        query = request.GET['query']
+        query = request.GET.get('query', '')
         pessoa_filter = request.GET.getlist('pessoa', [])
         municipio_filter = request.GET.getlist('municipio', [])
         organizacao_filter = request.GET.getlist('organizacao', [])
         local_filter = request.GET.getlist('local', [])
 
-        if '_segmentado' in doc_type:
+        if '_segmentado' in tipo_documento:
             # requisita a estrutura de navegação do documento, para criar um índice lateral na página
             nav_params = {
-                'doc_type': doc_type, 
-                'doc_id': doc_id, 
-                'query':query,
-                'pessoa_filter': pessoa_filter,
-                'municipio_filter': municipio_filter,
-                'organizacao_filter': organizacao_filter,
-                'local_filter': local_filter,
+                'tipo_documento': tipo_documento, 
+                'id_documento': id_documento, 
+                'consulta':query,
+                'filtro_entidade_pessoa': pessoa_filter,
+                'filtro_entidade_municipio': municipio_filter,
+                'filtro_entidade_organizacao': organizacao_filter,
+                'filtro_local': local_filter,
                 }
             nav_response = requests.get(settings.SERVICES_URL+'document_navigation', nav_params, headers=headers)
             navigation = nav_response.json()['navigation']
@@ -192,20 +215,32 @@ def document(request, doc_type, doc_id):
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
                 'document': response_content['document'],
-                'navigation': navigation
+                'navigation': navigation,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
             }
             return render(request, 'aduna/document_segmented.html', context)
+
         else:
             response_content = service_response.json()
             document = response_content['document']
+            document['titulo'] = document['titulo'].strip() 
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
+
             context = {
                 'user_name': request.session.get('user_info')['first_name'],
-                'document': document
+                'document': document,
+                'query': query,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
             }
-            return render(request, 'aduna/document.html', context)
 
+            return render(request, 'aduna/document.html', context)
 
 def login(request):
     if request.method == 'GET':
@@ -255,7 +290,7 @@ def search_comparison(request):
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('page', 1))
     instances = request.GET.getlist('instance', [])
-    doc_types = request.GET.getlist('doc_type', [])
+    tipo_documentos = request.GET.getlist('doc_type', [])
     start_date = request.GET.get('start_date', None)
     if start_date == "":
         start_date = None
@@ -269,7 +304,7 @@ def search_comparison(request):
         'sid': sid, 
         'qid': qid, 
         'instances': instances, 
-        'doc_types': doc_types,
+        'doc_types': tipo_documentos,
         'start_date': start_date,
         'end_date': end_date
     }
@@ -289,11 +324,11 @@ def search_comparison(request):
         # Verificação dos ids de resposta
         id_pos = defaultdict(list)
         for result in response_content['documents']:
-            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_base'], result['rank_number']))
+            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_base'], result['posicao_ranking']))
         for result in response_content['documents_repl']:
             if id_pos[result['id']]:
                 id_pos[result['id']].append('<br>')    
-            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_repl'], result['rank_number']))
+            id_pos[result['id']].append('{}: {}ª posição'.format(response_content['algorithm_repl'], result['posicao_ranking']))
 
         id_pos = dict(id_pos) # Converte de volta pra dict, pois o Django Template Language não lê defaultdict
         for k, v in id_pos.items():
@@ -302,6 +337,7 @@ def search_comparison(request):
         context = {
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.session.get('user_info')['user_id'],
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -377,19 +413,19 @@ def search_comparison_entity(request):
         # Verificação dos ids de resposta
         id_pos = defaultdict(list)
         for result in response_content['documents_entity']:
-            id_pos[result['id']].append('Com entidades: {}ª posição'.format(result['rank_number']))
+            id_pos[result['id']].append('Com entidades: {}ª posição'.format(result['posicao_ranking']))
         for result in response_content['documents']:
             if id_pos[result['id']]:
                 id_pos[result['id']].append('<br>')    
-            id_pos[result['id']].append('Sem entidades: {}ª posição'.format(result['rank_number']))
+            id_pos[result['id']].append('Sem entidades: {}ª posição'.format(result['posicao_ranking']))
 
-        print(id_pos)
         id_pos = dict(id_pos)
         for k, v in id_pos.items():
             id_pos[k] = ''.join(v)
 
         context = {
             'auth_token': request.session.get('auth_token'),
+            'user_id': request.session.get('user_info')['user_id'],
             'user_name': request.session.get('user_info')['first_name'],
             'services_url': settings.SERVICES_URL,
             'query': query,
@@ -420,3 +456,43 @@ def search_comparison_entity(request):
         print(response_content['entities'])
         
         return render(request, 'aduna/search_comparison_entity.html', context)
+
+def bookmark(request):
+    if not request.session.get('auth_token'):
+        return redirect('/aduna/login')
+    
+    context = {
+        'services_url': settings.SERVICES_URL,
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session['user_info']['user_id']
+    }
+    
+    return render(request, 'aduna/bookmark.html', context)
+
+
+def recommendations(request):
+    if not request.session.get('auth_token'):
+        return redirect('/aduna/login')
+
+    notification_id = request.GET.get('notification_id', '')
+    if notification_id:
+        # Informa que a notificação foi visualizada
+        headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
+        service_response = requests.put(settings.SERVICES_URL+'notification', 
+                                        data={
+                                            'id_notificacao': notification_id,
+                                            'visualizado': True
+                                        }, 
+                                        headers=headers)
+
+        # atrasa um pouco a resposta para que haja tempo de o ES atualize o index
+        if service_response.status_code == 204:
+            time.sleep(.5)
+
+    ctx = {
+        'auth_token': request.session.get('auth_token'),
+        'user_id': request.session.get('user_info')['user_id'],
+        'notification_id': notification_id
+    }
+
+    return render(request, 'aduna/recommendation.html', ctx)
