@@ -89,9 +89,9 @@ class SearchFilterView(APIView):
     def get(self, request, filtro):
         data = {}
 
-        if filter_name == 'instances' or filter_name == 'all':
+        if filtro == 'instances' or filtro == 'all':
             data['instances'] = self._get_instances()
-        if filter_name == 'doc_types' or filter_name == 'all':
+        if filtro == 'doc_types' or filtro == 'all':
             data['doc_types'] = self._get_doc_types()
 
         return Response(data)
