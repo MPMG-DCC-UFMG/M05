@@ -4,27 +4,46 @@ from django.db import migrations
 from mpmg.services.elastic import Elastic
 from elasticsearch_dsl import Keyword
 
+elastic = Elastic()
 
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('ui_name', 'text')
-    m.field('es_index_name', 'text', fields={'keyword': Keyword()})
-    m.field('amount', 'integer')
-    m.field('active', 'boolean')
-    m.save('config_rec_entities_index')
+    m.field('icone', 'text')
+    m.field('nome', 'text', fields={'keyword': Keyword()})
+    m.field('tipo_entidade', 'text')
+    m.field('tecnica_agregacao', 'text')
+    m.field('num_itens_recomendados', 'integer')
+    m.save('config_rec_entities')
+
+def create_new_conf_rec_entity(id: int, 
+                                icon: str,
+                                name: str,
+                                entity_type: str,
+                                aggregation_type: str,
+                                rank_size: int):
+    elastic.es.index(
+        index='config_rec_entities', 
+        id=id, 
+        body={
+            'icone': icon,
+            'nome': name, 
+            'tipo_entidade': entity_type, 
+            'tecnica_agregacao': aggregation_type, 
+            'num_itens_recomendados': rank_size
+        }
+    )
 
 def insert_data(apps, schema_editor):
-    elastic = Elastic()
-    elastic.es.index(index='config_rec_entities_index', id=1, body={'ui_name': 'Diários', 'es_index_name': 'diarios_segmentado', 'amount':1000, 'active': True})
-    elastic.es.index(index='config_rec_entities_index', id=2, body={'ui_name': 'Processos', 'es_index_name': 'processos', 'amount':1000, 'active': True})
-    elastic.es.index(index='config_rec_entities_index', id=3, body={'ui_name': 'Licitações', 'es_index_name': 'licitacoes', 'amount':1000, 'active': True})
-    
+    create_new_conf_rec_entity(1, 'person', 'Pessoas', 'pessoa', 'expcombsum', 3)
+    create_new_conf_rec_entity(2, 'location_city', 'Municípios', 'municipio', 'combsum', 2)
+    create_new_conf_rec_entity(3, 'place', 'Locais', 'local', 'votes', 5)
+    create_new_conf_rec_entity(4, 'business', 'Organizações', 'organizacao', 'max', 2)
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0025_create_recommendations_index'),
+        ('services', '0031_insert_configentity_data'),
     ]
 
     operations = [
