@@ -112,13 +112,20 @@ class SearchEntities(APIView):
         return entities
 
     def _get_entities(self, request, strategy):
-        print(strategy)
+
         query = request.GET['query']
 
         query_filter = QueryFilter.create_from_request(request)
 
 
-        tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
+        # Pode ser pessoa, local, organizacao ou municio
+        entity_type = request.GET.get('entity_type', 'all')
+
+        if entity_type == 'all':
+            tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
+
+        else:
+            tipos_entidades = [f'entidade_{entity_type}']
 
         elastic = Elastic()
 
@@ -136,7 +143,7 @@ class SearchEntities(APIView):
         response = elastic_request.execute()
 
         entities =  self._aggregate_scores(response, tipos_entidades, strategy)
-        print(entities)
+    
         # pegas as 10 entidades que mais aparecem
         selected_entities = {}
         for campo_entidade in tipos_entidades:
@@ -147,4 +154,5 @@ class SearchEntities(APIView):
                     selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
                 except:
                     break
-        return selected_entities
+
+        return selected_entities if entity_type == 'all' else selected_entities[f'entidade_{entity_type}']
