@@ -32,7 +32,7 @@
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
-            <div class="col-md-2">
+            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-4 {% endif %}">
                 <div class="filter-box">
                     <p class="h5">Filtros</p>
                     <form action="{% url 'aduna:search' %}" method="GET">
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <main role="main" class="col-md-7">
+            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-8 {% endif %}">
                 <div class="container">
                     <div class="total-docs">A pesquisa retornou {{ total_docs }} documentos ({{ time|floatformat:2 }} segundos).</div>
                     <div id="results-container" data-executed-query="{{ query }}">
@@ -187,68 +187,33 @@
                 </div>
             </main>
 
+            {% if at_least_one_entity_type_has_recommendations %}
             <aside class="col-md-3 p-0">
                 <p class="h5">Entidades relacionadas</p>
                 <ul class="border rounded p-3 mt-3" style="list-style: none; cursor: pointer;">
-                    <li title="Pessoa" class="">
+                    {% for rec_entity in card_rec_entities %}
+                        {% if rec_entity.num_recommended_entities > 0 %}
                         <div class="d-flex align-items-center">
                             <span class="material-icons mr-2">
-                                person
+                                {{ rec_entity.icone }}
                             </span>
-                            Pessoas
+                            {{ rec_entity.nome }}
                         </div>
                         <ul class="m-0 p-0 pt-2" style="list-style: none;">
-                            <li>
-                                <a href="">Carlos Gonçalves Da Silva</a>
+                            {% for entity in rec_entity.recommended_entities %}
+                            <li class="mt-1">
+                                <a href="{% url 'aduna:search' %}?query={{ entity }}">{{ entity }}</a>
                             </li>
-                            <li>
-                                <a href="">Ulisses Santana Júnior</a>
-                            </li>
+                            {% endfor %}
                         </ul>
-                    </li>
-                    <hr>
-                    <li title="Cidade">
-                        <div class="d-flex align-items-center">
-                            <span class="material-icons mr-2">
-                                location_city
-                            </span>
-                            Municípios
-                        </div>
-                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
-                            <li>
-                                <a href="">Município De Serra Azul De Minas</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <hr>
-                    <li title="Local">
-                        <div class="d-flex align-items-center">
-                            <span class="material-icons mr-2">
-                                place
-                            </span>
-                            Locais
-                        </div>
-                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
-                            <li>
-                                <a href="">Minas Gerais</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <hr>
-                    <li title="Organização">
-                        <div class="d-flex align-items-center">
-                            <span class="material-icons mr-2">
-                                business
-                            </span>
-                        </div>
-                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
-                            <li>
-                                <a href="">Oab</a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
+                        {% if not forloop.last %}
+                        <hr>
+                        {% endif %}
+                        {% endif %}
+                    {% endfor %}
             </aside>
+            {% endif %}
+
         </div>
     </div>
 {% endblock %}

@@ -63,6 +63,32 @@ def search(request):
     filter_instances_list = filter_content['instances']
     filter_doc_types_list = filter_content['doc_types']
 
+    # busca as conf. de rec. de entidades, como quais considerar e o tamanho de seu ranking
+    card_rec_entities = requests.get(
+        settings.SERVICES_URL + 'config_rec_entities', params, headers=headers)
+    card_rec_entities = card_rec_entities.json()
+
+    # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
+    at_least_one_entity_type_has_recommendations = False
+
+    for config_rec_entity in card_rec_entities:
+        aggregation_type = config_rec_entity['tecnica_agregacao']
+        entity_type = config_rec_entity['tipo_entidade']
+        num_entities = config_rec_entity['num_itens_recomendados']
+
+        config_rec_config_entity_service_url = settings.SERVICES_URL + \
+            f'search_entities/{aggregation_type}?entity_type={entity_type}&num_entities={num_entities}'
+
+        entities_list = requests.get(
+            config_rec_config_entity_service_url, params, headers=headers)
+        entities_list = entities_list.json()
+
+        config_rec_entity['recommended_entities'] = entities_list
+        config_rec_entity['num_recommended_entities'] = len(entities_list)
+
+        if len(entities_list) > 0:
+            at_least_one_entity_type_has_recommendations = True
+ 
     # busca entidades além de buscar a consulta
     entities_list = requests.get(settings.SERVICES_URL+'search_entities/votes', params, headers=headers)
     entities_list = entities_list.json()
@@ -110,6 +136,8 @@ def search(request):
             'total_pages': response_content['total_pages'],
             'results_pagination_bar': range(min(9, response_content['total_pages'])), # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
             'entities_list': entities_list,
+            'card_rec_entities': card_rec_entities,
+            'at_least_one_entity_type_has_recommendations': at_least_one_entity_type_has_recommendations,
             'filter_start_date': datetime.strptime(response_content['filter_start_date'], '%Y-%m-%d') if response_content['filter_start_date'] != None else None,
             'filter_end_date': datetime.strptime(response_content['filter_end_date'], '%Y-%m-%d') if response_content['filter_end_date'] != None else None,
             'filter_instances': response_content['filter_instances'],

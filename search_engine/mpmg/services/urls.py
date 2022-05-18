@@ -19,6 +19,8 @@ urlpatterns = [
     path('log_search_click', views.LogSearchClickView.as_view(), name='log_search_click'),
     path('log_query_suggestion_click', views.LogQuerySuggestionClickView.as_view(), name='log_query_suggestion_click'),
     path('monitoring/cluster', views.ClusterStatsView.as_view(), name='monitoring_cluster'),
+    path('config_rec_entities', views.ConfigRecEntityView.as_view(), name='config_rec_entities'),
+    
     # path('search_comparison_entity', views.CompareViewEntity.as_view(), name='search_comparison_entity'),
     # path('log_search', views.LogSearchView.as_view(), name='log_search'),
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),

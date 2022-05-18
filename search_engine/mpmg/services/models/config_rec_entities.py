@@ -5,7 +5,9 @@ class ConfigRecEntity(ElasticModel):
 
     def __init__(self, **kwargs):
         index_name = ConfigRecEntity.index_name
-        meta_fields = ['id', 'description', 'type']
+        
+        meta_fields = ['id']
+
         index_fields = [
             'icone',
             'nome',
