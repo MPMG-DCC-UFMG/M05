@@ -32,7 +32,7 @@
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="filter-box">
                     <p class="h5">Filtros</p>
                     <form action="{% url 'aduna:search' %}" method="GET">
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <main role="main" class="col-md-9">
+            <main role="main" class="col-md-7">
                 <div class="container">
                     <div class="total-docs">A pesquisa retornou {{ total_docs }} documentos ({{ time|floatformat:2 }} segundos).</div>
                     <div id="results-container" data-executed-query="{{ query }}">
@@ -139,7 +139,7 @@
                                 {{ doc.description|safe }}
                             </div>
                             <div class="source-description">
-                                Fonte: {{ doc.source }}
+                                Fonte: {{ doc.fonte }}
                             </div>
                         </div>
                     {% endfor %}
@@ -186,6 +186,69 @@
                     </nav>
                 </div>
             </main>
+
+            <aside class="col-md-3 p-0">
+                <p class="h5">Entidades relacionadas</p>
+                <ul class="border rounded p-3 mt-3" style="list-style: none; cursor: pointer;">
+                    <li title="Pessoa" class="">
+                        <div class="d-flex align-items-center">
+                            <span class="material-icons mr-2">
+                                person
+                            </span>
+                            Pessoas
+                        </div>
+                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                            <li>
+                                <a href="">Carlos Gonçalves Da Silva</a>
+                            </li>
+                            <li>
+                                <a href="">Ulisses Santana Júnior</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <hr>
+                    <li title="Cidade">
+                        <div class="d-flex align-items-center">
+                            <span class="material-icons mr-2">
+                                location_city
+                            </span>
+                            Municípios
+                        </div>
+                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                            <li>
+                                <a href="">Município De Serra Azul De Minas</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <hr>
+                    <li title="Local">
+                        <div class="d-flex align-items-center">
+                            <span class="material-icons mr-2">
+                                place
+                            </span>
+                            Locais
+                        </div>
+                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                            <li>
+                                <a href="">Minas Gerais</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <hr>
+                    <li title="Organização">
+                        <div class="d-flex align-items-center">
+                            <span class="material-icons mr-2">
+                                business
+                            </span>
+                        </div>
+                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                            <li>
+                                <a href="">Oab</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </aside>
         </div>
     </div>
 {% endblock %}
