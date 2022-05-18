@@ -1,0 +1,71 @@
+{% extends "./base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">Configurar Sugestões de Entidades</h4>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Configurações de sugestões de entidades já criadas</h4>
+                    <table class="table table-striped table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ativo?</th>
+                                <th>Nome</th>
+                                <th>Tipo de entidade</th>
+                                <th>Técnica de agregação</th>
+                                <th>Número de itens sugeridos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="config_rec_entities_rows">
+                            {% for item in config_rec_entities %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td class="text-center">
+                                    <input type="checkbox" checked='checked' autocomplete="off">
+                                </td>
+                                <td>
+                                    {{ item.nome }}
+                                </td>
+                                <td>
+                                    {{ item.tipo_entidade | title }}
+                                </td>
+                                <td>
+                                    <select name="" class="rounded border w-100 bg-white px-2 py-1">
+                                        <option value="{{ item.tecnica_agregacao }}" selected>{{ item.tecnica_agregacao }}</option>
+                                        {% for aggregation_type in aggregation_types %}
+                                            {% if aggregation_type != item.tecnica_agregacao %}
+                                            <option value="{{ aggregation_type }}">{{ aggregation_type }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>                                
+                                </td>
+                                <td>
+                                    <input type="number" class="border rounded px-2 py-1 w-100" value="{{ item.num_itens_recomendados }}">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock%}
+{% block additional_script %}
+<script src="{% static 'admin/js/config_rec_entities.js' %}"></script>
+<script>
+    var AGGREGATION_TYPES = {{ aggregation_types | safe }};
+    var ENTITY_TYPES = {{ entity_types | safe }};
+</script>
+{% endblock %}

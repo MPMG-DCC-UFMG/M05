@@ -9,7 +9,7 @@ elastic = Elastic()
 def create_index(apps, schema_editor):
     elastic = Elastic()
     m = elastic.dsl.Mapping()
-    m.field('icone', 'text')
+    m.field('ativo', 'boolean')
     m.field('nome', 'text', fields={'keyword': Keyword()})
     m.field('tipo_entidade', 'text')
     m.field('tecnica_agregacao', 'text')
@@ -35,10 +35,10 @@ def create_new_conf_rec_entity(id: int,
     )
 
 def insert_data(apps, schema_editor):
-    create_new_conf_rec_entity(1, 'person', 'Pessoas', 'pessoa', 'expcombsum', 3)
-    create_new_conf_rec_entity(2, 'location_city', 'Municípios', 'municipio', 'combsum', 2)
-    create_new_conf_rec_entity(3, 'place', 'Locais', 'local', 'votes', 5)
-    create_new_conf_rec_entity(4, 'business', 'Organizações', 'organizacao', 'max', 2)
+    create_new_conf_rec_entity(1, 'Pessoas', 'pessoa', 'expcombsum', 3)
+    create_new_conf_rec_entity(2, 'Municípios', 'municipio', 'combsum', 2)
+    create_new_conf_rec_entity(3, 'local', 'votes', 5)
+    create_new_conf_rec_entity(4, 'Organizações', 'organizacao', 'max', 2)
 
 class Migration(migrations.Migration):
 

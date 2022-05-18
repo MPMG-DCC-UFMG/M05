@@ -9,7 +9,7 @@ class ConfigRecEntity(ElasticModel):
         meta_fields = ['id']
 
         index_fields = [
-            'icone',
+            'ativo',
             'nome',
             'tipo_entidade',
             'tecnica_agregacao',

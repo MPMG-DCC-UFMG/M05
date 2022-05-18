@@ -62,5 +62,17 @@
             <span class="menu-title" >Configurar Opções</span>
             </a>
         </li>
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_rec_entities' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_rec_entities' %}">
+                <i class="menu-icon typcn typcn-th-large-outline"></i>
+                <span class="menu-title">Configurar filtros por <br /> entidades</span>
+            </a>
+        </li>
+        <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_rec_entities' %}active{%endif%}">
+            <a class="nav-link" href="{% url 'admin:config_rec_entities' %}">
+                <i class="menu-icon typcn typcn-th-large-outline"></i>
+                <span class="menu-title">Configurar sugestões de <br/> entidades</span>
+            </a>
+        </li>
     </ul>
 </nav>

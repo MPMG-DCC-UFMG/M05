@@ -28,10 +28,12 @@ class APIConfig():
     '''
     
     elastic = Elastic()
+
     INDEX_CONFIG_INDICES = 'config_indices'
     INDEX_CONFIG_FIELDS = 'config_fields'
     INDEX_CONFIG_OPTIONS = 'config_options'
     INDEX_CONFIG_ENTITIES = 'config_entities_mapping'
+    INDEX_CONFIG_REC_ENTITIES = 'config_rec_entities'
 
     def __init__(self, **kwargs):
         None
@@ -195,6 +197,16 @@ class APIConfig():
         
         return result_list
     
+    @classmethod
+    def get_rec_entities(cls):
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_REC_ENTITIES)
+        search_obj = search_obj.sort({'_id':{'order':'desc'}})
+        elastic_result = search_obj.execute()
+
+        result_list = []
+        for item in elastic_result:
+            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
+        return result_list
 
     @classmethod
     def update_active_indices(cls, ids, active):

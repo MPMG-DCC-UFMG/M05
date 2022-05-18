@@ -23,6 +23,7 @@ class AdunaAdmin(admin.AdminSite):
             path('config_indices/', self.admin_view(ConfigIndicesView().view_indices), name='config_indices'),
             path('config_fields/', self.admin_view(ConfigFieldsView().view_fields), name='config_fields'),
             path('config_options/', self.admin_view(ConfigOptionsView().view_options), name='config_options'),
+            path('config_rec_entities/', self.admin_view(ConfigRecEntitiesView().view_rec_entities), name='config_rec_entities'),
             path('config/', self.admin_view(ConfigView().view_config), name='config_cluster'),
             path('save_config/', self.admin_view(ConfigView().view_save_config), name='save_config'),
         ]
