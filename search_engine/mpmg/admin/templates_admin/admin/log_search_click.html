@@ -129,7 +129,7 @@
                                         <td>{{ item.id_consulta }}</td>
                                         <td>{{ item.pagina }}</td>
                                         <td>{{ item.posicao }}</td>
-                                        <td>{{ item.timestamp|to_date|date:"d/m/Y G:i:s" }}</td>
+                                        <td>{{ item.data_criacao|to_date|date:"d/m/Y G:i:s" }}</td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>

@@ -34,7 +34,7 @@ class LogSearchClickView(admin.AdminSite):
             posicao_op=posicao_op,
             posicao=posicao,
             page=page,
-            sort={'timestamp':{'order':'desc'}}
+            sort={'data_criacao':{'order':'desc'}}
         )
 
         total_pages = (total_records // self.results_per_page) + 1

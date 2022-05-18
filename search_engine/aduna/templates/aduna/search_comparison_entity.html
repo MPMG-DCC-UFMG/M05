@@ -1,34 +1,7 @@
 {% extends "./_base.html" %}
 {% load aduna_extras %}
+{% load static %}
 {% block content %}
-    <header>
-        <nav class="searchbar navbar navbar-expand-md navbar-light bg-light">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'aduna:index' %}">Áduna</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <form action="{% url 'aduna:search_comparison_entity' %}" method="GET" class="form-inline mt-2 mt-md-0">
-                        <input id="query" name="query" class="form-control mr-sm-2" type="text" placeholder="Sua consulta aqui..." aria-label="Consulta" value="{{ query }}" oninvalid="setCustomValidity('A consulta requer pelo menos 2 caracteres não vazios.')" oninput="setCustomValidity('')" required pattern="\s*(\S\s*){2,}" autofocus>
-                        <button class="btn btn-primary my-2 my-sm-0" type="submit">Pesquisar</button>
-                        <input type="hidden" name="sid" id="sid" value="{{ sid }}">
-                    </form>
-                </div>
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-user"></i>
-                            {{ user_name }}
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="dropdown07">
-                            <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
@@ -90,7 +63,7 @@
                         <div class="result-item">
                         {% for key, value in id_pos.items %} 
                         {% if key == doc.id %}
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
+                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
                             <div class="result-description">
                                 {{ doc.description|safe }}
                             </div>
@@ -114,7 +87,7 @@
                         <div class="result-item">
                         {% for key, value in id_pos.items %} 
                         {% if key == doc.id %}
-                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.rank_number }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
+                            <h3><a class="result-link" href="{% url 'aduna:document' doc.type|slice:"-8" doc.id %}" data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.type }}" title="{{ value }}" data-toggle="tooltip" data-html="true">{{ doc.titulo }}</a></h3>
                             <div class="result-description">
                                 {{ doc.description|safe }}
                             </div>
@@ -179,5 +152,12 @@
         SERVICES_URL = "{{ services_url }}";
         QID = "{{ qid }}";
         PAGE = "{{ page }}";
+        AUTH_TOKEN = '{{ auth_token }}';
+        USER_ID = '{{ user_id }}';
+
     </script>
+{% endblock %}
+
+{% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
 {% endblock %}

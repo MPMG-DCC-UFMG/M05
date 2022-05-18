@@ -1,0 +1,39 @@
+{
+    "mappings" : {
+        "properties" : {
+            "id_usuario" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                    }
+                }
+            },
+            "data_criacao" : {
+                "type" : "date"
+            },
+            "data_modificacao" : {
+                "type" : "date"
+            },
+            "nome" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                    }
+                }
+            },
+            "id_pasta_pai" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                    }
+                }
+            }
+        }
+    }
+}

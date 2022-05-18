@@ -118,5 +118,10 @@ class ConfigForm(ModelForm):
                   'distribution']
 
 
-
+class RecommendationForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
+        self.fields['quantity_diario_rec']
+        self.fields['quantity_processo_rec']
+        self.fields['quantity_licitacoes_rec']

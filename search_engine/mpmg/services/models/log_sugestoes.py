@@ -10,11 +10,10 @@ class LogSugestoes(ElasticModel):
         index_fields = [
             'sugestao',
             'posicao',
-            'timestamp',
+            'data_criacao',
         ]
     
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
-
 
     @staticmethod
     def get_suggestions(query):
@@ -29,9 +28,11 @@ class LogSugestoes(ElasticModel):
                 ]
             }
         }
+
         response = LogSugestoes.get_list(query=request_body, page='all')
         total = response[0]
         suggestions = [ hit['sugestao'] for hit in response[1]]
+
         return total, suggestions
     
     @staticmethod
@@ -53,7 +54,7 @@ class LogSugestoes(ElasticModel):
         if start_date:
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "gte": start_date
                     }
                 }
@@ -62,7 +63,7 @@ class LogSugestoes(ElasticModel):
         if end_date:
             query_param["bool"]["must"].append({
                 "range": {
-                    "timestamp": {
+                    "data_criacao": {
                         "lte": end_date
                     }
                 }

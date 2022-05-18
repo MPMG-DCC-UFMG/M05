@@ -13,13 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from .admin.admin import custom_admin_site
+from django.shortcuts import redirect
 from django.urls import include, path
 
 urlpatterns = [
+    path('', lambda request: redirect('aduna/', permanent=True)),
     path('aduna/', include('aduna.urls')),
     path('services/', include('mpmg.services.urls')),
-    # path('admin/', admin.site.urls),
     path('admin/', custom_admin_site.urls),
 ]

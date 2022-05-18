@@ -15,14 +15,14 @@ class Reranker():
 
         return SentenceTransformer(modules=[word_embedding_model, pooling_model])
 
-    def get_bert_score(self, embedding_vector, query_vector, n=5):
-        return 1 - spatial.distance.cosine(embedding_vector, query_vector)
+    def get_bert_score(self, embedding, query_embedding, n=5):
+        return 1 - spatial.distance.cosine(embedding, query_embedding)
 
     def rerank(self, text_query, documents):
-        query_vector = self.model.encode(text_query)
-
+        query_embedding = self.model.encode(text_query)
+        
         for document in documents:
-            document.score = self.get_bert_score(document.embedding_vector, query_vector)
+            document.score = self.get_bert_score(document.embedding, query_embedding)
 
         documents = sorted(documents, reverse=True, key=lambda doc: doc.score)
         return documents

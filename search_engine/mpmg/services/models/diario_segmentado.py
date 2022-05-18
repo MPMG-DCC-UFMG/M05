@@ -1,19 +1,20 @@
-from mpmg.services.models.elastic_model import ElasticModel
 from datetime import datetime
+
+from mpmg.services.models.elastic_model import ElasticModel
 
 class DiarioSegmentado(ElasticModel):
     index_name = 'diarios_segmentado'
 
     def __init__(self, **kwargs):
         index_name = DiarioSegmentado.index_name
-        meta_fields = ['id', 'rank_number', 'description', 'type']
+        meta_fields = ['id', 'posicao_ranking', 'descricao', 'tipo']
         index_fields = [
             'id_pai',
             'titulo_diario',
             'entidade_bloco',
             'titulo',
             'subtitulo',
-            'data',
+            'data_criacao',
             'conteudo',
             'fonte',
             'num_bloco',
@@ -25,13 +26,11 @@ class DiarioSegmentado(ElasticModel):
             'entidade_organizacao',
             'entidade_municipio',
             'entidade_local',
-            'embedding_vector'
+            'embedding'
         ]
-        
-        super().__init__(index_name, meta_fields, index_fields, **kwargs)
-    
 
-    
+        super().__init__(index_name, meta_fields, index_fields, **kwargs)
+
     @classmethod
     def get(cls, doc_id):
         '''
@@ -40,13 +39,15 @@ class DiarioSegmentado(ElasticModel):
         '''
 
         # primeiro recupera o registro do segmento pra poder pegar o ID do pai
-        retrieved_doc = cls.elastic.dsl.Document.get(doc_id, using=cls.elastic.es, index=cls.index_name)
+        retrieved_doc = cls.elastic.dsl.Document.get(
+            doc_id, using=cls.elastic.es, index=cls.index_name)
         id_pai = retrieved_doc['id_pai']
-        
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.index_name)
-        query_param = {"term":{"id_pai":id_pai}}
-        sort_param = {'num_segmento_global':{'order':'asc'}}
-        
+
+        search_obj = cls.elastic.dsl.Search(
+            using=cls.elastic.es, index=cls.index_name)
+        query_param = {"term": {"id_pai": id_pai}}
+        sort_param = {'num_segmento_global.keyword': {'order': 'asc'}}
+
         # faz a consulta uma vez pra pegar o total de segmentos
         search_obj = search_obj.query(cls.elastic.dsl.Q(query_param))
         elastic_result = search_obj.execute()
@@ -54,9 +55,9 @@ class DiarioSegmentado(ElasticModel):
 
         # refaz a consulta trazendo todos os segmentos
         search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort(sort_param)
+        # search_obj = search_obj.sort(sort_param)
         segments_result = search_obj.execute()
-        
+
         all_segments = []
         for item in segments_result:
             segment = {
@@ -71,14 +72,13 @@ class DiarioSegmentado(ElasticModel):
 
             }
             all_segments.append(segment)
-        
+
         document = {
             'id': retrieved_doc.meta.id,
             'titulo': retrieved_doc['titulo_diario'],
-            'data': datetime.fromtimestamp(retrieved_doc['data']).strftime('%d/%m/%Y'),
+            'data': datetime.fromtimestamp(retrieved_doc['data_criacao']).strftime('%d/%m/%Y'),
             'num_segmento_ativo': int(retrieved_doc['num_segmento_global']),
             'segmentos': all_segments
         }
 
         return document
-    

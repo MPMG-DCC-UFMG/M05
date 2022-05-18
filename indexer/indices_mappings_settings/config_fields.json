@@ -1,0 +1,21 @@
+{
+    "mappings" : {
+        "properties" : {
+            "field_name" : {
+                "type" : "text"
+            },
+            "retrievable" : {
+                "type" : "boolean"
+            },
+            "searchable" : {
+                "type" : "boolean"
+            },
+            "ui_name" : {
+                "type" : "text"
+            },
+            "weight" : {
+                "type" : "integer"
+            }
+        }
+    }
+}

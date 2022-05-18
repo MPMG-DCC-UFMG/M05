@@ -9,4 +9,10 @@ from .licitacao import Licitacao
 from .document import Document
 from .config import Config
 from .search_configs import SearchConfigs, SearchableIndicesConfigs, WeightedSearchFieldsConfigs
+from .bookmark_folder import BookmarkFolder
+from .bookmark import Bookmark
+from .notification import Notification
+from .document_recommendation import DocumentRecommendation
+from .config_recommendation_evidence import ConfigRecommendationEvidence
+from .config_recommendation_source import ConfigRecommendationSource
 from .api_config import APIConfig

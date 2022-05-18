@@ -12,11 +12,11 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
-                "data": {
+                "data_criacao": {
                     "type": "date"
                 }, 
                 "data_indexacao": {
@@ -272,11 +272,11 @@
                 "num_segmento_global": {
                     "type": "integer"
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
-                "data": {
+                "data_criacao": {
                     "type": "date"
                 }, 
                 "data_indexacao": {
@@ -445,7 +445,7 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
@@ -533,7 +533,7 @@
                         }
                     }
                 },
-                "embedding_vector": {
+                "embedding": {
                     "type": "dense_vector",
                     "dims": 128
                 },
@@ -564,7 +564,7 @@
                         }
                     }
                 },
-                "data":{
+                "data_criacao":{
                     "type": "date"
                 },
                 "data_indexacao": {
@@ -675,6 +675,15 @@
     "log_clicks": {
         "mappings": {
             "properties": {
+                "id_usuario": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
                 "id_consulta": {
                     "type": "text",
                     "fields": {
@@ -708,7 +717,7 @@
                 "posicao": {
                     "type": "long"
                 },
-                "timestamp": {
+                "data_criacao": {
                     "type": "date"
                 }
             }
@@ -748,7 +757,7 @@
                     "type": "search_as_you_type",
                     "max_shingle_size": 3
                 },
-                "data_hora": {
+                "data_criacao": {
                     "type": "date"
                 },
                 "tempo_resposta": {

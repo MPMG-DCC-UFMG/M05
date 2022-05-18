@@ -53,16 +53,6 @@ def change_vector_precision(vector, precision=24):
     vector = np.array(vector, dtype=np.float16)
     return vector.tolist()
 
-
-def parse_date(text):
-    for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
-        try:
-            return datetime.datetime.strptime(text, fmt)
-        except ValueError:
-            pass
-    raise ValueError('no valid date format found')
-
-
 def parse_date(text):
     for fmt in ('%Y-%m-%d', "%d-%m-%Y"):
         try:
@@ -119,16 +109,24 @@ class Indexer:
 
                 if field_type == "list":
                     doc[field_name] = eval(line[field])
-                elif field_name == 'data':
+
+                elif field_name == 'data_criacao':
                     if line[field] != '':
                         element = parse_date(line[field])
                         timestamp = datetime.datetime.timestamp(element)
                         doc[field_name] = timestamp
+
+                elif field_name == 'data_indexacao':
+                    if line[field] != '':
+                        element = parse_date(line[field])
+                        timestamp = datetime.datetime.timestamp(element)
+                        doc[field_name] = timestamp
+
                 else:
                     doc[field_name] = line[field]
 
             if self.model_path != "None":
-                doc["embedding_vector"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
+                doc["embedding"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
 
             yield {
                 "_index": index,

@@ -1,0 +1,23 @@
+{
+    "mappings" : {
+        "properties" : {
+            "ativo" : {
+                "type" : "boolean"
+            },
+            "quantidade" : {
+                "type" : "integer"
+            },
+            "nome_indice" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword"
+                    }
+                }
+            },
+            "nome" : {
+                "type" : "text"
+            }
+        }
+    }
+}

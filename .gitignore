@@ -42,3 +42,5 @@ search_engine/env/
 NER/M02/models/lener_model.ser.gz
 
 notebooks/.ipynb_checkpoints/
+
+search_engine/venv/

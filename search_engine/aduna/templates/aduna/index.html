@@ -1,24 +1,10 @@
 {% extends "./_base.html" %}
-{% block content %}
-    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-        <div class="container">
-            <div class="row">
-                <div class="col-2 offset-10">&nbsp;</div>
-            </div>
-            <ul class="navbar-nav">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user"></i>
-                        {{ user_name }}
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="dropdown07">
-                        <a class="dropdown-item" href="/aduna/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
+{% load static %}
 
+{% block search_page_actions %}
+{% endblock %}
+
+{% block content %}
     <div class="vertical-center">
         <div class="container">
             <h1 class="aduna-title">Áduna</h1>
@@ -26,7 +12,7 @@
                 <div class="row justify-content-md-center">
                     <div class="col-md-8">
                         <div class="input-group">
-                            <input type="text" class="form-control shadow p-3 mb-5 bg-white rounded" name="query" id="query" placeholder="Sua consulta aqui..." autocomplete="off" oninvalid="setCustomValidity('A consulta requer pelo menos 2 caracteres não vazios.')" oninput="setCustomValidity('')" required pattern="\s*(\S\s*){2,}" autofocus>
+                            <input type="text" class="form-control shadow p-3 mb-5 bg-white rounded" name="consulta" id="query" placeholder="Sua consulta aqui..." autocomplete="off" oninvalid="setCustomValidity('A consulta requer pelo menos 2 caracteres não vazios.')" oninput="setCustomValidity('')" required pattern="\s*(\S\s*){2,}" autofocus>
                             <span class="input-group-btn">
                                 <button type="submit" class="btn btn-primary shadow mb-5 rounded">Pesquisar</button>
                             </span>
@@ -37,9 +23,16 @@
         </div>
     </div>
 {% endblock %}
+
 {% block script_before %}
     <script>
         SERVICES_URL = "{{ services_url }}";
         AUTH_TOKEN = "{{ auth_token }}";
+        USER_ID = '{{ user_id }}';
+
     </script>
+{% endblock %}
+
+{% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
 {% endblock %}

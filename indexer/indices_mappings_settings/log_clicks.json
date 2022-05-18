@@ -1,0 +1,51 @@
+{
+    "mappings": {
+        "properties": {
+            "id_usuario": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "id_consulta": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "id_documento": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "indice_documento": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "pagina": {
+                "type": "long"
+            },
+            "posicao": {
+                "type": "long"
+            },
+            "data_criacao": {
+                "type": "date"
+            }
+        }
+    }
+}

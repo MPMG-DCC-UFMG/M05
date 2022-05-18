@@ -29,7 +29,7 @@
                         }
                     }
                 },
-                "data": {
+                "data_criacao": {
                     "type": "text",
                     "fields": {
                         "keyword": {
@@ -182,7 +182,7 @@
                 "posicao": {
                     "type": "long"
                 },
-                "timestamp": {
+                "data_criacao": {
                     "type": "date"
                 }
             }
@@ -200,7 +200,7 @@
                         }
                     }
                 },
-                "data_hora": {
+                "data_criacao": {
                     "type": "date"
                 },
                 "documentos": {

@@ -1,0 +1,32 @@
+{
+    "mappings" : {
+        "properties" : {
+            "ativo" : {
+                "type" : "boolean"
+            },
+            "quantidade" : {
+                "type" : "integer"
+            },
+            "nome_indice" : {
+                "type" : "text"
+            },
+            "tipo_evidencia" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword"
+                    }
+                }
+            },
+            "similaridade_minima" : {
+                "type" : "integer"
+            },
+            "top_n_recomendacoes" : {
+                "type" : "integer"
+            },
+            "nome" : {
+                "type" : "text"
+            }
+        }
+    }
+}
