@@ -1,0 +1,21 @@
+{
+    "mappings": {
+        "properties": {
+            "ativo": {
+                "type": "boolean"
+            },
+            "nome": {
+                "type": "text"
+            },
+            "tipo_entidade": {
+                "type": "text"
+            },
+            "tecnica_agregacao": {
+                "type": "text"
+            },
+            "tamanho_ranking": {
+                "type": "integer"
+            }
+        }
+    }
+}

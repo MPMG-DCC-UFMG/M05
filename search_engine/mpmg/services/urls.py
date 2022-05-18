@@ -19,7 +19,6 @@ urlpatterns = [
     path('log_search_click', views.LogSearchClickView.as_view(), name='log_search_click'),
     path('log_query_suggestion_click', views.LogQuerySuggestionClickView.as_view(), name='log_query_suggestion_click'),
     path('monitoring/cluster', views.ClusterStatsView.as_view(), name='monitoring_cluster'),
-    path('config_rec_entities', views.ConfigRecEntityView.as_view(), name='config_rec_entities'),
     path('bookmark', views.BookmarkView.as_view(), name='bookmark'),
     path('bookmark_folder', views.BookmarkFolderView.as_view(), name='bookmark_folder'),
     path('notification', views.NotificationView.as_view(), name='notification'),

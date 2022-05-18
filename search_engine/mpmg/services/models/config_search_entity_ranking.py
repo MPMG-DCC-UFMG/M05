@@ -1,10 +1,10 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
-class ConfigRecEntity(ElasticModel):
-    index_name = 'config_rec_entities'
+class ConfigSearchRankingEntity(ElasticModel):
+    index_name = 'config_search_ranking_entity'
 
     def __init__(self, **kwargs):
-        index_name = ConfigRecEntity.index_name
+        index_name = ConfigSearchRankingEntity.index_name
         
         meta_fields = ['id']
 
@@ -13,7 +13,7 @@ class ConfigRecEntity(ElasticModel):
             'nome',
             'tipo_entidade',
             'tecnica_agregacao',
-            'num_itens_recomendados'
+            'tamanho_ranking'
         ]
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
