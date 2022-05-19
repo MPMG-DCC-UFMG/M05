@@ -96,13 +96,22 @@ class SearchEntities(APIView):
         if usage_objective not in ('filtro', 'ranking'):
             return Response({'message': 'É necessário informar o objetivo de uso das entidades, que pode ser `filtro` ou `ranking`.'})
 
-        
-
-
         if usage_objective == 'ranking':
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
             _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
-            data = self._get_entities(request, config_entities_ranking, 'tamanho_ranking')
+            entities_by_entity_type = self._get_entities(request, config_entities_ranking, 'tamanho_ranking')
+
+            entities_ranking_by_entity_type = dict()
+            for config_entity_ranking in config_entities_ranking:
+                name = config_entity_ranking['nome']
+                entity_type = config_entity_ranking['tipo_entidade']
+ 
+                entities_ranking_by_entity_type[entity_type] = {
+                    'ranking': entities_by_entity_type[entity_type],
+                    'nome': name
+                } 
+            
+            data = entities_ranking_by_entity_type
 
         else:
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
@@ -147,7 +156,7 @@ class SearchEntities(APIView):
         return entities
 
     def _get_entities(self, request, config: list, num_entities_field: str):
-        query = request.GET['query']
+        query = request.GET['consulta']
 
         query_filter = QueryFilter.create_from_request(request)
 
@@ -185,6 +194,7 @@ class SearchEntities(APIView):
             for i in range(num_entities):
                 try:
                     selected_entities[entity_field].append(entities[entity_field][i][0].title())
+                    
                 except:
                     break
 

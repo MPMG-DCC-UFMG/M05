@@ -170,24 +170,24 @@
             <aside class="col-md-3 p-0">
                 <p class="h5">Entidades relacionadas</p>
                 <ul class="border rounded p-3 mt-3" style="list-style: none; cursor: pointer;">
-                    {% for rec_entity in card_rec_entities %}
-                        {% if rec_entity.num_recommended_entities > 0 %}
-                        <div class="d-flex align-items-center">
-                            <span class="material-icons mr-2">
-                                {{ rec_entity.icone }}
-                            </span>
-                            {{ rec_entity.nome }}
-                        </div>
-                        <ul class="m-0 p-0 pt-2" style="list-style: none;">
-                            {% for entity in rec_entity.recommended_entities %}
-                            <li class="mt-1">
-                                <a href="{% url 'aduna:search' %}?query={{ entity }}">{{ entity }}</a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% if not forloop.last %}
-                        <hr>
-                        {% endif %}
+                    {% for entity_name, entity_value in card_ranking_entities.items %}
+                        {% if entity_value.ranking|length > 0 %}
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons mr-2">
+                                    {{ entity_value.icone }}
+                                </span>
+                                <strong>{{ entity_value.nome }}</strong>
+                            </div>
+                            <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                                {% for entity in entity_value.ranking %}
+                                <li class="mt-1">
+                                    <a href="{% url 'aduna:search' %}?query={{ entity }}">{{ entity }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% if not forloop.last %}
+                            <hr>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
             </aside>
