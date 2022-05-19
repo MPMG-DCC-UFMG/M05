@@ -233,7 +233,19 @@ class APIConfig():
 
         return result_list
 
-
+    @classmethod
+    def update_config_filter_by_entity(cls, item_id: str, active: bool, aggregation_type: str, num_entities: int):
+        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `num_entidades` de uma configuração de filtro por entidades.
+        '''
+        updated_fields = {
+            'ativo': active,
+            'tecnica_agregacao': aggregation_type,
+            'num_entidades': num_entities
+        }
+        
+        cls.elastic.es.update(index=cls.INDEX_CONFIG_FILTER_BY_ENTITY,
+                              doc_type='_doc', id=item_id, body={"doc": updated_fields})
+ 
     @classmethod
     def update_active_indices(cls, ids, active):
         '''

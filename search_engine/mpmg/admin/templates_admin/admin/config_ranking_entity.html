@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <h4 class="card-title">Configurações de ranking de entidades disponíveis</h4>
                     <form id="regular_form" action="{% url 'admin:config_ranking_entity' %}" method="post">
-                    {% csrf_token %}
+                        {% csrf_token %}
                         <table class="table table-striped table-bordered text-center mt-3">
                             <thead>
                                 <tr class="">
