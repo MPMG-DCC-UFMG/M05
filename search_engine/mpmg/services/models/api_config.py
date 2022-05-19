@@ -33,7 +33,8 @@ class APIConfig():
     INDEX_CONFIG_FIELDS = 'config_fields'
     INDEX_CONFIG_OPTIONS = 'config_options'
     INDEX_CONFIG_ENTITIES = 'config_entities_mapping'
-    INDEX_CONFIG_REC_ENTITIES = 'config_rec_entities'
+    INDEX_CONFIG_RANKING_ENTITY = 'config_ranking_entity'
+    INDEX_CONFIG_FILTER_BY_ENTITY = 'config_filter_by_entity'
 
     def __init__(self, **kwargs):
         None
@@ -198,15 +199,28 @@ class APIConfig():
         return result_list
     
     @classmethod
-    def get_rec_entities(cls):
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_REC_ENTITIES)
-        search_obj = search_obj.sort({'_id':{'order':'desc'}})
+    def get_config_ranking_entity(cls):
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RANKING_ENTITY)
+        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
         elastic_result = search_obj.execute()
 
         result_list = []
         for item in elastic_result:
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
         return result_list
+
+    @classmethod
+    def config_filter_by_entities(cls):
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FILTER_BY_ENTITY)
+        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
+        elastic_result = search_obj.execute()
+
+        result_list = []
+        for item in elastic_result:
+            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
+
+        return result_list
+
 
     @classmethod
     def update_active_indices(cls, ids, active):

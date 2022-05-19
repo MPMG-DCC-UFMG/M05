@@ -19,7 +19,7 @@
                         {% csrf_token %}
                         <div class="row">
                             <div class="col">
-                                <table class="table table-striped table-bordered">
+                                <table class="table table-striped table-bordered text-center">
                                     <thead>
                                         <tr>
                                             <th>Índice</th>
@@ -30,7 +30,7 @@
                                     <tbody>
                                     {% for item in indices_list %}
                                         <tr>
-                                            <td>{{ item.ui_name }}</td>
+                                            <td class="text-left">{{ item.ui_name }}</td>
                                             <td>{{ item.group }}</td>
                                             <td>
                                                 <input type="hidden" name="all_ids" value="{{ item.id }}">

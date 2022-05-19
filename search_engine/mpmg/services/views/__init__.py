@@ -9,7 +9,6 @@ from .monitoring import *
 from .search_comparison import *
 from .search_comparison_entity import *
 from .document_navigation import *
-from .conf_rec_entitties import *
 from .bookmark_folder import *
 from .bookmark import *
 from .notification import *

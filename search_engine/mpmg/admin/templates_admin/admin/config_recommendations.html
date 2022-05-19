@@ -19,7 +19,7 @@
                         {% csrf_token %}
                         <div class="row">
                             <div class="col">
-                                <table class="table table-striped table-bordered">
+                                <table class="table table-striped table-bordered text-center">
                                     <thead>
                                         <tr>
                                             <th width="200px">Tipo de Documento</th>
@@ -30,7 +30,7 @@
                                     <tbody>
                                         {% for conf_rec_src in conf_rec_sources  %}
                                         <tr class="rec_confs" config="{{conf_rec_src.nome_indice}}" id="rec_{{conf_rec_src.nome_indice}}">
-                                            <td>{{ conf_rec_src.nome }}</td>
+                                            <td class="text-left">{{ conf_rec_src.nome }}</td>
                                             <td><input style="width:100px;" type="number" class="rec_size" id="rec_size_{{conf_rec_src.nome_indice}}"  min="0" value="{{ conf_rec_src.quantidade }}" required/></td>
                                             <td style="text-align: center;"><input type="checkbox" class="rec_active" {% if conf_rec_src.ativo %} checked {% endif %} id="rec_{{conf_rec_src.nome_indice}}_active" autocomplete="off"></td>
                                         </tr>
@@ -57,7 +57,7 @@
                         {% csrf_token %}
                         <div class="row">
                             <div class="col">
-                                <table class="table table-striped table-bordered">
+                                <table class="table table-striped table-bordered text-center">
                                     <thead>
                                         <tr>
                                             <th width="200px">Origem</th>
@@ -70,7 +70,7 @@
                                     <tbody>
                                         {% for conf_rec_evidence in conf_rec_evidences %}
                                         <tr class="ev_confs" config="{{conf_rec_evidence.tipo_evidencia}}" id="ev_{{ conf_rec_evidence.tipo_evidencia }}">
-                                            <td>{{ conf_rec_evidence.nome }}</td>
+                                            <td class="text-left">{{ conf_rec_evidence.nome }}</td>
                                             <td><input style="width:100px;" class="ev_amount" type="number" min="0" id="ev_{{conf_rec_evidence.tipo_evidencia}}_amount" value="{{ conf_rec_evidence.quantidade }}" /></td>
                                             <td style="text-align: center;">
                                                 <input type="range" class="ev_min_sim" value="{{ conf_rec_evidence.similaridade_minima }}" id="ev_{{ conf_rec_evidence.tipo_evidencia }}_min_sim" min="0" max="100">

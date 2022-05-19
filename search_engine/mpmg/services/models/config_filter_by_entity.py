@@ -1,7 +1,7 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
 class ConfigFilterByEntity(ElasticModel):
-    index_name = 'config_filter_ranking_entity'
+    index_name = 'config_filter_by_entity'
 
     def __init__(self, **kwargs):
         index_name = ConfigFilterByEntity.index_name

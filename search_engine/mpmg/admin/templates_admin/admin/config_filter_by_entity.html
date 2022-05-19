@@ -6,7 +6,7 @@
     <div class="row page-title-header">
         <div class="col-12">
             <div class="page-header">
-                <h4 class="page-title">Configurar Sugestões de Entidades</h4>
+                <h4 class="page-title">Configurar Filtros de Pesquisa por Entidades Relacionadas</h4>
             </div>
         </div>
     </div>
@@ -14,43 +14,42 @@
         <div class="col-md-12 grid-margin">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Configurações de sugestões de entidades já criadas</h4>
-                    <table class="table table-striped table-bordered mt-3">
+                    <h4 class="card-title">Configurações de opções de filtros disponíveis</h4>
+                    <table class="table table-striped table-bordered text-center mt-3">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Ativo?</th>
+                            <tr class="">
                                 <th>Nome</th>
                                 <th>Tipo de entidade</th>
                                 <th>Técnica de agregação</th>
                                 <th>Número de itens sugeridos</th>
+                                <th>Ativo?</th>
                             </tr>
                         </thead>
                         <tbody id="config_rec_entities_rows">
-                            {% for item in config_rec_entities %}
+                            {% for item in config_filter_by_entities %}
                             <tr>
-                                <td>{{ item.id }}</td>
-                                <td class="text-center">
-                                    <input type="checkbox" checked='checked' autocomplete="off">
-                                </td>
-                                <td>
+                                <td class="text-left">
                                     {{ item.nome }}
                                 </td>
-                                <td>
-                                    {{ item.tipo_entidade | title }}
+                                <td class="text-left">
+                                    {{ item.tipo_entidade }}
                                 </td>
                                 <td>
-                                    <select name="" class="rounded border w-100 bg-white px-2 py-1">
+                                    <select name="" class="rounded border bg-white px-2 py-1">
                                         <option value="{{ item.tecnica_agregacao }}" selected>{{ item.tecnica_agregacao }}</option>
                                         {% for aggregation_type in aggregation_types %}
-                                            {% if aggregation_type != item.tecnica_agregacao %}
-                                            <option value="{{ aggregation_type }}">{{ aggregation_type }}</option>
-                                            {% endif %}
+                                        {% if aggregation_type != item.tecnica_agregacao %}
+                                        <option value="{{ aggregation_type }}">{{ aggregation_type }}</option>
+                                        {% endif %}
                                         {% endfor %}
-                                    </select>                                
+                                    </select>
                                 </td>
                                 <td>
-                                    <input type="number" class="border rounded px-2 py-1 w-100" value="{{ item.num_itens_recomendados }}">
+                                    <input type="number" class="border rounded px-2 py-1"
+                                        value="{{ item.num_entidades }}">
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" checked='checked' autocomplete="off">
                                 </td>
                             </tr>
                             {% endfor %}

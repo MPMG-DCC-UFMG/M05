@@ -1,10 +1,10 @@
 from mpmg.services.models.elastic_model import ElasticModel
 
-class ConfigSearchRankingEntity(ElasticModel):
-    index_name = 'config_search_ranking_entity'
+class ConfigRankingEntity(ElasticModel):
+    index_name = 'config_ranking_entity'
 
     def __init__(self, **kwargs):
-        index_name = ConfigSearchRankingEntity.index_name
+        index_name = ConfigRankingEntity.index_name
         
         meta_fields = ['id']
 

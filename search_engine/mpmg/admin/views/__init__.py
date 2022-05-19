@@ -6,4 +6,5 @@ from .config_recommendations import *
 from .config_indices import ConfigIndicesView
 from .config_fields import ConfigFieldsView
 from .config_options import ConfigOptionsView
-from .config_rec_entities import ConfigRecEntitiesView
+from .config_ranking_entity import ConfigRankingEntityView
+from .config_filter_by_ranking import ConfigFilterByEntityView
