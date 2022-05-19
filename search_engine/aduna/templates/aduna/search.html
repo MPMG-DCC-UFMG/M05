@@ -181,7 +181,7 @@
                             <ul class="m-0 p-0 pt-2" style="list-style: none;">
                                 {% for entity in entity_value.ranking %}
                                 <li class="mt-1">
-                                    <a href="{% url 'aduna:search' %}?query={{ entity }}">{{ entity }}</a>
+                                    <a href="{% url 'aduna:search' %}?consulta={{ entity }}">{{ entity }}</a>
                                 </li>
                                 {% endfor %}
                             </ul>
