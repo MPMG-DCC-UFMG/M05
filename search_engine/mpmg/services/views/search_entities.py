@@ -1,10 +1,12 @@
 import math
 from collections import defaultdict
+from traceback import print_tb
 
 from mpmg.services.models import (APIConfig, ConfigFilterByEntity,
                                   ConfigRankingEntity)
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from ..docstring_schema import AutoDocstringSchema
 from ..elastic import Elastic
@@ -88,16 +90,26 @@ class SearchEntities(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request, strategy):
-        # buscamos todas as configs de ranking de entidades mas que estejam ativas
-        _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+    def get(self, request):
+        usage_objective = request.GET.get('uso', '').lower()
 
-        print('*' * 15)
-        print(config_entities_ranking)
-        print('*' * 15)
+        if usage_objective not in ('filtro', 'ranking'):
+            return Response({'message': 'É necessário informar o objetivo de uso das entidades, que pode ser `filtro` ou `ranking`.'})
 
-        data = self._get_entities(request, strategy)
-        return Response(data)
+        
+
+
+        if usage_objective == 'ranking':
+            # buscamos todas as configs de ranking de entidades mas que estejam ativas
+            _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+            data = self._get_entities(request, config_entities_ranking, 'tamanho_ranking')
+
+        else:
+            # buscamos todas as configs de ranking de entidades mas que estejam ativas
+            _, config_filter_by_entity = CONFIG_FILTER_BY_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+            data = self._get_entities(request, config_filter_by_entity, 'num_entidades')
+
+        return Response(data, status=status.HTTP_200_OK)
 
     def _aggregate_strategies(self, total, score, strategy):
         if strategy == "votes":
@@ -112,41 +124,41 @@ class SearchEntities(APIView):
         if strategy == "max":
             return max(total, score)
 
-    def _aggregate_scores(self, response, tipos_entidades, strategy):
+    def _aggregate_scores(self, response, entity_types: list, aggregation_strategy_by_entity_type: list):
         entities = {}
-        for t in tipos_entidades:
+        for t in entity_types:
             entities[t] = defaultdict(int)
 
         for doc in response:
-            for campo_entidade in tipos_entidades:
+            for entity_field, aggregation_strategy in zip(entity_types, aggregation_strategy_by_entity_type):
                 try:
-                   entities_list = eval(doc[campo_entidade])
+                   entities_list = eval(doc[entity_field])
+                
                 except:
                     entities_list = []
+
                 for ent in entities_list:
-                    entities[campo_entidade][ent.lower()] += \
+                    entities[entity_field][ent.lower()] += \
                         self._aggregate_strategies(
-                            entities[campo_entidade][ent.lower()],
+                            entities[entity_field][ent.lower()],
                             doc.meta.score,
-                            strategy
+                            aggregation_strategy
                         )
         return entities
 
-    def _get_entities(self, request, strategy):
-
+    def _get_entities(self, request, config: list, num_entities_field: str):
         query = request.GET['query']
 
         query_filter = QueryFilter.create_from_request(request)
 
+        entity_types = [] 
+        aggregation_strategy_by_entity_type = []
+        num_entities_by_entity_type = []
 
-        # Pode ser pessoa, local, organizacao ou municio
-        entity_type = request.GET.get('entity_type', 'all')
-
-        if entity_type == 'all':
-            tipos_entidades = ['entidade_pessoa', 'entidade_municipio', 'entidade_local', 'entidade_organizacao']
-
-        else:
-            tipos_entidades = [f'entidade_{entity_type}']
+        for config_entity in config:
+            entity_types.append(config_entity['tipo_entidade'])
+            aggregation_strategy_by_entity_type.append(config_entity['tecnica_agregacao'])
+            num_entities_by_entity_type.append(config_entity[num_entities_field])
 
         elastic = Elastic()
 
@@ -158,24 +170,22 @@ class SearchEntities(APIView):
         filter_clause = query_filter.get_filters_clause()
 
         elastic_request = elastic.dsl.Search(using=elastic.es, index=indices) \
-                        .source(tipos_entidades) \
+                        .source(entity_types) \
                         .query("bool", must = must_clause, should = [], filter = filter_clause)
 
         response = elastic_request.execute()
-
-        entities =  self._aggregate_scores(response, tipos_entidades, strategy)
-        
-        num_entities = int(request.GET.get('num_entities', '10'))
-
+        entities =  self._aggregate_scores(response, entity_types, aggregation_strategy_by_entity_type)
+   
         # pegas as num_entities entidades que mais aparecem
         selected_entities = {}
-        for campo_entidade in tipos_entidades:
-            entities[campo_entidade] = sorted(entities[campo_entidade].items(), key=lambda x: x[1], reverse=True)
-            selected_entities[campo_entidade] = []
+        for entity_field, num_entities in zip(entity_types, num_entities_by_entity_type):
+            entities[entity_field] = sorted(entities[entity_field].items(), key=lambda x: x[1], reverse=True)
+            selected_entities[entity_field] = []
+
             for i in range(num_entities):
                 try:
-                    selected_entities[campo_entidade].append(entities[campo_entidade][i][0].title())
+                    selected_entities[entity_field].append(entities[entity_field][i][0].title())
                 except:
                     break
 
-        return selected_entities if entity_type == 'all' else selected_entities[f'entidade_{entity_type}']
+        return selected_entities
