@@ -15,4 +15,6 @@ from .notification import Notification
 from .document_recommendation import DocumentRecommendation
 from .config_recommendation_evidence import ConfigRecommendationEvidence
 from .config_recommendation_source import ConfigRecommendationSource
+from .config_entity_ranking import ConfigRankingEntity
+from .config_filter_by_entity import ConfigFilterByEntity
 from .api_config import APIConfig

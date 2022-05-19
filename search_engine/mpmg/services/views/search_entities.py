@@ -1,11 +1,17 @@
+import math
 from collections import defaultdict
-from rest_framework.views import APIView
+
+from mpmg.services.models import (APIConfig, ConfigFilterByEntity,
+                                  ConfigRankingEntity)
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from ..docstring_schema import AutoDocstringSchema
 from ..elastic import Elastic
 from ..query_filter import QueryFilter
-from ..docstring_schema import AutoDocstringSchema
-from mpmg.services.models import APIConfig
-import math
+
+CONFIG_FILTER_BY_ENTITY = ConfigFilterByEntity()
+CONFIG_RANKING_ENTITY = ConfigRankingEntity()
 
 class SearchEntities(APIView):
     '''
@@ -32,7 +38,12 @@ class SearchEntities(APIView):
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
                     type: string
-            -   name: filter_doc_types
+            -   name: filter_start_date
+                in: query
+                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
+                schema:
+                    type: string
+            -   name: filter_end_date
                 in: query
                 description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
                 schema:
@@ -78,16 +89,26 @@ class SearchEntities(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request, strategy):
+        # buscamos todas as configs de ranking de entidades mas que estejam ativas
+        _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+
+        print('*' * 15)
+        print(config_entities_ranking)
+        print('*' * 15)
+
         data = self._get_entities(request, strategy)
         return Response(data)
 
     def _aggregate_strategies(self, total, score, strategy):
         if strategy == "votes":
             return 1
+
         if strategy == "combsum":
             return score
+        
         if strategy == "expcombsum":
             return math.exp(score)
+        
         if strategy == "max":
             return max(total, score)
 
