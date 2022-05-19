@@ -210,6 +210,18 @@ class APIConfig():
         return result_list
 
     @classmethod
+    def update_config_ranking_entity(cls, item_id: str, active: bool, aggregation_type: str, ranking_size: int) -> list:
+        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `tamanho_ranking` de uma configuração de ranking de entidade.
+        '''
+        updated_fields = {
+            'ativo': active,
+            'tecnica_agregacao': aggregation_type,
+            'tamanho_ranking': ranking_size
+        }
+        
+        cls.elastic.es.update(index=cls.INDEX_CONFIG_RANKING_ENTITY, doc_type='_doc', id=item_id, body={"doc": updated_fields})
+
+    @classmethod
     def config_filter_by_entities(cls):
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FILTER_BY_ENTITY)
         search_obj = search_obj.sort({'_id': {'order': 'asc'}})
