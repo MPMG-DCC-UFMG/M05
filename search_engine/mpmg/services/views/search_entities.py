@@ -18,75 +18,100 @@ CONFIG_RANKING_ENTITY = ConfigRankingEntity()
 class SearchEntities(APIView):
     '''
     get:
-        description: Classe responsável por retornar a lista de entidades relacionadas
-        parameters:
-            -   name: query
-                in: query
-                description: Consulta a ser levada em conta ao retornar as opções para o filtro de entidades. Requerido quando filter_name="all" ou filter_Name="entities"
-                schema:
+      description: Realiza uma busca por documentos não estruturados
+      parameters:
+        -   name: consulta
+            in: query
+            description: texto da consulta
+            required: true
+            schema:
+                type: string
+        -   name: uso
+            in: path
+            description: A que se destina as entidades retornadas, pode ser para geração de filtros ou ranking de entidades.
+            required: true
+            schema:
+                type: string
+                enum:
+                    - filtro
+                    - ranking
+        -   name: filtro_instancias
+            in: query
+            description: Filtro com uma lista de nomes de cidades às quais o documento deve pertencer
+            schema:
+                type: array
+                items:
                     type: string
-            -   name: filter_instances
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
+        -   name: filtro_tipos_documentos
+            in: query
+            description: Filtro com uma lista de tipos de documentos que devem ser retornados
+            schema:
+                type: array
+                items:
                     type: string
-            -   name: filter_start_date
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
+                    enum:
+                        - diarios
+                        - processos
+                        - licitacoes
+                        - diarios_segmentado
+        -   name: filtro_data_inicio
+            in: query
+            description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
+            schema:
+                type: string
+        -   name: filtro_data_fim
+            in: query
+            description: Filtra documentos cuja data de publicação seja anterior à data informada. Data no formato YYYY-MM-DD
+            schema:
+                type: string
+        -   name: filtro_entidade_pessoa
+            in: query
+            description: Filtra documentos que mencionem as pessoas informadas nesta lista, além dos termos da consulta
+            schema:
+                type: array
+                items:
                     type: string
-            -   name: filter_end_date
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
+        -   name: filtro_entidade_municipio
+            in: query
+            description: Filtra documentos que mencionem os municípios informados nesta lista, além dos termos da consulta
+            schema:
+                type: array
+                items:
                     type: string
-            -   name: filter_start_date
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
+        -   name: filtro_entidade_organizacao
+            in: query
+            description: Filtra documentos que mencionem as organizações informadas nesta lista, além dos termos da consulta
+            schema:
+                type: array
+                items:
                     type: string
-            -   name: filter_end_date
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: array
-                    items:
-                        type: string
-                        enum:
-                            - diarios
-                            - processos
-                            - licitacoes
-                            - diarios_segmentado
-            -   name: filter_entidade_pessoa
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: array
-                    items:
-                        type: string
-            -   name: filter_entidade_municipio
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: array
-                    items:
-                        type: string
-            -   name: filter_entidade_organizacao
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: array
-                    items:
-                        type: string
-            -   name: filter_entidade_local
-                in: query
-                description: Filtro a ser levado em conta ao retornar as opções do filtro de entidades.
-                schema:
-                    type: array
-                    items:
-                        type: string
-
+        -   name: filtro_entidade_local
+            in: query
+            description: Filtra documentos que mencionem os locais informados nesta lista, além dos termos da consulta
+            schema:
+                type: array
+                items:
+                    type: string
+      responses:
+        '200':
+            description: Retorna um objeto com as entidades relacionadas.
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties: {}
+        '400':
+            description: Não foi informado os campos obrigatórios de forma válida.
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties: 
+                            message: 
+                                type: string
+                                description: Mensagem de erro.
     '''
+
 
     schema = AutoDocstringSchema()
 
@@ -94,7 +119,7 @@ class SearchEntities(APIView):
         usage_objective = request.GET.get('uso', '').lower()
 
         if usage_objective not in ('filtro', 'ranking'):
-            return Response({'message': 'É necessário informar o objetivo de uso das entidades, que pode ser `filtro` ou `ranking`.'})
+            return Response({'message': 'É necessário informar o objetivo de uso das entidades, que pode ser `filtro` ou `ranking`.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if usage_objective == 'ranking':
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
