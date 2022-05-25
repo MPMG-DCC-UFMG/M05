@@ -19,6 +19,7 @@ nltk.download('punkt')
 
 from os import listdir
 from os.path import isfile, join
+import gzip
 
 
 def list_files(path):
@@ -78,14 +79,18 @@ class Indexer:
 
         csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
-    def generate_formated_csv_lines(self, file_path, index, encoding="utf8"):
+    def generate_formated_csv_lines(self, file_path, index, encoding="utf-8"):
         """
         Generates formated entries to indexed by the bulk API
         """
-        file = open(file_path, encoding=encoding)
-        table = csv.DictReader(file)
-
-        file_count = open(file_path, encoding=encoding)
+        if file_path[-3:] == '.gz':
+            csv_file = gzip.open(file_path, 'rt', encoding=encoding)
+            file_count = gzip.open(file_path, 'rt', encoding=encoding)
+        else:
+            csv_file = open(file_path, encoding=encoding)
+            file_count = open(file_path, encoding=encoding)
+        
+        table = csv.DictReader(csv_file)
         table_count = csv.DictReader(file_count)
 
         sentences_num = 0
@@ -133,6 +138,8 @@ class Indexer:
                 "_source": doc
             }
         
+        csv_file.close()
+        file_count.close()
         print("Sentences mean: ", sentences_num/lines_num)
 
     def simple_indexer(self, files_to_index, index):
@@ -169,8 +176,9 @@ class Indexer:
                         print("Detected error while indexing: " + csv_file)
                         error = True
                         print(info)
-            except:
+            except Exception as e:
                 error = True
+                # print(e)
                 print("Detected error while indexing: " + csv_file)
 
         if not error:
