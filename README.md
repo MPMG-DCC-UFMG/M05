@@ -6,6 +6,24 @@
  - **Interface para a API:** Interface temporária para mostrar e testar o uso da API. Para tal, acesse: http://127.0.0.1:8000/aduna
 
 # Como rodar o projeto na sua máquina
+
+## Instalação
+
+Há duas formas de se instanciar o projeto, sendo elas a versão automática ou manual, descritas a seguir.
+
+### Automática
+
+ 1. Baixe este projeto na sua máquina 
+ 2. Crie um ambiente virtual: `python -m venv venv`
+ 3. Ative o ambiente virtual: `source venv/bin/activate`
+ 4. Execute o comando: `./install.sh`. Ele irá:
+    - Instalar todas as dependências do sistema
+    - Caso o `ElasticSearch` não esteja disponível, irá baixá-lo e o iniciar (se já não estiver ativo)
+    - Indexar o corpus de exemplo, caso já não esteja indexado 
+ 5. No final da execução da `etapa 4`, no terminal, aparecerá a opção de **criação de usuário**, necessário para usar o sistema.
+
+### Manual
+
   1. Baixe este projeto na sua máquina e baixe a versão mais recente do Elasticsearch
   2. Suba uma instância do ElasticSearch com uma amostra dos índices. Para isso siga as instruções descritas em indexer.
   3. Para rodar a API é necessário instalar as dependências do projeto. Para tal, entre na pasta search_engine e rode:
@@ -17,28 +35,25 @@
   4. Navegue até a pasta search_engine/mpmg e faça uma cópia do arquivo "settings.template.py" com o nome de "settings.py". Altere alguns diretórios e senhas caso necessário.
   5. Crie um usuário para acessar a interface da API. Navegue até o diretório search_engine e rode:
      > python manage.py createsuperuser
-    
-  6. Instancie o projeto rodando:
-     > python manage.py runserver
 
+## Execução
 
-# Etapas de 2021
+Para acessar a nossa versão da interface ou API do sistema: 
+  1. Rode o servidor: `python manage.py runserver`  
+  2. Acesse o link [http://localhost:8000/aduna](http://localhost:8000/aduna) para acessar a nossa versão da interface do sistema.
+  3. Caso esteja interessado apenas na API, acesse [http://localhost:8000/services/swagger-ui/](http://localhost:8000/services/swagger-ui/), para ver a documentação. 
 
- - **M05.1 - Integração da API com o Áduna do MPMG**
+# Etapas de 2022
+
+ - <strike>**M05.6 - Ranqueamento de entidades**</strike>
  
-   Integração da plataforma de busca à plataforma Áduna.
- - **M05.2 - Suporte a filtragem semântica**
+ - **M05.7 - Aprendizado de ranqueamento**
  
-   Exploração de estratégias para filtragem de documentos a partir da imposição de anotações semânticas (e.g., entidades nomeadas) ao conteúdo não-estruturado dos documentos.
- - **M05.3 - Suporte a modelos de ranking semântico**
+ - **M05.8 - Contextualização interativa (sessões)**
  
-   Exploração de estratégias para representação semântica de documentos e consultas, seja de forma explícita, a partir da exploração das anotações semânticas disponíveis, ou implícita, a partir do aprendizado não supervisionado de representações de consultas e documentos.
- - **M05.4 - Suporte a filtragem personalizada**
+ - **M05.9 - Contextualização extratural (KBs)**
  
-   Exploração de modelos de filtragem, capazes de aprender o perfil de interesse de cada usuário (e.g., a partir de suas consultas históricas), a fim de prover um mecanismo de notificação automática sempre que novas informações relevantes estiverem disponíveis no sistema.
- - **M05.5 - Indexação de novas coleções**
- 
-   Indexação de novas coleções de documentos não-estruturados à medida que forem disponibilizadas.
+ - **M05.10 - Indexação de novas coleções**
 
 
 
