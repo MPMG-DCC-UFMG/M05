@@ -15,8 +15,8 @@ Há duas formas de se instanciar o projeto, sendo elas a versão automática ou 
 
  1. Baixe este projeto na sua máquina 
  2. Crie um ambiente virtual: `python -m venv venv`
- 3. Atualize sua versão do `pip`: `pip install -U pip`
- 4. Ative o ambiente virtual: `source venv/bin/activate`
+ 3. Ative o ambiente virtual: `source venv/bin/activate`
+ 4. Atualize sua versão do `pip`: `pip install -U pip`
  5. Execute o comando: `./install.sh`. Ele irá:
     - Instalar todas as dependências do sistema
     - Caso o `ElasticSearch` não esteja disponível, irá baixá-lo e o iniciar (se já não estiver ativo)
