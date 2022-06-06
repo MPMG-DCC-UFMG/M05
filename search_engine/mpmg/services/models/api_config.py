@@ -28,10 +28,13 @@ class APIConfig():
     '''
     
     elastic = Elastic()
+
     INDEX_CONFIG_INDICES = 'config_indices'
     INDEX_CONFIG_FIELDS = 'config_fields'
     INDEX_CONFIG_OPTIONS = 'config_options'
     INDEX_CONFIG_ENTITIES = 'config_entities_mapping'
+    INDEX_CONFIG_RANKING_ENTITY = 'config_ranking_entity'
+    INDEX_CONFIG_FILTER_BY_ENTITY = 'config_filter_by_entity'
 
     def __init__(self, **kwargs):
         None
@@ -195,7 +198,67 @@ class APIConfig():
         
         return result_list
     
+    @classmethod
+    def get_total(cls, index_name: str) -> int:
+        '''
+        Retorna o total de registros salvos no índice.
+        '''
+        total = cls.elastic.dsl.Search(
+            using=cls.elastic.es, index=index_name).count()
+        return total
 
+    @classmethod
+    def get_config_ranking_entity(cls):
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RANKING_ENTITY)
+        total = cls.get_total(cls.INDEX_CONFIG_RANKING_ENTITY)
+        search_obj = search_obj[0:total]
+        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
+        elastic_result = search_obj.execute()
+
+        result_list = []
+        for item in elastic_result:
+            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
+        return result_list
+
+    @classmethod
+    def update_config_ranking_entity(cls, item_id: str, active: bool, aggregation_type: str, ranking_size: int) -> list:
+        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `tamanho_ranking` de uma configuração de ranking de entidade.
+        '''
+        updated_fields = {
+            'ativo': active,
+            'tecnica_agregacao': aggregation_type,
+            'tamanho_ranking': ranking_size
+        }
+        
+        cls.elastic.es.update(index=cls.INDEX_CONFIG_RANKING_ENTITY, doc_type='_doc', id=item_id, body={"doc": updated_fields})
+
+    @classmethod
+    def config_filter_by_entities(cls):
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FILTER_BY_ENTITY)
+        total = cls.get_total(cls.INDEX_CONFIG_FILTER_BY_ENTITY)
+        search_obj = search_obj[0:total]
+        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
+        elastic_result = search_obj.execute()
+
+        result_list = []
+        for item in elastic_result:
+            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
+
+        return result_list
+
+    @classmethod
+    def update_config_filter_by_entity(cls, item_id: str, active: bool, aggregation_type: str, num_entities: int):
+        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `num_entidades` de uma configuração de filtro por entidades.
+        '''
+        updated_fields = {
+            'ativo': active,
+            'tecnica_agregacao': aggregation_type,
+            'num_entidades': num_entities
+        }
+        
+        cls.elastic.es.update(index=cls.INDEX_CONFIG_FILTER_BY_ENTITY,
+                              doc_type='_doc', id=item_id, body={"doc": updated_fields})
+ 
     @classmethod
     def update_active_indices(cls, ids, active):
         '''

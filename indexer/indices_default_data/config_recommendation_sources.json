@@ -1,7 +1,31 @@
 {
     "data": [
-        {"id": 1, "body": {"ui_name": "Diários", "es_index_name": "diarios_segmentado", "amount":1000, "active": true}},
-        {"id": 2, "body": {"ui_name": "Processos", "es_index_name": "processos", "amount":1000, "active": true}},
-        {"id": 3, "body": {"ui_name": "Licitações", "es_index_name": "licitacoes", "amount":1000, "active": true}}
+        {
+            "id": 1,
+            "body": {
+                "nome": "Diários",
+                "nome_indice": "diarios_segmentado",
+                "quantidade": 1000,
+                "ativo": true
+            }
+        },
+        {
+            "id": 2,
+            "body": {
+                "nome": "Processos",
+                "nome_indice": "processos",
+                "quantidade": 1000,
+                "ativo": true
+            }
+        },
+        {
+            "id": 3,
+            "body": {
+                "nome": "Licitações",
+                "nome_indice": "licitacoes",
+                "quantidade": 1000,
+                "ativo": true
+            }
+        }
     ]
 }

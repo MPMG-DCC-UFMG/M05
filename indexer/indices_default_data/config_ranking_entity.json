@@ -1,0 +1,114 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "body": {
+                "ativo": true,
+                "nome": "Processo Licitação",
+                "tipo_entidade": "entidade_processo_licitacao",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 2,
+            "body": {
+                "ativo": true,
+                "nome": "Local",
+                "tipo_entidade": "entidade_local",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 3,
+            "body": {
+                "ativo": true,
+                "nome": "Pessoa",
+                "tipo_entidade": "entidade_pessoa",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 4,
+            "body": {
+                "ativo": true,
+                "nome": "Jurisprudência",
+                "tipo_entidade": "entidade_jurisprudencia",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 5,
+            "body": {
+                "ativo": true,
+                "nome": "Tempo",
+                "tipo_entidade": "entidade_tempo",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 6,
+            "body": {
+                "ativo": true,
+                "nome": "CPF",
+                "tipo_entidade": "entidade_cpf",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 7,
+            "body": {
+                "ativo": true,
+                "nome": "Organização",
+                "tipo_entidade": "entidade_organizacao",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 8,
+            "body": {
+                "ativo": true,
+                "nome": "CEP",
+                "tipo_entidade": "entidade_cep",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 9,
+            "body": {
+                "ativo": true,
+                "nome": "Município",
+                "tipo_entidade": "entidade_municipio",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 10,
+            "body": {
+                "ativo": true,
+                "nome": "Legislação",
+                "tipo_entidade": "entidade_legislacao",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        },
+        {
+            "id": 11,
+            "body": {
+                "ativo": true,
+                "nome": "CNPJ",
+                "tipo_entidade": "entidade_cnpj",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5
+            }
+        }
+    ]
+}

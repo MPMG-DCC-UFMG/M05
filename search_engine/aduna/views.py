@@ -7,6 +7,19 @@ from django.conf import settings
 from django.contrib import messages
 from collections import defaultdict
 
+ENTITY_ICONS = {
+    'entidade_pessoa': 'person',
+    'entidade_municipio': 'location_city',
+    'entidade_processo_licitacao': '',
+    'entidade_jurisprudencia': '',
+    'entidade_local': 'place',
+    'entidade_organizacao': 'business',
+    'entidade_cpf': '',
+    'entidade_cnpj': '',
+    'entidade_cep': '',
+    'entidade_legislacao': 'gavel',
+    'entidade_tempo': 'today',
+} 
 
 def index(request):
     if not request.session.get('auth_token'):
@@ -62,14 +75,27 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
-    print(params)
-
     filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
     filter_content = filter_response.json()
+    filter_instances_list = filter_content['instances']
+    filter_doc_types_list = filter_content['doc_types']
 
-    filter_instances_list = filter_content['instancias']
-    filter_doc_types_list = filter_content['tipos_documentos']
-    filter_entities_list = filter_content['entidades']
+    params['uso'] = 'ranking'
+    card_ranking_entities = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
+    card_ranking_entities = card_ranking_entities.json()
+    
+    # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
+    at_least_one_entity_type_has_recommendations = False
+    
+    for entity_name, entity_vals in card_ranking_entities.items():
+        entity_vals['icone'] = ENTITY_ICONS[entity_name]
+        if len(entity_vals['ranking']) > 0:
+            at_least_one_entity_type_has_recommendations = True
+
+    # busca entidades além de buscar a consulta
+    params['uso'] = 'filtro'
+    entities_list = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
+    entities_list = entities_list.json()
 
     # faz a busca
     params = {
@@ -129,15 +155,16 @@ def search(request):
             'results_per_page': range(response_content['resultados_por_pagina']),
             'documents': response_content['documentos'],
             'total_pages': response_content['total_paginas'],
-            # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
-            'results_pagination_bar': range(min(9, response_content['total_paginas'])),
+            'results_pagination_bar': range(min(9, response_content['total_paginas'])), # Typically show 9 pages. Odd number used so we can center the current one and show 4 in each side. Show less if not enough pages
+            'entities_list': entities_list,
+            'card_ranking_entities': card_ranking_entities,
+            'at_least_one_entity_type_has_recommendations': at_least_one_entity_type_has_recommendations,
             'filter_start_date': datetime.strptime(response_content['filtro_data_inicio'], '%Y-%m-%d') if response_content['filtro_data_inicio'] != None else None,
             'filter_end_date': datetime.strptime(response_content['filtro_data_fim'], '%Y-%m-%d') if response_content['filtro_data_fim'] != None else None,
             'filter_instances': response_content['filtro_instancias'],
             'filter_doc_types': response_content['filtro_tipos_documentos'],
             'filter_instances_list': filter_instances_list,
             'filter_doc_types_list': filter_doc_types_list,
-            'filter_entities_list': filter_entities_list,
             'filter_entidade_pessoa': filter_entidade_pessoa,
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,

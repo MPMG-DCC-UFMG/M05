@@ -12,102 +12,102 @@ from ..reranker import Reranker
 class SearchView(APIView):
     '''
     get:
-      description: Realiza uma busca por documentos não estruturados
-      parameters:
-        - name: consulta
-          in: query
-          description: texto da consulta
-          required: true
-          schema:
-            type: string
-        - name: pagina
-          in: query
-          description: Página do resultado de busca
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: sid
-          in: query
-          description: ID da sessão do usuário na aplicação
-          required: true
-          schema:
-            type: string
-        - name: qid
-          in: query
-          description: ID da consulta. Quando _page=1_ passe vazio e este método irá cria-lo. \
-                       Quando _page>1_ passe o qid retornado na primeira chamada.
-          schema:
-            type: string
-        - name: filtro_instancias
-          in: query
-          description: Filtro com uma lista de nomes de cidades às quais o documento deve pertencer
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filtro_tipos_documentos
-          in: query
-          description: Filtro com uma lista de tipos de documentos que devem ser retornados
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - diarios
-                - processos
-                - licitacoes
-                - diarios_segmentado
-        - name: filtro_data_inicio
-          in: query
-          description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
-          schema:
-            type: string
-        - name: filtro_data_fim
-          in: query
-          description: Filtra documentos cuja data de publicação seja anterior à data informada. Data no formato YYYY-MM-DD
-          schema:
-            type: string
-        - name: filtro_entidade_pessoa
-          in: query
-          description: Filtra documentos que mencionem as pessoas informadas nesta lista, além dos termos da consulta
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filtro_entidade_municipio
-          in: query
-          description: Filtra documentos que mencionem os municípios informados nesta lista, além dos termos da consulta
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filtro_entidade_organizacao
-          in: query
-          description: Filtra documentos que mencionem as organizações informadas nesta lista, além dos termos da consulta
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filtro_entidade_local
-          in: query
-          description: Filtra documentos que mencionem os locais informados nesta lista, além dos termos da consulta
-          schema:
-            type: array
-            items:
-              type: string
+        description: Realiza uma busca por documentos não estruturados
+        parameters:
+            -   name: consulta
+                in: query
+                description: texto da consulta
+                required: true
+                schema:
+                    type: string
+            -   name: pagina
+                in: query
+                description: Página do resultado de busca
+                required: true
+                schema:
+                    type: integer
+                    minimum: 1
+                    default: 1
+            -   name: sid
+                in: query
+                description: ID da sessão do usuário na aplicação
+                required: true
+                schema:
+                    type: string
+            -   name: qid
+                in: query
+                description: ID da consulta. Quando _page=1_ passe vazio e este método irá cria-lo. \
+                            Quando _page>1_ passe o qid retornado na primeira chamada.
+                schema:
+                    type: string
+            -   name: filtro_instancias
+                in: query
+                description: Filtro com uma lista de nomes de cidades às quais o documento deve pertencer
+                schema:
+                    type: array
+                    items:
+                        type: string
+            -   name: filtro_tipos_documentos
+                in: query
+                description: Filtro com uma lista de tipos de documentos que devem ser retornados
+                schema:
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                            - diarios
+                            - processos
+                            - licitacoes
+                            - diarios_segmentado
+            -   name: filtro_data_inicio
+                in: query
+                description: Filtra documentos cuja data de publicação seja igual ou posterior à data informada. Data no formato YYYY-MM-DD
+                schema:
+                    type: string
+            -   name: filtro_data_fim
+                in: query
+                description: Filtra documentos cuja data de publicação seja anterior à data informada. Data no formato YYYY-MM-DD
+                schema:
+                    type: string
+            -   name: filtro_entidade_pessoa
+                in: query
+                description: Filtra documentos que mencionem as pessoas informadas nesta lista, além dos termos da consulta
+                schema:
+                    type: array
+                    items:
+                        type: string
+            -   name: filtro_entidade_municipio
+                in: query
+                description: Filtra documentos que mencionem os municípios informados nesta lista, além dos termos da consulta
+                schema:
+                    type: array
+                    items:
+                        type: string
+            -   name: filtro_entidade_organizacao
+                in: query
+                description: Filtra documentos que mencionem as organizações informadas nesta lista, além dos termos da consulta
+                schema:
+                    type: array
+                    items:
+                        type: string
+            -   name: filtro_entidade_local
+                in: query
+                description: Filtra documentos que mencionem os locais informados nesta lista, além dos termos da consulta
+                schema:
+                    type: array
+                    items:
+                        type: string
 
-      responses:
-        '200':
-          description: Retorna uma lista com os documentos encontrados
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
-        '401':
-          description: Requisição não autorizada caso não seja fornecido um token válido
+        responses:
+            '200':
+                description: Retorna uma lista com os documentos encontrados
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: {}
+            '401':
+                description: Requisição não autorizada caso não seja fornecido um token válido
     '''
 
     # permission_classes = (IsAuthenticated,)
