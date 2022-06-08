@@ -3,6 +3,7 @@
         {
             "id": 1,
             "body": {
+                "nome_cliente_api": "gsi",
                 "nome": "Favoritos",
                 "tipo_evidencia": "bookmark",
                 "nome_indice": "bookmark",
@@ -15,6 +16,7 @@
         {
             "id": 2,
             "body": {
+                "nome_cliente_api": "gsi",
                 "nome": "Consultas",
                 "tipo_evidencia": "query",
                 "nome_indice": "log_buscas",
@@ -27,6 +29,47 @@
         {
             "id": 3,
             "body": {
+                "nome_cliente_api": "gsi",
+                "nome": "Cliques",
+                "tipo_evidencia": "click",
+                "nome_indice": "log_clicks",
+                "quantidade": 5,
+                "similaridade_minima": 60,
+                "top_n_recomendacoes": 5,
+                "ativo": true
+            }
+        },
+
+        {
+            "id": 4,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Favoritos",
+                "tipo_evidencia": "bookmark",
+                "nome_indice": "bookmark",
+                "quantidade": 5,
+                "similaridade_minima": 60,
+                "top_n_recomendacoes": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 5,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Consultas",
+                "tipo_evidencia": "query",
+                "nome_indice": "log_buscas",
+                "quantidade": 5,
+                "similaridade_minima": 60,
+                "top_n_recomendacoes": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 6,
+            "body": {
+                "nome_cliente_api": "procon",
                 "nome": "Cliques",
                 "tipo_evidencia": "click",
                 "nome_indice": "log_clicks",

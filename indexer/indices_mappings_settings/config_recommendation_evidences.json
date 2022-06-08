@@ -1,14 +1,17 @@
 {
     "mappings" : {
         "properties" : {
-            "ativo" : {
-                "type" : "boolean"
+            "nome_cliente_api": {
+                "type": "text"
             },
-            "quantidade" : {
-                "type" : "integer"
+            "nome" : {
+                "type" : "text"
             },
             "nome_indice" : {
                 "type" : "text"
+            },
+            "quantidade" : {
+                "type" : "integer"
             },
             "tipo_evidencia" : {
                 "type" : "text",
@@ -24,8 +27,8 @@
             "top_n_recomendacoes" : {
                 "type" : "integer"
             },
-            "nome" : {
-                "type" : "text"
+            "ativo" : {
+                "type" : "boolean"
             }
         }
     }

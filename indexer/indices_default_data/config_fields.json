@@ -1,12 +1,21 @@
 {
     "data": [
-        {"id": 1, "body": {"ui_name":"Fonte",          "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 2, "body": {"ui_name":"Título",         "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 3, "body": {"ui_name":"Conteúdo",       "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
-        {"id": 4, "body": {"ui_name":"Pessoas",        "field_name": "entidade_pessoa",      "weight": 1, "searchable": true,  "retrievable": true}},
-        {"id": 5, "body": {"ui_name":"Organizações",   "field_name": "entidade_organizacao", "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 6, "body": {"ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 7, "body": {"ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 8, "body": {"ui_name":"Vetores Densos", "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}}
+        {"id": 1,  "body": {"nome_cliente_api": "gsi", "ui_name":"Fonte",          "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 2,  "body": {"nome_cliente_api": "gsi", "ui_name":"Título",         "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 3,  "body": {"nome_cliente_api": "gsi", "ui_name":"Conteúdo",       "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 4,  "body": {"nome_cliente_api": "gsi", "ui_name":"Pessoas",        "field_name": "entidade_pessoa",      "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 5,  "body": {"nome_cliente_api": "gsi", "ui_name":"Organizações",   "field_name": "entidade_organizacao", "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 6,  "body": {"nome_cliente_api": "gsi", "ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 7,  "body": {"nome_cliente_api": "gsi", "ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 8,  "body": {"nome_cliente_api": "gsi", "ui_name":"Vetores Densos", "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}},
+
+        {"id": 9,  "body": {"nome_cliente_api": "procon", "ui_name":"Fonte",          "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 10, "body": {"nome_cliente_api": "procon", "ui_name":"Título",         "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 11, "body": {"nome_cliente_api": "procon", "ui_name":"Conteúdo",       "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 12, "body": {"nome_cliente_api": "procon", "ui_name":"Pessoas",        "field_name": "entidade_pessoa",      "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 13, "body": {"nome_cliente_api": "procon", "ui_name":"Organizações",   "field_name": "entidade_organizacao", "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 14, "body": {"nome_cliente_api": "procon", "ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 15, "body": {"nome_cliente_api": "procon", "ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 16, "body": {"nome_cliente_api": "procon", "ui_name":"Vetores Densos", "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}}
     ]
 }

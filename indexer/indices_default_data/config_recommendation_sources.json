@@ -3,6 +3,7 @@
         {
             "id": 1,
             "body": {
+                "nome_cliente_api": "gsi",
                 "nome": "Diários",
                 "nome_indice": "diarios_segmentado",
                 "quantidade": 1000,
@@ -12,6 +13,7 @@
         {
             "id": 2,
             "body": {
+                "nome_cliente_api": "gsi",
                 "nome": "Processos",
                 "nome_indice": "processos",
                 "quantidade": 1000,
@@ -21,8 +23,20 @@
         {
             "id": 3,
             "body": {
+                "nome_cliente_api": "gsi",
                 "nome": "Licitações",
                 "nome_indice": "licitacoes",
+                "quantidade": 1000,
+                "ativo": true
+            }
+        },
+
+        {
+            "id": 4,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Reclame Aqui",
+                "nome_indice": "reclame_aqui",
                 "quantidade": 1000,
                 "ativo": true
             }
