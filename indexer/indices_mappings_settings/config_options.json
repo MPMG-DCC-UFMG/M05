@@ -1,6 +1,9 @@
 {
     "mappings" : {
         "properties" : {
+            "nome_cliente_api": {
+                "type": "text"
+            },
             "highlight_field" : {
                 "type" : "text"
             },

@@ -1,11 +1,11 @@
 {
     "mappings" : {
         "properties" : {
-            "ativo" : {
-                "type" : "boolean"
+            "nome_cliente_api": {
+                "type": "text"
             },
-            "quantidade" : {
-                "type" : "integer"
+            "nome" : {
+                "type" : "text"
             },
             "nome_indice" : {
                 "type" : "text",
@@ -15,8 +15,11 @@
                     }
                 }
             },
-            "nome" : {
-                "type" : "text"
+            "quantidade" : {
+                "type" : "integer"
+            },
+            "ativo" : {
+                "type" : "boolean"
             }
         }
     }
