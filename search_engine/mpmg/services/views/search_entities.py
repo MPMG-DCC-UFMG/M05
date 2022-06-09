@@ -115,7 +115,7 @@ class SearchEntities(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         usage_objective = request.GET.get('uso', '').lower()
 
         if usage_objective not in ('filtro', 'ranking'):
@@ -123,7 +123,7 @@ class SearchEntities(APIView):
 
         if usage_objective == 'ranking':
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
-            _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+            _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter=[{'term': {'ativo': True}}, {'term': {'nome_cliente_api': api_client_name}}])
             entities_by_entity_type = self._get_entities(request, config_entities_ranking, 'tamanho_ranking')
 
             entities_ranking_by_entity_type = dict()
@@ -140,7 +140,7 @@ class SearchEntities(APIView):
 
         else:
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
-            _, config_filter_by_entity = CONFIG_FILTER_BY_ENTITY.get_list(page='all', filter={'term': {'ativo': True}})
+            _, config_filter_by_entity = CONFIG_FILTER_BY_ENTITY.get_list(page='all', filter=[{'term': {'ativo': True}}, {'term': {'nome_cliente_api': api_client_name}}])
             data = self._get_entities(request, config_filter_by_entity, 'num_entidades')
 
         return Response(data, status=status.HTTP_200_OK)

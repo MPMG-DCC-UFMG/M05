@@ -86,7 +86,7 @@ class SearchFilterView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request, filtro):
+    def get(self, request, api_client_name, filtro):
         data = {}
 
         if filtro == 'instances' or filtro == 'all':

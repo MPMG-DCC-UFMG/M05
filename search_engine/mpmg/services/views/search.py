@@ -114,7 +114,7 @@ class SearchView(APIView):
     schema = AutoDocstringSchema()
     reranker = Reranker()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         start = time.time()  # Medindo wall-clock time da requisição completa
 
         # try:

@@ -163,4 +163,4 @@ BOOKMARK_INDEX = 'bookmark'
 '''
 Cliente da API. Use "gsi" ou "procon"
 '''
-API_CLIENT_NAME = 'gsi'
+API_CLIENT_NAME = 'procon'

@@ -18,3 +18,4 @@ from .config_recommendation_source import ConfigRecommendationSource
 from .config_entity_ranking import ConfigRankingEntity
 from .config_filter_by_entity import ConfigFilterByEntity
 from .api_config import APIConfig
+from .reclame_aqui import ReclameAqui

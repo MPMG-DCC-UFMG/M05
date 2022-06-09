@@ -201,7 +201,7 @@ class ElasticModel(dict):
         return True
 
     @classmethod
-    def get_list(cls, query=None, filter=None, page=1, sort=None) -> Tuple[int, list]:
+    def get_list(cls, query=None, filter=[], page=1, sort=None) -> Tuple[int, list]:
         '''
         Busca uma lista de documentos do índice. Cada item da lista é uma instância da classe
         em questão. É possível passar parâmetros de ordenação em sort, e também parâmetros de 
@@ -222,9 +222,17 @@ class ElasticModel(dict):
 
         if query != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q(query))
+        
 
-        elif filter != None:
-            search_obj = search_obj.filter(filter)
+        for f in filter:
+            search_obj = search_obj.query(cls.elastic.dsl.Q(f))
+
+        # elif filter != None:
+        #     if type(filter) == list:
+        #         for f in filter:
+        #             search_obj = search_obj.filter(f)
+        #     else:
+        #         search_obj = search_obj.filter(filter)
 
         if page == 'all':
             total = cls.get_total()
