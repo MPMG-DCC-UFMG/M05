@@ -103,7 +103,7 @@ class Indexer:
             line = dict(line)
             doc = {}
             for field in columns:
-                if line[field] == '':
+                if field == 'id': # id vai separado, fora do doc
                     continue
 
                 field_name = field
@@ -114,7 +114,8 @@ class Indexer:
 
                 if field_type == "list":
                     doc[field_name] = eval(line[field])
-
+                elif field_type == "bool":
+                    doc[field_name] = eval(line[field])
                 elif field_name == 'data_criacao':
                     if line[field] != '':
                         element = parse_date(line[field])
@@ -133,10 +134,16 @@ class Indexer:
             if self.model_path != "None":
                 doc["embedding"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
 
-            yield {
+            
+            return_item = {
                 "_index": index,
                 "_source": doc
             }
+
+            if "id" in columns:
+                return_item['_id'] = line['id']
+
+            yield return_item
         
         csv_file.close()
         file_count.close()
@@ -150,15 +157,19 @@ class Indexer:
 
         responses = {}
         for csv_file in files_to_index:
-            print("Indexing: " + csv_file)
-            responses[csv_file] =  helpers.bulk(self.es, self.generate_formated_csv_lines(csv_file, index) )
-            print("  Response: " + str(responses[csv_file]))
+            try:
+                print("Indexing: " + csv_file)
+                responses[csv_file] =  helpers.bulk(self.es, self.generate_formated_csv_lines(csv_file, index) )
+                print("  Response: " + str(responses[csv_file]))
 
-            if len(responses[csv_file][1]) > 0 :
-                print("Detected error while indexing: " + csv_file)
-            else:
-                end = time.time()
-                print("Indexing time: {:.4f} seconds.".format(end-start))
+                if len(responses[csv_file][1]) > 0 :
+                    # print("Detected error while indexing: " + csv_file)
+                    print(responses[csv_file])
+                else:
+                    end = time.time()
+                    print("Indexing time: {:.4f} seconds.".format(end-start))
+            except Exception as e:
+                print(e)
 
     def parallel_indexer(self, files_to_index, index, thread_count):
         """

@@ -1,5 +1,7 @@
+from django.conf import settings
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
+from mpmg.services.models.reclame_aqui import ReclameAqui
 
 class APIConfig():
     '''
@@ -62,6 +64,7 @@ class APIConfig():
     @classmethod
     def get_options(cls):
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_OPTIONS)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
         elastic_result = search_obj.execute()
         item = elastic_result[0]
         options = dict({'id': item.meta.id}, **item.to_dict())
@@ -123,6 +126,7 @@ class APIConfig():
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FIELDS)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
         if searchable != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "searchable": True }}))
         if retrievable != None:
@@ -185,6 +189,7 @@ class APIConfig():
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_INDICES)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
         if active != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
         if group != None:

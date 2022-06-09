@@ -75,13 +75,13 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
-    filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
+    filter_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_filter/all', params, headers=headers)
     filter_content = filter_response.json()
     filter_instances_list = filter_content['instances']
     filter_doc_types_list = filter_content['doc_types']
 
     params['uso'] = 'ranking'
-    card_ranking_entities = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
+    card_ranking_entities = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     card_ranking_entities = card_ranking_entities.json()
     
     # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
@@ -94,7 +94,7 @@ def search(request):
 
     # busca entidades além de buscar a consulta
     params['uso'] = 'filtro'
-    entities_list = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
+    entities_list = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     entities_list = entities_list.json()
 
     # faz a busca
@@ -113,7 +113,7 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
-    service_response = requests.get(settings.SERVICES_URL+'search', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
@@ -194,7 +194,7 @@ def document(request, tipo_documento, id_documento):
         organizacao_filter = request.GET.getlist('organizacao', [])
         local_filter = request.GET.getlist('local', [])
 
-        if '_segmentado' in tipo_documento:
+        if tipo_documento == 'diario_segmentado':
             # requisita a estrutura de navegação do documento, para criar um índice lateral na página
             nav_params = {
                 'tipo_documento': tipo_documento, 
@@ -219,8 +219,29 @@ def document(request, tipo_documento, id_documento):
                 'user_id': request.session['user_info']['user_id'],
                 'auth_token': request.session.get('auth_token'),
             }
-            return render(request, 'aduna/document_segmented.html', context)
+            return render(request, 'aduna/document_diario_segmentado.html', context)
+        
+        elif tipo_documento == 'reclame_aqui':
+            response_content = service_response.json()
+            document = response_content['document']
 
+            print('###########################')
+            print(document)
+
+            for i, seg in enumerate(document['segmentos']):
+                document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
+
+            context = {
+                'user_name': request.session.get('user_info')['first_name'],
+                'document': document,
+                'query': query,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
+            }
+            return render(request, 'aduna/document_reclame_aqui.html', context)
+        
         else:
             response_content = service_response.json()
             document = response_content['document']
@@ -238,7 +259,7 @@ def document(request, tipo_documento, id_documento):
                 'auth_token': request.session.get('auth_token'),
             }
 
-            return render(request, 'aduna/document.html', context)
+            return render(request, 'aduna/document_default.html', context)
 
 def login(request):
     if request.method == 'GET':
