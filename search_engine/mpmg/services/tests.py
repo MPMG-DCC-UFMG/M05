@@ -1,4 +1,6 @@
 import time
+import random
+
 from django.http import response
 from django.test import TestCase
 from django.test import Client
@@ -35,7 +37,7 @@ class DocumentTests(TestCase):
     def test_document_request(self):
         # GET request enquanto logged in.
         document_id = get_any_id()
-        response = self.client.get(reverse('mpmg.services:document'), {'doc_type': 'diarios', 'doc_id': document_id, 'sid': '12345'})
+        response = self.client.get(reverse('mpmg.services:document'), {'tipo_documento': 'diarios', 'id_documento': document_id, 'sid': '12345'})
 
         # Checa por response 200 OK.
         self.assertEqual(response.status_code, 200)
@@ -47,8 +49,8 @@ class DocumentTests(TestCase):
         self.assertIsNotNone(response['document'])
 
     def test_document_not_exists(self):
-        document_id = 'id_of_doc_not_exists'
-        response = self.client.get(reverse('mpmg.services:document'), {'doc_type': 'diarios', 'doc_id': document_id, 'sid': '12345'})
+        document_id = random.randint(-10000, -1)
+        response = self.client.get(reverse('mpmg.services:document'), {'tipo_documento': 'diarios', 'id_documento': document_id, 'sid': '12345'})
         self.assertEqual(response.status_code, 404)
 
 class DocumentNavigationTests(TestCase):
@@ -59,14 +61,14 @@ class DocumentNavigationTests(TestCase):
     def test_document_request(self):
         document_id = get_any_id('diarios_segmentado')
         response = self.client.get(reverse('mpmg.services:document_navigation'), {
-                                   'doc_type': 'diarios_segmentado', 'doc_id': document_id})
+                                   'tipo_documento': 'diarios_segmentado', 'id_documento': document_id})
 
         self.assertEqual(response.status_code, 200)
 
     def test_document_not_exists(self):
-        document_id = 'id_of_doc_not_exists'
+        document_id = random.randint(-10000, -1)
         response = self.client.get(reverse('mpmg.services:document_navigation'), {
-                                   'doc_type': 'diarios', 'doc_id': document_id})
+                                   'tipo_documento': 'diarios', 'id_documento': document_id})
         self.assertEqual(response.status_code, 404)
 
 class LoginTests(TestCase):
@@ -125,7 +127,7 @@ class SearchTests(TestCase):
 
     def test_query_request(self):
         # GET request enquanto logged in.
-        response = self.client.get(reverse('mpmg.services:search'), {'query': 'maria', 'page': 1, 'sid': '123456789'})
+        response = self.client.get(reverse('mpmg.services:search'), {'consulta': 'maria', 'page': 1, 'sid': '123456789'})
 
         # Checa por response 200 OK.
         self.assertEqual(response.status_code, 200)
@@ -134,11 +136,11 @@ class SearchTests(TestCase):
         response = response.json()
 
         # Checa pela resposta de autenticado.
-        self.assertIsNotNone(response['query'])
+        self.assertIsNotNone(response['consulta'])
 
     def test_invalid_query(self):
         # GET request enquanto logged in.
-        response = self.client.get(reverse('mpmg.services:search'), {'query': '', 'page': 1, 'sid': '123456789'})
+        response = self.client.get(reverse('mpmg.services:search'), {'consulta': '', 'page': 1, 'sid': '123456789'})
 
         # Checa por response 400 Bad Request.
         self.assertEqual(response.status_code, 400)
@@ -190,7 +192,6 @@ class LogSearchTests(TestCase):
                         'qid': 'test_query',
                         'page': 1
                         }
-        self.log_click_id = get_any_id('log_clicks')
         
     def test_post_log_search_result_click(self):
         # POST request enquanto logged in.
@@ -230,7 +231,7 @@ class SuggestionTests(TestCase):
 
     def test_get_suggestion(self):
         # GET request enquanto logged in.
-        response = self.client.get(reverse('mpmg.services:query_suggestion'), {'query': 'maria'})
+        response = self.client.get(reverse('mpmg.services:query_suggestion'), {'consulta': 'maria'})
 
         # Checa por response 200 OK.
         self.assertEqual(response.status_code, 200)
@@ -244,7 +245,7 @@ class SuggestionTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
         # Segundo caso: passando query vazia
-        response = self.client.get(reverse('mpmg.services:query_suggestion'), {'query': ''})
+        response = self.client.get(reverse('mpmg.services:query_suggestion'), {'consulta': ''})
                   
         # Checa por response 400 Bad Request.
         self.assertEqual(response.status_code, 400)
@@ -253,8 +254,8 @@ class LogQuerySuggestionClickTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.log_query_suggestion_click = {
-            'posicao_ranking': 0,
-            'suggestion': 'some suggestion'
+            'posicao': 0,
+            'sugestao': 'some suggestion'
         }
 
     def test_post_log_query_suggestion_click(self):
@@ -312,45 +313,37 @@ class SearchFilterTests(TestCase):
 
         doc_types = data.get('doc_types')
         instances = data.get('instances')
-        entities = data.get('entities')
 
         # queremos que só um filtro tenha sido aplicado
         self.assertIsNotNone(doc_types)
         self.assertIsNone(instances)
-        self.assertIsNone(entities)
 
     def test_instances_search_filter(self):
         data = self._get_response_json('instances')
 
         doc_types = data.get('doc_types')
         instances = data.get('instances')
-        entities = data.get('entities')
 
         # queremos que só um filtro tenha sido aplicado
         self.assertIsNotNone(instances)
         self.assertIsNone(doc_types)
-        self.assertIsNone(entities)
 
     def test_entities_search_filter(self):
-        data = self._get_response_json('entities', {'query': 'maria'})
+        data = self._get_response_json('entities', {'consulta': 'maria'})
         
         doc_types = data.get('doc_types')
         instances = data.get('instances')
-        entities = data.get('entities')
         
         # queremos que só um filtro tenha sido aplicado
-        self.assertIsNotNone(entities)
         self.assertIsNone(doc_types)
         self.assertIsNone(instances)
 
     def test_all_search_filter(self):
-        data = self._get_response_json('all', {'query': 'maria'})
+        data = self._get_response_json('all', {'consulta': 'maria'})
 
         doc_types = data.get('doc_types')
         instances = data.get('instances')
-        entities = data.get('entities')
 
         self.assertIsNotNone(doc_types)
         self.assertIsNotNone(instances)
-        self.assertIsNotNone(entities)
 
