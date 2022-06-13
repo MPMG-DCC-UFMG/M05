@@ -1,0 +1,1 @@
+#distribuição e coloração das entradas
