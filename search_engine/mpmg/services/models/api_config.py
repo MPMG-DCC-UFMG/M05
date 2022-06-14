@@ -1,4 +1,3 @@
-from django.conf import settings
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.reclame_aqui import ReclameAqui
@@ -45,26 +44,26 @@ class APIConfig():
     # CONFIGURAÇÕES DAS OPÇÕES ######################################################################
 
     @classmethod
-    def use_semantic_vectors_in_search(cls):
-        return cls.get_options()['use_semantic_vectors_in_search']
+    def use_semantic_vectors_in_search(cls, api_client_name):
+        return cls.get_options(api_client_name)['use_semantic_vectors_in_search']
     
     @classmethod
-    def identify_entities_in_query(cls):
-        return cls.get_options()['identify_entities_in_query']
+    def identify_entities_in_query(cls, api_client_name):
+        return cls.get_options(api_client_name)['identify_entities_in_query']
     
     @classmethod
-    def highlight_field(cls):
-        return cls.get_options()['highlight_field']
+    def highlight_field(cls, api_client_name):
+        return cls.get_options(api_client_name)['highlight_field']
     
     @classmethod
-    def results_per_page(cls):
-        return cls.get_options()['results_per_page']
+    def results_per_page(cls, api_client_name):
+        return cls.get_options(api_client_name)['results_per_page']
 
 
     @classmethod
-    def get_options(cls):
+    def get_options(cls, api_client_name):
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_OPTIONS)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
         elastic_result = search_obj.execute()
         item = elastic_result[0]
         options = dict({'id': item.meta.id}, **item.to_dict())
@@ -87,7 +86,7 @@ class APIConfig():
     # CONFIGURAÇÕES DOS CAMPOS ######################################################################
     
     @classmethod
-    def searchable_fields(cls):
+    def searchable_fields(cls, api_client_name):
         '''
         Retorna uma lista com o nome dos campos que devem ser considerados durante a busca.
         Junto do nome do campo está o peso que ele possui na busca, separado por "^". 
@@ -98,13 +97,13 @@ class APIConfig():
         '''
 
         result_list = []
-        for item in cls.get_fields(searchable=True):
+        for item in cls.get_fields(api_client_name, searchable=True):
             result_list.append(item['field_name']+'^'+str(item['weight']))
         return result_list
     
 
     @classmethod
-    def retrievable_fields(cls):
+    def retrievable_fields(cls, api_client_name):
         '''
         Retorna uma lista com o nome dos campos que devem ser retornados durante a busca.
         
@@ -114,19 +113,19 @@ class APIConfig():
         '''
 
         result_list = []
-        for item in cls.get_fields(retrievable=True):
+        for item in cls.get_fields(api_client_name, retrievable=True):
             result_list.append(item['field_name'])
         return result_list
     
 
     @classmethod
-    def get_fields(cls, searchable=None, retrievable=None):
+    def get_fields(cls, api_client_name, searchable=None, retrievable=None):
         '''
         Retorna uma lista de campos. Passe searchable ou retrievable para filtrar.
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FIELDS)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
         if searchable != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "searchable": True }}))
         if retrievable != None:
@@ -151,32 +150,32 @@ class APIConfig():
     # CONFIGURAÇÕES DOS ÍNDICES ######################################################################
 
     @classmethod
-    def searchable_indices(cls, group=None):
+    def searchable_indices(cls, api_client_name, group=None):
         '''
         Retorna uma lista com o nome dos índices do elasticsearch que devem ser
         considerados durante a busca
         '''
 
         indices = []
-        for item in cls.get_indices(group=group, active=True):
+        for item in cls.get_indices(api_client_name, group=group, active=True):
             indices.append(item['es_index_name'])
         return indices
     
     @classmethod
-    def searchable_index_to_class(cls, group=None):
+    def searchable_index_to_class(cls, api_client_name, group=None):
         '''
         Retorna um dicionário relacionando o nome do índice no elasticsearch
         com a referência para classe Python que o representa
         '''
 
         index_to_class = {}
-        for item in cls.get_indices(group=group, active=True):
+        for item in cls.get_indices(api_client_name, group=group, active=True):
             index_to_class[item['es_index_name']] = eval(item['class_name'])
         return index_to_class
 
     
     @classmethod
-    def get_indices(cls, group=None, active=None):
+    def get_indices(cls, api_client_name, group=None, active=None):
         '''
         Retorna a lista de índices. Passe group e active para filtrar.
         Cada item da lista contém:
@@ -189,7 +188,7 @@ class APIConfig():
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_INDICES)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": settings.API_CLIENT_NAME}}))
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
         if active != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
         if group != None:
@@ -204,18 +203,31 @@ class APIConfig():
         return result_list
     
     @classmethod
-    def get_total(cls, index_name: str) -> int:
+    def get_total(cls, api_client_name: str, index_name: str) -> int:
         '''
-        Retorna o total de registros salvos no índice.
+        Retorna o total de registros salvos no índice para um cliente específico da API.
         '''
-        total = cls.elastic.dsl.Search(
-            using=cls.elastic.es, index=index_name).count()
+        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=index_name)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+        total = search_obj.count()
         return total
 
     @classmethod
-    def get_config_ranking_entity(cls):
+    def get_config_ranking_entity(cls, api_client_name):
+        '''
+        Retorna uma lista com as configurações de ranqueamento pra cada tipo de entidade.
+        Cada item da lista contém:
+         - id: ID do registro no elastic
+         - nome: Nome do tipo da entidade para ser exibido para o usuário
+         - tipo_entidade: Tipo da entidade, pra ser usado internamento no código
+         - tecnica_agregacao: Nome da agregação usada para fazer o ranking
+         - tamanho_ranking: Número de entidades que farão parte do ranking
+         - ativo: Indica se o tipo de entidade em questão deve ser ranqueada ou não
+        '''
+
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RANKING_ENTITY)
-        total = cls.get_total(cls.INDEX_CONFIG_RANKING_ENTITY)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_RANKING_ENTITY)
         search_obj = search_obj[0:total]
         search_obj = search_obj.sort({'_id': {'order': 'asc'}})
         elastic_result = search_obj.execute()
@@ -227,7 +239,8 @@ class APIConfig():
 
     @classmethod
     def update_config_ranking_entity(cls, item_id: str, active: bool, aggregation_type: str, ranking_size: int) -> list:
-        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `tamanho_ranking` de uma configuração de ranking de entidade.
+        ''' 
+        Permite atualizar os campos `ativo`, `tecnica_agregacao` e `tamanho_ranking` de uma configuração de ranking de entidade.
         '''
         updated_fields = {
             'ativo': active,
@@ -238,9 +251,21 @@ class APIConfig():
         cls.elastic.es.update(index=cls.INDEX_CONFIG_RANKING_ENTITY, doc_type='_doc', id=item_id, body={"doc": updated_fields})
 
     @classmethod
-    def config_filter_by_entities(cls):
+    def config_filter_by_entities(cls, api_client_name):
+        '''
+        Retorna uma lista com as configurações de tipos de entidades que podem ser usadas como filtro de consulta
+        Cada item da lista contém:
+         - id: ID do registro no elastic
+         - nome: Nome do tipo da entidade para ser exibido para o usuário
+         - tipo_entidade: Tipo da entidade, pra ser usado internamento no código
+         - tecnica_agregacao: Nome da agregação usada para fazer o filtro
+         - tamanho_ranking: Número de entidades que farão parte do filtro
+         - ativo: Indica se o tipo de entidade em questão deve ser usada como filtro ou não
+        '''
+
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FILTER_BY_ENTITY)
-        total = cls.get_total(cls.INDEX_CONFIG_FILTER_BY_ENTITY)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_FILTER_BY_ENTITY)
         search_obj = search_obj[0:total]
         search_obj = search_obj.sort({'_id': {'order': 'asc'}})
         elastic_result = search_obj.execute()
@@ -253,7 +278,8 @@ class APIConfig():
 
     @classmethod
     def update_config_filter_by_entity(cls, item_id: str, active: bool, aggregation_type: str, num_entities: int):
-        ''' Permite atualizar os campos `ativo`, `tecnica_agregacao` e `num_entidades` de uma configuração de filtro por entidades.
+        ''' 
+        Permite atualizar os campos `ativo`, `tecnica_agregacao` e `num_entidades` de uma configuração de filtro por entidades.
         '''
         updated_fields = {
             'ativo': active,
@@ -282,10 +308,10 @@ class APIConfig():
     # CONFIGURAÇÕES DO MAPEAMENTO DAS ENTIDADES #########################################################
 
     @classmethod
-    def entity_type_to_index_name(cls):
-        total = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_ENTITIES).count()
-
+    def entity_type_to_index_name(cls, api_client_name):
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_ENTITIES)
+        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_ENTITIES)
         search_obj = search_obj[0:total]
         elastic_result = search_obj.execute()
         

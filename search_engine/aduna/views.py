@@ -181,7 +181,7 @@ def document(request, tipo_documento, id_documento):
     
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
     sid = request.session.session_key
-    service_response = requests.get(settings.SERVICES_URL+'document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
 
     if service_response.status_code == 401:
         request.session['auth_token'] = None
@@ -205,7 +205,7 @@ def document(request, tipo_documento, id_documento):
                 'filtro_entidade_organizacao': organizacao_filter,
                 'filtro_local': local_filter,
                 }
-            nav_response = requests.get(settings.SERVICES_URL+'document_navigation', nav_params, headers=headers)
+            nav_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/document_navigation', nav_params, headers=headers)
             navigation = nav_response.json()['navigation']
 
             response_content = service_response.json()
@@ -224,9 +224,6 @@ def document(request, tipo_documento, id_documento):
         elif tipo_documento == 'reclame_aqui':
             response_content = service_response.json()
             document = response_content['document']
-
-            print('###########################')
-            print(document)
 
             for i, seg in enumerate(document['segmentos']):
                 document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
@@ -327,7 +324,7 @@ def search_comparison(request):
         'start_date': start_date,
         'end_date': end_date
     }
-    service_response = requests.get(settings.SERVICES_URL+'search_comparison', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_comparison', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
@@ -416,7 +413,7 @@ def search_comparison_entity(request):
         'start_date': start_date,
         'end_date': end_date
     }
-    service_response = requests.get(settings.SERVICES_URL+'search_comparison_entity', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_comparison_entity', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
