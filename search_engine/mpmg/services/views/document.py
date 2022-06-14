@@ -33,12 +33,12 @@ class DocumentView(APIView):
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         tipo_documento = request.GET['tipo_documento']
         id_documento = request.GET['id_documento']
 
         # instancia a classe apropriada e busca o registro no índice
-        index_class = APIConfig.searchable_index_to_class('regular')[tipo_documento]
+        index_class = APIConfig.searchable_index_to_class(api_client_name, 'regular')[tipo_documento]
 
         try:
             document = index_class.get(id_documento)

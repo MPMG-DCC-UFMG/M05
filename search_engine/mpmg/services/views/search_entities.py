@@ -124,7 +124,7 @@ class SearchEntities(APIView):
         if usage_objective == 'ranking':
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
             _, config_entities_ranking = CONFIG_RANKING_ENTITY.get_list(page='all', filter=[{'term': {'ativo': True}}, {'term': {'nome_cliente_api': api_client_name}}])
-            entities_by_entity_type = self._get_entities(request, config_entities_ranking, 'tamanho_ranking')
+            entities_by_entity_type = self._get_entities(request, api_client_name, config_entities_ranking, 'tamanho_ranking')
 
             entities_ranking_by_entity_type = dict()
             for config_entity_ranking in config_entities_ranking:
@@ -141,7 +141,7 @@ class SearchEntities(APIView):
         else:
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
             _, config_filter_by_entity = CONFIG_FILTER_BY_ENTITY.get_list(page='all', filter=[{'term': {'ativo': True}}, {'term': {'nome_cliente_api': api_client_name}}])
-            data = self._get_entities(request, config_filter_by_entity, 'num_entidades')
+            data = self._get_entities(request, api_client_name, config_filter_by_entity, 'num_entidades')
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -180,7 +180,7 @@ class SearchEntities(APIView):
                         )
         return entities
 
-    def _get_entities(self, request, config: list, num_entities_field: str):
+    def _get_entities(self, request, api_client_name: str, config: list, num_entities_field: str):
         query = request.GET['consulta']
 
         query_filter = QueryFilter.create_from_request(request)
@@ -196,11 +196,11 @@ class SearchEntities(APIView):
 
         elastic = Elastic()
 
-        indices = APIConfig.searchable_indices('regular')
+        indices = APIConfig.searchable_indices(api_client_name, 'regular')
         if len(query_filter.doc_types) > 0:
             indices = query_filter.doc_types
 
-        must_clause = [elastic.dsl.Q('query_string', query=query, fields=APIConfig.searchable_fields())]
+        must_clause = [elastic.dsl.Q('query_string', query=query, fields=APIConfig.searchable_fields(api_client_name))]
         filter_clause = query_filter.get_filters_clause()
 
         elastic_request = elastic.dsl.Search(using=elastic.es, index=indices) \

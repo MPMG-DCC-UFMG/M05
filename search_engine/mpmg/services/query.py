@@ -30,20 +30,21 @@ class Query:
             entidades, etc.
     '''
 
-    def __init__(self, raw_query, page, qid, sid, user_id, group='regular', query_filter:QueryFilter=None):
+    def __init__(self, raw_query, page, qid, sid, user_id, api_client_name, group='regular', query_filter:QueryFilter=None):
         self.start_time = time.time()
         self.raw_query = raw_query
         self.page = page
         self.qid = qid
         self.sid = sid
         self.user_id = user_id
+        self.api_client_name = api_client_name
         self.group = group
         self.query_filter = query_filter
         self.data_criacao = int(time.time()*1000)
-        self.use_entities = APIConfig.identify_entities_in_query()
-        self.results_per_page =  APIConfig.results_per_page()
-        self.weighted_fields = APIConfig.searchable_fields()
-        self.indices = APIConfig.searchable_indices(group)
+        self.use_entities = APIConfig.identify_entities_in_query(api_client_name)
+        self.results_per_page =  APIConfig.results_per_page(api_client_name)
+        self.weighted_fields = APIConfig.searchable_fields(api_client_name)
+        self.indices = APIConfig.searchable_indices(api_client_name, group)
         self._proccess_query()
 
         # Os doc_types são os índices onde deve ser feita a busca, se o usuário
@@ -155,7 +156,7 @@ class Query:
         should_clause = self._get_should_clause()
         filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
         
-        self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
+        self.total_docs, self.total_pages, self.documents, self.response_time  = Document(self.api_client_name).search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
         
         self._log()

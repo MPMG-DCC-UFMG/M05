@@ -119,7 +119,7 @@ class SearchView(APIView):
 
         # try:
         self.elastic = Elastic()
-        self._generate_query(request)
+        self._generate_query(request, api_client_name)
 
         # valida o tamanho da consulta
         if not self.query.is_valid():
@@ -152,7 +152,7 @@ class SearchView(APIView):
         }
         return Response(data)
 
-    def _generate_query(self, request):
+    def _generate_query(self, request, api_client_name):
         group = 'regular'
         user_id = request.user.id
         raw_query = request.GET['consulta']
@@ -164,4 +164,4 @@ class SearchView(APIView):
         query_filter = QueryFilter.create_from_request(request)
 
         self.query = Query(raw_query, page, qid, sid,
-                           user_id, group, query_filter=query_filter)
+                           user_id, api_client_name, group, query_filter=query_filter)
