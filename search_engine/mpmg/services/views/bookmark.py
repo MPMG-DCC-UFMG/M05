@@ -263,7 +263,7 @@ class BookmarkView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         if 'id_favorito' in request.GET:
             bookmark = BOOKMARK.get(request.GET['id_favorito'])
 
@@ -298,7 +298,7 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
  
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
@@ -350,7 +350,7 @@ class BookmarkView(APIView):
 
         return Response({'id_favorito': generated_bookmark_id}, status=status.HTTP_201_CREATED)        
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
 
         bookmark_id = data.get('id_favorito')
@@ -385,7 +385,7 @@ class BookmarkView(APIView):
 
         return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
 
         if 'id_favorito' not in data:
