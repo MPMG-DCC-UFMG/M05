@@ -89,15 +89,19 @@ class SearchFilterView(APIView):
     def get(self, request, api_client_name, filtro):
         data = {}
 
-        if filtro == 'instances' or filtro == 'all':
+        if (filtro == 'instances' or filtro == 'all') and api_client_name == 'gsi':
             data['instances'] = self._get_instances()
         if filtro == 'doc_types' or filtro == 'all':
-            data['doc_types'] = self._get_doc_types()
+            data['doc_types'] = self._get_doc_types(api_client_name)
 
         return Response(data)
 
-    def _get_doc_types(self):
-        return [('Diários Oficiais','diarios'), ('Diários Segmentados', 'diarios_segmentado'), ('Processos','processos'), ('Licitações','licitacoes')]
+    def _get_doc_types(self, api_client_name):
+        active_indices = APIConfig.get_indices(api_client_name, group='regular', active=True)
+        doc_types = []
+        for item in active_indices:
+            doc_types.append((item['ui_name'], item['es_index_name']))
+        return doc_types
 
     def _get_instances(self):
         return ['Belo Horizonte', 'Uberlândia', 'São Lourenço', 'Minas Gerais', 'Ipatinga', 'Associação Mineira de Municípios', 'Governador Valadares', 'Uberaba', 'Araguari', 'Poços de Caldas', 'Varginha', 'Tribunal Regional Federal da 2ª Região - TRF2', 'Obras TCE']

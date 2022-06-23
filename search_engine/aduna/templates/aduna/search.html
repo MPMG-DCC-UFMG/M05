@@ -6,7 +6,7 @@
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
-            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-4 {% endif %}">
+            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-3 {% endif %}">
                 <div class="filter-box">
                     <p class="h5">Filtros</p>
                     <form action="{% url 'aduna:search' %}" method="GET">
@@ -21,6 +21,7 @@
                             <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
                             <input type="hidden", name="filtro_data_fim", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
                         </div>
+                        {% if api_client_name == 'gsi' %}
                         <div class="form-group">
                             <label class="control-label mb-0">Instância:</label>
                             <select id="filter_instances" name="filtro_instancias" multiple="multiple">
@@ -31,6 +32,7 @@
                                 {% endfor %}                            
                             </select>
                         </div>
+                        {% endif %}
                         <div class="form-group">
                             <label class="control-label mb-0">Tipo de documento:</label>
                             <select id="filter_doc_types" name="filtro_tipos_documentos" multiple="multiple">
@@ -102,7 +104,7 @@
                 </div>
             </div>
 
-            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-8 {% endif %}">
+            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-9 {% endif %}">
                 <div class="container">
                     <div class="total-docs">A pesquisa retornou {{ total_docs }} documentos ({{ time|floatformat:2 }} segundos).</div>
                     <div id="results-container" data-executed-query="{{ query }}">

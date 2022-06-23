@@ -46,9 +46,9 @@ def search(request):
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('pagina', 1))
     
-    filter_instances = request.GET.getlist('filtro_instancias', [])
+    # filtros em comum a todos --------------------------------------------
     filter_doc_types = request.GET.getlist('filtro_tipos_documentos', [])
-
+    
     filter_start_date = request.GET.get('filtro_data_inicio', None)
     if filter_start_date == "":
         filter_start_date = None
@@ -56,7 +56,16 @@ def search(request):
     filter_end_date = request.GET.get('filtro_data_fim', None)
     if filter_end_date == "":
         filter_end_date = None
+    
+    
+    # filtros da GSI -------------------------------------------------------
+    filter_instances = request.GET.getlist('filtro_instancias', [])
 
+    
+    # filtros PROCON -------------------------------------------------------
+
+    
+    # filtros de entidades -------------------------------------------------
     filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
     filter_entidade_municipio = request.GET.getlist('filtro_entidade_municipio', [])
     filter_entidade_organizacao = request.GET.getlist('filtro_entidade_organizacao', [])
@@ -75,11 +84,14 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
-    filter_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_filter/all', params, headers=headers)
+    # busca as opções de filtros gerais
+    filter_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_filter/all', headers=headers)
     filter_content = filter_response.json()
-    filter_instances_list = filter_content['instances']
-    filter_doc_types_list = filter_content['doc_types']
+    filter_instances_list = filter_content['instances'] if 'instances' in filter_content else []
+    filter_doc_types_list = filter_content['doc_types'] if 'doc_types' in filter_content else []
 
+    
+    
     params['uso'] = 'ranking'
     card_ranking_entities = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     card_ranking_entities = card_ranking_entities.json()
@@ -142,6 +154,7 @@ def search(request):
                 filter_url += filter_item + val if val else filter_item 
 
         context = {
+            'api_client_name': settings.API_CLIENT_NAME,
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
             'user_id': request.session.get('user_info')['user_id'],
