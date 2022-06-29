@@ -131,9 +131,8 @@ class Indexer:
                 else:
                     doc[field_name] = line[field]
 
-            if self.model_path != "None":
+            if self.model_path != "None" and 'conteudo' in line:
                 doc["embedding"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
-
             
             return_item = {
                 "_index": index,
