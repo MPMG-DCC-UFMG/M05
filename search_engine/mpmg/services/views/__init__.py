@@ -15,3 +15,4 @@ from .notification import *
 from .document_recommendation import *
 from .config_recommendation_evidence import *
 from .config_recommendation_source import *
+from .pipeline_directories import *

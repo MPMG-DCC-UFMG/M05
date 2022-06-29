@@ -30,6 +30,8 @@ urlpatterns = [
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),
     # path('metrics', views.MetricsView.as_view(), name='metrics'),
 
+    path('pipeline_directories', views.PipelineDirectories.as_view(), name='pipeline_directories'),
+
     path('openapi/', get_schema_view(
         title='Áduna',
         description='API para busca de dados não estruturados',
