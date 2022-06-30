@@ -60,7 +60,8 @@ $(function(){
             log_search_click(e2.target);
           }
         });
-      });
+        return false;
+    });
 
     $('#results-container .result-link').click(function(e){
         // e.preventDefault();

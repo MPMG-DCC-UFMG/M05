@@ -50,6 +50,7 @@ class LogSearchView(APIView):
         caso dessa dinâmica mudar e ser necessário chamar o método explicitamente.
         '''
         response = LogSearch().save(dict(
+            nome_cliente_api=request.POST['nome_cliente_api'],
             id_sessao=request.POST['id_sessao'],
             id_consulta=request.POST['id_consulta'],
             id_usuario=int(request.POST['id_usuario']),
@@ -127,9 +128,10 @@ class LogSearchClickView(APIView):
         return Response(response)
     '''
 
-    def post(self, request):
+    def post(self, request, api_client_name):
 
         response = LogSearchClick().save(dict(
+            nome_cliente_api=api_client_name,
             id_usuario=request.POST['id_usuario'],
             id_documento=request.POST['id_documento'],
             id_consulta=request.POST['qid'],
