@@ -200,8 +200,9 @@
 {% endblock %}
 {% block script_before %}
     <script>
-        AUTH_TOKEN = "{{ auth_token }}";
+        API_CLIENT_NAME = "{{ api_client_name }}";
         SERVICES_URL = "{{ services_url }}";
+        AUTH_TOKEN = "{{ auth_token }}";
         QID = "{{ qid }}";
         PAGE = "{{ page }}";
         USER_ID = "{{ user_id }}";

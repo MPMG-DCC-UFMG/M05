@@ -29,7 +29,7 @@ class BookmarkFolder(ElasticModel):
             Retorna uma lista onde cada elemento é um dicionário representando as subpastas da pasta folder_id.
 
         '''
-        filter = {'term': {'id_pasta_pai.keyword': folder_id}}
+        filter = [{'term': {'id_pasta_pai.keyword': folder_id}}]
         _, folders_found = super().get_list(filter=filter, page='all')
         return folders_found
 
@@ -71,7 +71,7 @@ class BookmarkFolder(ElasticModel):
 
         return element
 
-    def create_default_bookmark_folder_if_necessary(self, user_id: str):
+    def create_default_bookmark_folder_if_necessary(self, api_client_name: str, user_id: str):
         ''' Cria uma pasta default para um usuário caso ela não tenha uma.
 
         Args:
@@ -86,6 +86,7 @@ class BookmarkFolder(ElasticModel):
                 criador=str(user_id),
                 nome=settings.DEFAULT_BOOKMARK_FOLDER_NAME,
                 pasta_pai=None,
+                nome_cliente_api=api_client_name,
             )
 
             super().save(data, user_id)

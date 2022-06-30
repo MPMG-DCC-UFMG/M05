@@ -135,7 +135,7 @@ class LogSearch(ElasticModel):
         return LogSearch.get_list(query=query_param, page=page, sort=sort)
 
     @staticmethod
-    def get_suggestions(query):
+    def get_suggestions(api_client_name, query):
         request_body = {
             "multi_match": {
                 "query": query,
@@ -147,8 +147,10 @@ class LogSearch(ElasticModel):
                 ]
             }
         }
-
-        response = LogSearch.get_list(query=request_body, page='all')
+        api_client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
+        response = LogSearch.get_list(query=request_body, filter=api_client_filter, page='all')
         total = response[0]
         suggestions = [hit['text_consulta'] for hit in response[1]]
         return total, suggestions

@@ -10,7 +10,8 @@ chardet==4.0.0
 charset-normalizer==2.0.12
 click==8.0.4
 cymem==2.0.6
-Django==3.0.5
+Django==3.2.13
+django-cors-headers==3.13.0
 django-jenkins==0.110.0
 djangorestframework==3.11.1
 elasticsearch==7.17.1

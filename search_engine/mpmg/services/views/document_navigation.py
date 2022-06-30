@@ -58,7 +58,7 @@ class DocumentNavigationView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         try:
             id_documento = request.GET['id_documento']
             # o tipo do documento é o nome do índice
