@@ -10,6 +10,226 @@ from mpmg.services.utils import validators, get_data_from_request
 CITY = City()
 
 class CityView(APIView):
+    '''
+    get:
+        description: Retorna uma lista de cidades. Se filter_sigla_estado ou filter_codigo_estado for passado, a lista conterá 
+            apenas as cidades do respectivo estado. Se um id específico for passado via id_cidade, somente essa cidade será retornada.
+        parameters:
+            - name: id_cidade
+              in: query
+              description: ID da ciade. 
+              required: false
+              schema:
+                    type: string
+            - name: filter_sigla_estado
+              in: query
+              description: Sigla do estado para filtrar a lista de cidades.
+              required: false
+              schema:
+                    type: string
+            - name: filter_codigo_estado
+              in: query
+              description: Codigo do estado para filtrar a lista de cidades.
+              required: false
+              schema:
+                    type: string
+        responses:
+            '200':
+                description: Retorna uma lista de cidades ou uma cidade específica.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                id: 
+                                    type: string
+                                    description: ID da cidade.
+                                codigo_cidade:
+                                    type: string
+                                    description: Código da cidade, segundo IBGE.
+                                nome_cidade:
+                                    type: string
+                                    description: Nome da cidade.
+                                nome_estado:
+                                    type: string
+                                    description: Nome do estado.
+                                sigla_estado:
+                                    type: string
+                                    description: Sigla do estado.
+                                codigo_estado:
+                                    type: string
+                                    description: Código do estado, segundo IBGE.
+            '404': 
+                description: O bookmark não foi encontrado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem informando que o favorito não foi encontrado.
+
+    post:
+        description: Cria um novo registro de cidade. 
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                                codigo_cidade:
+                                    type: string
+                                    description: Código da cidade, segundo IBGE.
+                                nome_cidade:
+                                    type: string
+                                    description: Nome da cidade.
+                                nome_estado:
+                                    type: string
+                                    description: Nome do estado.
+                                sigla_estado:
+                                    type: string
+                                    description: Sigla do estado.
+                                codigo_estado:
+                                    type: string
+                                    description: Código do estado, segundo IBGE.
+                        required:
+                            - codigo_cidade
+                            - nome_cidade
+                            - nome_estado
+                            - sigla_estado
+                            - codigo_estado
+        responses:
+            '201':
+                description: O registro da nova cidade foi criada com sucesso. Retorna o ID da cidade recém-criado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                id_cidade: 
+                                    type: string
+                                    description: ID da cidade criada.
+            '400':
+                description: Algum(ns) do(s) campo(s) de criação foi(ram) informado(s) incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum erro interno do servidor ao criar a cidade.
+                content: 
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    put:
+        description: Permite atualizar os campos de uma cidade. 
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            id_cidade:
+                                description: ID da cidade a ser alterada.
+                                type: string
+                            codigo_cidade:
+                                type: string
+                                description: Código da cidade, segundo IBGE.
+                            nome_cidade:
+                                type: string
+                                description: Nome da cidade.
+                            nome_estado:
+                                type: string
+                                description: Nome do estado.
+                            sigla_estado:
+                                type: string
+                                description: Sigla do estado.
+                            codigo_estado:
+                                type: string
+                                description: Código do estado, segundo IBGE.
+                        required:
+                            - id_cidade
+        responses:
+            '204':
+                description: As alterações a serem feitas foram executadas com sucesso.
+            '400':
+                description: Algum campo editável da cidade foi informado incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: A cidade a ser alterada não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+
+    delete:
+        description: Apaga uma cidade.
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            id_cidade:
+                                description: ID da cidade a ser removida.
+                                type: string
+                        required:
+                            - id_cidade      
+        responses:
+            '204':
+                description: A cidade foi removida com sucesso.
+            '400':
+                description: O campo id_cidade não foi informado.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '404':
+                description: A cidade a ser deletada não existe ou não foi encontrada.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+            '500':
+                description: Houve algum(ns) erro(s) interno durante o processamento.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem de erro.
+    '''
     schema = AutoDocstringSchema()
 
     def get(self, request):
