@@ -202,17 +202,6 @@ class BookmarkView(APIView):
                                 message: 
                                     type: string
                                     description: Mensagem de erro.
-            '400':
-                description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties: 
-                                message: 
-                                    type: string
-                                    description: Mensagem de erro.
-
     delete:
         description: Apaga um favorito.
         requestBody:
