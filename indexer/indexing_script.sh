@@ -6,7 +6,7 @@ python elastic_indexer.py -strategy simple -index licitacoes -d indices-sample/l
 python elastic_indexer.py -strategy simple -index processos -d indices-sample/processos -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index diarios -d indices-sample/diarios -model_path prajjwal1/bert-tiny;
 python elastic_indexer.py -strategy simple -index diarios_segmentado -d indices-sample/diarios_segmentado -model_path prajjwal1/bert-tiny;
-python elastic_indexer.py -strategy simple -index municipios -d indices-sample/municipios;
+python elastic_indexer.py -strategy simple -index cidades -d indices-sample/cidades;
 python elastic_indexer.py -strategy simple -index estados -d indices-sample/estados;
 python elastic_indexer.py -strategy simple -index reclame_aqui -d indices-sample/reclame_aqui -model_path prajjwal1/bert-tiny;
 
