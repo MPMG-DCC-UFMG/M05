@@ -9,6 +9,7 @@ class LogSearch(ElasticModel):
         index_name = LogSearch.index_name
         meta_fields = ['id']
         index_fields = [
+            'nome_cliente_api',
             'id_sessao',
             'id_consulta',
             'id_usuario',
@@ -20,12 +21,9 @@ class LogSearch(ElasticModel):
             'pagina',
             'resultados_por_pagina',
             'indices',
-
             'algoritmo',
             'algoritmo_variaveis',
-
             'campos_ponderados'
-
             'instancias',
             'data_inicial',
             'data_final',
@@ -151,6 +149,9 @@ class LogSearch(ElasticModel):
             {"term": { "nome_cliente_api": api_client_name}}
         ]
         response = LogSearch.get_list(query=request_body, filter=api_client_filter, page='all')
+        print('-----------------------------------')
+        print(response)
+        print('-----------------------------------')
         total = response[0]
         suggestions = [hit['text_consulta'] for hit in response[1]]
         return total, suggestions
