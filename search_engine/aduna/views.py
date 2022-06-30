@@ -183,7 +183,8 @@ def search(request):
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,
             'filter_entidade_local': filter_entidade_local,
-            'filter_url': filter_url
+            'filter_url': filter_url,
+            'states': requests.get(settings.SERVICES_URL + 'states').json() if settings.API_CLIENT_NAME == 'procon' else None
         }
         
         return render(request, 'aduna/search.html', context)
