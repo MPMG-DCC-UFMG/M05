@@ -34,14 +34,14 @@
                             </select>
                         </div>
                         {% endif %}
-                        
+
                         {% if api_client_name == 'procon' %}
                         <div class="form-group">
                             <label class="control-label mb-0">Estado:</label>
                             <select id="filter_state" name="filtro_estado">
                                 {% for state in states %}
-                                <option value="{{ state }}" {% if item in filter_instances %}selected="selected" {% endif %}>
-                                    {{ item }}
+                                <option value="{{ state.codigo }}" {% if item in filter_instances %}selected="selected" {% endif %}>
+                                    {{ state.nome }}
                                 </option>
                                 {% endfor %}
                             </select>
