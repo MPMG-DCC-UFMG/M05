@@ -21,6 +21,7 @@
                             <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
                             <input type="hidden", name="filtro_data_fim", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
                         </div>
+
                         {% if api_client_name == 'gsi' %}
                         <div class="form-group">
                             <label class="control-label mb-0">Instância:</label>
@@ -33,6 +34,20 @@
                             </select>
                         </div>
                         {% endif %}
+                        
+                        {% if api_client_name == 'procon' %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Estado:</label>
+                            <select id="filter_state" name="filtro_estado">
+                                {% for state in states %}
+                                <option value="{{ state }}" {% if item in filter_instances %}selected="selected" {% endif %}>
+                                    {{ item }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
                         <div class="form-group">
                             <label class="control-label mb-0">Tipo de documento:</label>
                             <select id="filter_doc_types" name="filtro_tipos_documentos" multiple="multiple">
