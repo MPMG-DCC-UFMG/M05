@@ -207,7 +207,7 @@ class StateView(APIView):
 
             return Response(state, status=status.HTTP_200_OK)
 
-        states = STATE.get_list(page='all')
+        _, states = STATE.get_list(page='all')
         return Response(states, status=status.HTTP_200_OK)            
 
     def post(self, request):
