@@ -5,7 +5,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.conf import settings
 
 class CustomAuthToken(ObtainAuthToken):
     '''
@@ -55,7 +55,7 @@ class CustomAuthToken(ObtainAuthToken):
         if valid_user:
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
-            BookmarkFolder().create_default_bookmark_folder_if_necessary(user.pk)
+            BookmarkFolder().create_default_bookmark_folder_if_necessary(settings.API_CLIENT_NAME,user.pk)
             return Response({
                 'token': token.key,
                 'user_info': {
