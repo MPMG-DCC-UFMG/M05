@@ -86,7 +86,7 @@ class StateView(APIView):
             state_id = data['id_estado']
         
         except KeyError:
-            return Response({'message': 'Informe o ID do a ser deletado.'}, status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Informe o ID do estado a ser deletado.'}, status.HTTP_400_BAD_REQUEST)
 
         state = STATE.get(state_id)
         if state is None:

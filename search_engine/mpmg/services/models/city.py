@@ -1,7 +1,7 @@
 from mpmg.services.models import ElasticModel
 
 class City(ElasticModel): 
-    index_name = 'municipios'
+    index_name = 'cidades'
 
     def __init__(self, **kwargs):
         index_name = City.index_name
