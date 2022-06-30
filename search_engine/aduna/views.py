@@ -26,6 +26,7 @@ def index(request):
         return redirect('/aduna/login')
     
     context = {
+        'api_client_name': settings.API_CLIENT_NAME,
         'user_id': request.session.get('user_info')['user_id'],
         'user_name': request.session.get('user_info')['first_name'],
         'services_url': settings.SERVICES_URL,
@@ -223,6 +224,8 @@ def document(request, tipo_documento, id_documento):
 
             response_content = service_response.json()
             context = {
+                'api_client_name': settings.API_CLIENT_NAME,
+                'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
                 'document': response_content['document'],
@@ -242,6 +245,8 @@ def document(request, tipo_documento, id_documento):
                 document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
 
             context = {
+                'api_client_name': settings.API_CLIENT_NAME,
+                'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
                 'query': query,
@@ -260,6 +265,8 @@ def document(request, tipo_documento, id_documento):
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
 
             context = {
+                'api_client_name': settings.API_CLIENT_NAME,
+                'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
                 'query': query,
@@ -491,6 +498,7 @@ def bookmark(request):
         return redirect('/aduna/login')
     
     context = {
+        'api_client_name': settings.API_CLIENT_NAME,
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
         'user_id': request.session['user_info']['user_id']

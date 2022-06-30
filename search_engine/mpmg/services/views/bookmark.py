@@ -279,7 +279,7 @@ class BookmarkView(APIView):
         elif 'id_usuario' in request.GET:
             id_usuario = request.GET['id_usuario']
 
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, id_usuario)
 
             query = {'term': {'id_usuario.keyword': id_usuario}}
             _, bookmarks = BOOKMARK.get_list(query, page='all')
@@ -330,7 +330,7 @@ class BookmarkView(APIView):
 
         BOOKMARK.parse_data_type(data)
         
-        BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+        BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
 
         session_id = request.POST.get('id_sessao', request.session.session_key)
 

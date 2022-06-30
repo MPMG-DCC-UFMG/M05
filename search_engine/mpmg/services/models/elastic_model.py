@@ -227,13 +227,6 @@ class ElasticModel(dict):
         for f in filter:
             search_obj = search_obj.query(cls.elastic.dsl.Q(f))
 
-        # elif filter != None:
-        #     if type(filter) == list:
-        #         for f in filter:
-        #             search_obj = search_obj.filter(f)
-        #     else:
-        #         search_obj = search_obj.filter(filter)
-
         if page == 'all':
             total = cls.get_total()
             search_obj = search_obj[0:total]

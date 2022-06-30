@@ -256,7 +256,7 @@ class BookmarkFolderView(APIView):
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         folder_id = request.GET.get('id_pasta') 
 
         if folder_id:
@@ -273,12 +273,12 @@ class BookmarkFolderView(APIView):
                 message = 'É necessário informar o id_pasta ou id_usuario.'
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST) 
 
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
             bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(user_id)
             
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'nome'}    
@@ -292,7 +292,7 @@ class BookmarkFolderView(APIView):
         parent_folder_id = data.get('id_pasta_pai')
 
         if not parent_folder_id:
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
             parent_folder_id = user_id
 
         parent_folder = BOOKMARK_FOLDER.get(parent_folder_id)
@@ -304,7 +304,8 @@ class BookmarkFolderView(APIView):
         folder_id = BOOKMARK_FOLDER.save(dict(
             criador = user_id,
             nome=data['nome'],
-            id_pasta_pai=parent_folder_id
+            id_pasta_pai=parent_folder_id,
+            nome_cliente_api=api_client_name,
         ))
         
         if folder_id:

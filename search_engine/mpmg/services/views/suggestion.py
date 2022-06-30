@@ -22,7 +22,7 @@ class QuerySuggestionView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         consulta = request.GET.get('consulta', None)
 
         print(request.GET)
@@ -31,7 +31,7 @@ class QuerySuggestionView(APIView):
             data = {'message': 'Termo de consulta inválido.'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        total, search_response = LogSearch.get_suggestions(consulta)
+        total, search_response = LogSearch.get_suggestions(api_client_name, consulta)
         processed_suggestions = []
         if total > 0:
             suggestions = pd.Series(

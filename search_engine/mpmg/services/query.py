@@ -171,6 +171,7 @@ class Query:
         '''
         algo_configs = Elastic().get_cur_algo(group=self.group)
         data = dict(
+            nome_cliente_api=self.api_client_name,
             id_sessao = self.sid,
             id_consulta = self.qid,
             id_usuario = self.user_id,
