@@ -12,7 +12,7 @@ CITY = City()
 class CityView(APIView):
     '''
     get:
-        description: Retorna uma lista de cidades. Se filter_sigla_estado ou filter_codigo_estado for passado, a lista conterá 
+        description: Retorna uma lista de cidades. Se filtro_sigla_estado ou filtro_codigo_estado for passado, a lista conterá 
             apenas as cidades do respectivo estado. Se um id específico for passado via id_cidade, somente essa cidade será retornada.
         parameters:
             - name: id_cidade
@@ -21,13 +21,13 @@ class CityView(APIView):
               required: false
               schema:
                     type: string
-            - name: filter_sigla_estado
+            - name: filtro_sigla_estado
               in: query
               description: Sigla do estado para filtrar a lista de cidades.
               required: false
               schema:
                     type: string
-            - name: filter_codigo_estado
+            - name: filtro_codigo_estado
               in: query
               description: Codigo do estado para filtrar a lista de cidades.
               required: false
@@ -240,12 +240,12 @@ class CityView(APIView):
                 return Response({'message': 'A cidade não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
             return Response(city, status=status.HTTP_200_OK)
 
-        elif 'filter_codigo_estado' in request.GET:
-            query = {'term': {'codigo_estado.keyword': request.GET['filter_codigo_estado']}}
+        elif 'filtro_codigo_estado' in request.GET:
+            query = {'term': {'codigo_estado.keyword': request.GET['filtro_codigo_estado']}}
             _, cities = CITY.get_list(query, page='all')
 
-        elif 'filter_sigla_estado' in request.GET:
-            query = {'term': {'sigla_estado.keyword': request.GET['filter_sigla_estado']}}
+        elif 'filtro_sigla_estado' in request.GET:
+            query = {'term': {'sigla_estado.keyword': request.GET['filtro_sigla_estado']}}
             _, cities = CITY.get_list(query, page='all')
 
         else:
