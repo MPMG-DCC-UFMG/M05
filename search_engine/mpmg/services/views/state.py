@@ -1,3 +1,5 @@
+from unidecode import unidecode
+
 from mpmg.services.models import State
 
 from rest_framework import status
@@ -208,6 +210,9 @@ class StateView(APIView):
             return Response(state, status=status.HTTP_200_OK)
 
         _, states = STATE.get_list(page='all')
+
+        states.sort(key = lambda item: unidecode(item['nome']))
+
         return Response(states, status=status.HTTP_200_OK)            
 
     def post(self, request):

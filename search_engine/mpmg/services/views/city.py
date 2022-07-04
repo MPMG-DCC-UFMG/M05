@@ -1,3 +1,5 @@
+from unidecode import unidecode
+
 from mpmg.services.models import City
 
 from rest_framework import status
@@ -250,6 +252,8 @@ class CityView(APIView):
 
         else:
             _, cities = CITY.get_list(page='all')
+
+        cities.sort(key = lambda item: unidecode(item['nome_cidade']))
 
         return Response(cities, status=status.HTTP_200_OK)
 
