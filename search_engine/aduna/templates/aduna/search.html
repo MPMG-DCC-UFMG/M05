@@ -38,12 +38,20 @@
                         {% if api_client_name == 'procon' %}
                         <div class="form-group">
                             <label class="control-label mb-0">Estado:</label>
-                            <select id="filter_state" name="filtro_estado">
+                            <select id="filter_state" name="filtro_estado" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
                                 {% for state in states %}
-                                <option value="{{ state.codigo }}" {% if item in filter_instances %}selected="selected" {% endif %}>
+                                <option value="{{ state.codigo }}">
                                     {{ state.nome }}
                                 </option>
                                 {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group d-none" id="filter_city_wrapper">
+                            <label class="control-label mb-0">Município:</label>
+                            <select id="filter_city" name="filtro_cidade" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
                             </select>
                         </div>
                         {% endif %}
@@ -226,4 +234,5 @@
 
 {% block script_after %}
     <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+    <script src="{% static 'aduna/js/search/search.js' %}"></script>
 {% endblock %}

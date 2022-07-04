@@ -3,6 +3,7 @@ asgiref==3.5.0
 astunparse==1.6.3
 backports.zoneinfo==0.2.1
 blis==0.7.7
+cached-property==1.5.2
 cachetools==5.0.0
 catalogue==2.0.7
 certifi==2021.10.8
@@ -39,11 +40,11 @@ Markdown==3.3.6
 MarkupSafe==2.1.1
 murmurhash==1.0.6
 nltk==3.7
-numpy<=1.22.3
+numpy==1.21.6
 oauthlib==3.2.0
 opt-einsum==3.3.0
 packaging==21.3
-pandas<=1.4.1
+pandas==1.3.5
 pathy==0.6.1
 Pillow==9.0.1
 preshed==3.0.6
@@ -61,7 +62,7 @@ requests-oauthlib==1.3.1
 rsa==4.8
 sacremoses==0.0.49
 scikit-learn==1.0.2
-scipy<=1.8.0
+scipy==1.7.3
 sentence-transformers==2.2.0
 sentencepiece==0.1.96
 six==1.16.0
@@ -86,7 +87,8 @@ torchvision==0.12.0
 tqdm==4.63.1
 transformers==4.17.0
 typer==0.4.0
-typing_extensions==3.10.0.2
+typing-extensions==3.10.0.2
+Unidecode==1.3.4
 uritemplate==4.1.1
 urllib3==1.26.9
 wasabi==0.9.0
