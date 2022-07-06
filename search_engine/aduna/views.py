@@ -93,7 +93,7 @@ def search(request):
 
     
     
-    params['uso'] = 'ranking'
+    params['contexto'] = 'ranking'
     card_ranking_entities = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     card_ranking_entities = card_ranking_entities.json()
     
@@ -106,7 +106,7 @@ def search(request):
             at_least_one_entity_type_has_recommendations = True
 
     # busca entidades além de buscar a consulta
-    params['uso'] = 'filtro'
+    params['contexto'] = 'filtro'
     entities_list = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     entities_list = entities_list.json()
 

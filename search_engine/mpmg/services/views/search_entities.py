@@ -18,7 +18,7 @@ CONFIG_RANKING_ENTITY = ConfigRankingEntity()
 class SearchEntities(APIView):
     '''
     get:
-      description: Realiza uma busca por documentos não estruturados
+      description: Realiza uma busca por entidades em documentos não estruturados
       parameters:
         -   name: consulta
             in: query
@@ -26,7 +26,7 @@ class SearchEntities(APIView):
             required: true
             schema:
                 type: string
-        -   name: uso
+        -   name: contexto
             in: path
             description: A que se destina as entidades retornadas, pode ser para geração de filtros ou ranking de entidades.
             required: true
@@ -116,10 +116,10 @@ class SearchEntities(APIView):
     schema = AutoDocstringSchema()
 
     def get(self, request, api_client_name):
-        usage_objective = request.GET.get('uso', '').lower()
+        usage_objective = request.GET.get('contexto', '').lower()
 
         if usage_objective not in ('filtro', 'ranking'):
-            return Response({'message': 'É necessário informar o objetivo de uso das entidades, que pode ser `filtro` ou `ranking`.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'É necessário informar o contexto de uso das entidades, que pode ser `filtro` ou `ranking`.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if usage_objective == 'ranking':
             # buscamos todas as configs de ranking de entidades mas que estejam ativas
