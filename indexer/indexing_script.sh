@@ -9,6 +9,7 @@ python elastic_indexer.py -strategy simple -index diarios_segmentado -d indices-
 python elastic_indexer.py -strategy simple -index cidades -d indices-sample/cidades;
 python elastic_indexer.py -strategy simple -index estados -d indices-sample/estados;
 python elastic_indexer.py -strategy simple -index reclame_aqui -d indices-sample/reclame_aqui -model_path prajjwal1/bert-tiny;
+python elastic_indexer.py -strategy simple -index procon -d indices-sample/procon -model_path prajjwal1/bert-tiny;
 
 curl -XPUT -H "Content-Type: application/json" -d '{"index":{"blocks.read_only":true}}' http://localhost:9200/diarios/_settings;
 curl -XPOST http://localhost:9200/diarios/_clone/diarios-replica;

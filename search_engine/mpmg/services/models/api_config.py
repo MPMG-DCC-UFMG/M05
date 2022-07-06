@@ -1,6 +1,7 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.reclame_aqui import ReclameAqui
+from mpmg.services.models.procon import Procon
 
 class APIConfig():
     '''

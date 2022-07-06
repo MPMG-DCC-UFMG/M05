@@ -9,6 +9,7 @@
         {"id": 7, "body": {"nome_cliente_api": "gsi", "ui_name":"Licitações Réplica", "es_index_name":"licitacoes-replica", "class_name":"Licitacao", "group":"replica", "active": true}},
         {"id": 8, "body": {"nome_cliente_api": "gsi", "ui_name":"Processos Réplica", "es_index_name":"processos-replica", "class_name":"Processo", "group":"replica", "active": true}},
         
-        {"id": 9, "body": {"nome_cliente_api": "procon", "ui_name":"Reclame Aqui", "es_index_name":"reclame_aqui", "class_name":"ReclameAqui", "group":"regular", "active": true}}
+        {"id": 9, "body": {"nome_cliente_api": "procon", "ui_name":"Reclame Aqui", "es_index_name":"reclame_aqui", "class_name":"ReclameAqui", "group":"regular", "active": true}},
+        {"id": 10, "body": {"nome_cliente_api": "procon", "ui_name":"Procon", "es_index_name":"procon", "class_name":"Procon", "group":"regular", "active": true}}
     ]
 }

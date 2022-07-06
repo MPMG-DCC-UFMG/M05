@@ -21,3 +21,4 @@ from .api_config import APIConfig
 from .reclame_aqui import ReclameAqui
 from .city import City
 from .state import State
+from .procon import Procon
