@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import render, redirect
 from mpmg.services.models import APIConfig
+from django.conf import settings
 
 class ConfigIndicesView(admin.AdminSite):
 
@@ -11,7 +12,7 @@ class ConfigIndicesView(admin.AdminSite):
     def view_indices(self, request):
 
         if request.method == 'GET':
-            indices_list = APIConfig.get_indices()
+            indices_list = APIConfig.get_indices(settings.API_CLIENT_NAME)
 
             context = dict(
                 self.each_context(request), # admin template variables.

@@ -2,6 +2,7 @@ from time import sleep
 from django.contrib import admin
 from django.shortcuts import render, redirect
 from mpmg.services.models import APIConfig
+from django.conf import settings
 
 class ConfigRankingEntityView(admin.AdminSite):
     def __init__(self) -> None:
@@ -9,7 +10,7 @@ class ConfigRankingEntityView(admin.AdminSite):
 
     def view_config_ranking_entity(self, request):
         if request.method == 'GET':
-            config_ranking_entities = APIConfig.get_config_ranking_entity()
+            config_ranking_entities = APIConfig.get_config_ranking_entity(settings.API_CLIENT_NAME)
             
             aggregation_types = ['votes', 'combsum', 'expcombsum', 'max']
 
