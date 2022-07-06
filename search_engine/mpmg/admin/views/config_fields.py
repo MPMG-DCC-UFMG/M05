@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import render, redirect
 from mpmg.services.models import APIConfig
+from django.conf import settings
 
 class ConfigFieldsView(admin.AdminSite):
 
@@ -11,7 +12,7 @@ class ConfigFieldsView(admin.AdminSite):
     def view_fields(self, request):
 
         if request.method == 'GET':
-            fields_list = APIConfig.get_fields()
+            fields_list = APIConfig.get_fields(settings.API_CLIENT_NAME)
 
             context = dict(
                 self.each_context(request), # admin template variables.
