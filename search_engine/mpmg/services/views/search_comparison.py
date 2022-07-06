@@ -15,6 +15,12 @@ class CompareView(APIView):
       description: Realiza uma busca por documentos não estruturados comparando dois algoritmos diferentes. \
                    Os algoritmos são configurados na interface de administração da API.
       parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
         - name: query
           in: query
           description: texto da consulta

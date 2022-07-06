@@ -13,6 +13,12 @@ class DocumentView(APIView):
     get:
       description: Busca o conteúdo completo de um documento específico.
       parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
         - name: id_documento
           in: query
           description: ID do documento

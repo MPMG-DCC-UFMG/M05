@@ -20,6 +20,12 @@ class SearchEntities(APIView):
     get:
       description: Realiza uma busca por entidades em documentos não estruturados
       parameters:
+        -   name: api_client_name
+            in: path
+            description: Nome do cliente da API. Passe "procon" ou "gsi".
+            required: true
+            schema:
+                type: string
         -   name: consulta
             in: query
             description: texto da consulta

@@ -76,6 +76,13 @@ class LogSearchClickView(APIView):
     '''
     post:
       description: Grava no log o documento do ranking clicado pelo usuário.
+      parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -158,6 +165,13 @@ class LogQuerySuggestionClickView(APIView):
     '''
     post:
       description: Grava no log a sugestão de consulta clicada pelo usuário
+      parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/x-www-form-urlencoded:

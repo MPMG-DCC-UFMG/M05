@@ -17,18 +17,24 @@ class NotificationView(APIView):
     get:
         description: Retorna uma lista de notificações de um usuário se o ID dele for informado ou uma notificação específica, se o ID dela for passado.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_usuario
               in: query
               description: ID do usuário
               required: true
               schema:
-                    type: string
+                type: string
             - name: id_notificacao
               in: query
               description: ID da notificação a ser recuperada.
               required: false
               schema:
-                    type: string
+                type: string
         responses:
             '200':
                 description: Retorna uma notifição ou uma lista dela.
