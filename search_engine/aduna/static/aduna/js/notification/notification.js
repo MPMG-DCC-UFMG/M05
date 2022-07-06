@@ -1,5 +1,5 @@
 NOTIFICATION_SERVER_ADDRESS = window.location.origin;
-NOTIFICATION_SERVICE_URL = NOTIFICATION_SERVER_ADDRESS + '/services/notification';
+NOTIFICATION_SERVICE_URL = SERVICES_URL+API_CLIENT_NAME+'/notification';
 
 function get_notification_url(notification_id) {
     return NOTIFICATION_SERVER_ADDRESS + `/aduna/recomendacoes?notification_id=${notification_id}`;

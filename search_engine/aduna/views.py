@@ -516,7 +516,7 @@ def recommendations(request):
     if notification_id:
         # Informa que a notificação foi visualizada
         headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
-        service_response = requests.put(settings.SERVICES_URL+'notification', 
+        service_response = requests.put(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/notification', 
                                         data={
                                             'id_notificacao': notification_id,
                                             'visualizado': True
