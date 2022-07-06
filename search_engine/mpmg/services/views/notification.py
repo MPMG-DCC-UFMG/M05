@@ -218,7 +218,7 @@ class NotificationView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         id_usuario = request.GET.get('id_usuario')
         id_notificacao = request.GET.get('id_notificacao')
         
@@ -230,9 +230,10 @@ class NotificationView(APIView):
 
         elif id_usuario:
             query = {'term': {'id_usuario.keyword': id_usuario}}
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
             sort = {'data_criacao': {'order': 'desc'}}
 
-            _, notifications = NOTIFICATION.get_list(query, page='all', sort=sort)
+            _, notifications = NOTIFICATION.get_list(query, filter=client_filter, page='all', sort=sort)
 
             return Response(notifications, status=status.HTTP_200_OK)
         
