@@ -13,6 +13,12 @@ class BookmarkView(APIView):
         description: Busca o conteúdo de um favorito por meio de seu ID único. Também é possível buscar um favorito informando o índice e o ID do documento salvo pelo favorito, junto com o ID do usuaŕio
             que criou o favorito. Se somente o id do usuário for informado, retorna a lista de todos favoritos dele.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_favorito
               in: query
               description: ID do bookmark. 

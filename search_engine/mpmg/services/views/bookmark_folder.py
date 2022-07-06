@@ -14,6 +14,12 @@ class BookmarkFolderView(APIView):
     get:
         description: Retorna uma pasta específica, se id_pasta for informado, ou a árvore de pastas do usuário, se id_usuario for passado ao invés de id_pasta. Uma árvore de pastas é um objeto que possui a pasta raiz do usuário (Favoritos) e, recursivamente, todas as pastas criadas pelo usuário como subpastas de determinada pasta. 
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_pasta
               in: query
               description: ID da pasta a ser buscada. 

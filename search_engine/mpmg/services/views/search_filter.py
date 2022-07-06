@@ -9,6 +9,12 @@ class SearchFilterView(APIView):
     get:
         description: Classe responsável por retornar a lista de itens das diferentes opções de filtros de busca
         parameters:
+            -   name: api_client_name
+                in: path
+                description: Nome do cliente da API. Passe "procon" ou "gsi".
+                required: true
+                schema:
+                    type: string
             -   name: filtro
                 in: path
                 description: Nome do filtro que vc deseja buscar as opções. Passe "all" caso queira trazer as opções \
