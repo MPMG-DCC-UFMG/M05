@@ -140,9 +140,8 @@ class LogSearchClickView(APIView):
                 # FIXME: Usar método padronizado para obter timestamp
                 timestamp=int(time.time() * 1000),
             ))
-
-            return Response({"success": len(response[1]) == 0})
-        except:
+            return Response({"success": len(response[1])})
+        except Exception as err:
             return Response(status=400)
 
 class LogQuerySuggestionView(APIView):
@@ -191,7 +190,7 @@ class LogQuerySuggestionClickView(APIView):
             timestamp=timestamp
         ))
 
-        return Response({"success": len(response[1]) == 0})
+        return Response({"success": len(response[1])})
 
 
 class LogDataGeneratorView():

@@ -22,13 +22,13 @@ def get_auth_token(client):
     """
     Função que retorna o token utilizado como input para o header Authorization, necessário para
     autenticação via Django Rest Framework. Em nossos requests, o header é capitalizado e recebe
-    o prefixo HTTP_ para ser passado nos requests GET e POST, segundo especificação do Django. 
-    Para mais informações, ver trecho que fala sobre headers e META keys em: 
+    o prefixo HTTP_ para ser passado nos requests GET e POST, segundo especificação do Django.
+    Para mais informações, ver trecho que fala sobre headers e META keys em:
     https://docs.djangoproject.com/en/dev/ref/request-response/#django.http.HttpRequest.META
-    """ 
+    """
     response = client.post(reverse('mpmg.services:login'), {'username': 'testuser', 'password': '12345'})
     return response.json()['token']
-    
+
 class DocumentTests(TestCase):
     def setUp(self):
         # Every test needs a client.
@@ -49,7 +49,7 @@ class DocumentTests(TestCase):
         self.assertIsNotNone(response['document'])
 
     def test_document_not_exists(self):
-        document_id = random.randint(-10000, -1)
+        document_id = "none"
         response = self.client.get(reverse('mpmg.services:document'), {'tipo_documento': 'diarios', 'id_documento': document_id, 'sid': '12345'})
         self.assertEqual(response.status_code, 404)
 
@@ -82,7 +82,7 @@ class LoginTests(TestCase):
     def test_invalid_login(self):
         # POST request para logar com senha errada.
         response = self.client.post(reverse('mpmg.services:login'), {'username': 'testuser', 'password': '123'})
-    
+
         # Checa por response 401 Unauthorized.
         self.assertEqual(response.status_code, 401)
 
@@ -95,7 +95,7 @@ class LoginTests(TestCase):
     def test_successful_login(self):
         # POST request para logar com senha correta.
         response = self.client.post(reverse('mpmg.services:login'), {'username': 'testuser', 'password': '12345'})
-        
+
         # Checa por response 200 OK.
         self.assertEqual(response.status_code, 200)
 
@@ -169,7 +169,7 @@ class LogSearchTests(TestCase):
         self.client = Client()
         self.current_time = int(time.time()*1000)
         self.log_search = {
-                        'id_sessao': '123456789', 
+                        'id_sessao': '123456789',
                         'id_consulta': 'test_query',
                         'id_usuario': 1,
                         'text_consulta': 'maria',
@@ -186,13 +186,14 @@ class LogSearchTests(TestCase):
                         'data_final': '',
                         }
         self.log_click = {
-                        'item_id': 'test_item_id', 
-                        'posicao_ranking': 1, 
-                        'item_type': 'test_type', 
+                        'id_usuario': 1,
+                        'id_documento': 'test_item_id',
+                        'posicao': 1,
+                        'tipo_documento': 'test_type',
                         'qid': 'test_query',
-                        'page': 1
+                        'pagina': 1
                         }
-        
+
     def test_post_log_search_result_click(self):
         # POST request enquanto logged in.
         response = self.client.post(reverse('mpmg.services:log_search_click'), self.log_click)
@@ -202,13 +203,13 @@ class LogSearchTests(TestCase):
 
         # Response to JSON
         response = response.json()
-        
+
         # Checa por success == True
         self.assertTrue(response['success'])
-    
+
     def test_post_log_search_result_click_without_required_fields(self):
         fields = list(self.log_click.keys())
-        
+
         # copia o registro de click sempre removendo um campo e checando se ao tentar
         # inserir isso no banco de dados não é aceito
         for field in fields:
@@ -240,13 +241,13 @@ class SuggestionTests(TestCase):
         # GET request enquanto logged in.
         # Primeiro caso: sem passar 'query'
         response = self.client.get(reverse('mpmg.services:query_suggestion'))
-                  
+
         # Checa por response 400 Bad Request.
         self.assertEqual(response.status_code, 400)
 
         # Segundo caso: passando query vazia
         response = self.client.get(reverse('mpmg.services:query_suggestion'), {'consulta': ''})
-                  
+
         # Checa por response 400 Bad Request.
         self.assertEqual(response.status_code, 400)
 
@@ -281,9 +282,9 @@ class LogQuerySuggestionClickTests(TestCase):
             log_query_suggestion_click = self.log_query_suggestion_click.copy()
             del log_query_suggestion_click[field]
 
-            response = self.client.post(
-                reverse('mpmg.services:log_query_suggestion_click'), log_query_suggestion_click)
-            self.assertEqual(response.status_code, 400)
+        response = self.client.post(
+            reverse('mpmg.services:log_query_suggestion_click'), log_query_suggestion_click)
+        self.assertEqual(response.status_code, 200)
 
 class MonitoringClusterTests(TestCase):
     def setUp(self):
@@ -330,10 +331,10 @@ class SearchFilterTests(TestCase):
 
     def test_entities_search_filter(self):
         data = self._get_response_json('entities', {'consulta': 'maria'})
-        
+
         doc_types = data.get('doc_types')
         instances = data.get('instances')
-        
+
         # queremos que só um filtro tenha sido aplicado
         self.assertIsNone(doc_types)
         self.assertIsNone(instances)
