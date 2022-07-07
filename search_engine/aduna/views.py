@@ -64,7 +64,8 @@ def search(request):
 
     
     # filtros PROCON -------------------------------------------------------
-
+    filter_city = request.GET.get('filtro_cidade') 
+    filter_state = request.GET.get('filtro_estado')
     
     # filtros de entidades -------------------------------------------------
     filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
@@ -91,8 +92,6 @@ def search(request):
     filter_instances_list = filter_content['instances'] if 'instances' in filter_content else []
     filter_doc_types_list = filter_content['doc_types'] if 'doc_types' in filter_content else []
 
-    
-    
     params['contexto'] = 'ranking'
     card_ranking_entities = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search_entities', params, headers=headers)
     card_ranking_entities = card_ranking_entities.json()
@@ -124,6 +123,8 @@ def search(request):
         'filtro_entidade_municipio': filter_entidade_municipio,
         'filtro_entidade_organizacao': filter_entidade_organizacao,
         'filtro_entidade_local': filter_entidade_local,
+        'filtro_cidade': filter_city,
+        'filtro_estado': filter_state
     }
 
     service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search', params, headers=headers)
