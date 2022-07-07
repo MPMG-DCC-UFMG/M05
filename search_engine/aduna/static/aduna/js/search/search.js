@@ -8,14 +8,14 @@ function update_cities_select_options(data) {
 
     for (let i=0;i<data.length;i++) {
         city = data[i];
-        options.push(`<option value="${city.codigo_cidade}">${city.nome_cidade}</option>`);
+        options.push(`<option value="${city.nome_cidade}">${city.nome_cidade}</option>`);
     } 
 
     filter_cities.html(options.join(''));
 }
 
 function update_available_cities(state_id) {
-    let cities_api = SERVICES_URL + `cities?filtro_codigo_estado=${state_id}`
+    let cities_api = SERVICES_URL + `cities?filtro_sigla_estado=${state_id}`
     
     $.ajax({
         url: cities_api,

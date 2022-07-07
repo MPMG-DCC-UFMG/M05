@@ -1,5 +1,6 @@
 from .elastic import Elastic
 from datetime import datetime
+from django.conf import settings
 
 INVALID_VALS = [[''], [], '', None, [None]]
 
@@ -21,13 +22,17 @@ class QueryFilter:
     passando o objeto request que vem da requisição. Para mais detalhes veja na classe Query
     '''
 
-    def __init__(self, instances=[], doc_types=[], start_date=None, end_date=None, entity_filter=[]):
+    def __init__(self, instances: list = [], doc_types: list = [], start_date: str = None, 
+                    end_date: str = None, entity_filter: list =[], location_filter: dict = None):
+        
         self.instances = instances
         self.doc_types = doc_types
         self.start_date = start_date
         self.end_date = end_date
+
         self.entity_filter = entity_filter
-        
+        self.location_filter = location_filter
+
         if self.instances in INVALID_VALS:
             self.instances = [] 
         
@@ -54,22 +59,34 @@ class QueryFilter:
         entidade_municipio_filter = request.GET.getlist('filtro_entidade_municipio', [])
         entidade_organizacao_filter = request.GET.getlist('filtro_entidade_organizacao', [])
         entidade_local_filter = request.GET.getlist('filtro_entidade_local', [])
+
+        city_filter = request.GET.get('filtro_cidade')
+        state_filter = request.GET.get('filtro_estado')
         
         filter_entities_selected = {}
+        location_filter = {}
 
-        if entidade_pessoa_filter not in INVALID_VALS:
-            filter_entities_selected['entidade_pessoa'] = entidade_pessoa_filter
+        if settings.API_CLIENT_NAME == 'procon':
+            if city_filter not in INVALID_VALS:
+                location_filter['cidade'] = city_filter
 
-        if entidade_municipio_filter not in INVALID_VALS:
-            filter_entities_selected['entidade_municipio'] = entidade_municipio_filter
-        
-        if entidade_organizacao_filter not in INVALID_VALS:
-            filter_entities_selected['entidade_organizacao'] = entidade_organizacao_filter
-        
-        if entidade_local_filter not in INVALID_VALS:
-            filter_entities_selected['entidade_local'] = entidade_local_filter
+            if state_filter not in INVALID_VALS:
+                location_filter['sigla_estado'] = state_filter
 
-        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected)
+        else: 
+            if entidade_pessoa_filter not in INVALID_VALS:
+                filter_entities_selected['entidade_pessoa'] = entidade_pessoa_filter
+
+            if entidade_municipio_filter not in INVALID_VALS:
+                filter_entities_selected['entidade_municipio'] = entidade_municipio_filter
+            
+            if entidade_organizacao_filter not in INVALID_VALS:
+                filter_entities_selected['entidade_organizacao'] = entidade_organizacao_filter
+            
+            if entidade_local_filter not in INVALID_VALS:
+                filter_entities_selected['entidade_local'] = entidade_local_filter
+
+        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected, location_filter)
     
     
     def get_filters_clause(self):
@@ -103,6 +120,16 @@ class QueryFilter:
                 filters_queries.append(
                     Elastic().dsl.Q({'match_phrase': {entity_field_name: entity_name}})
                 )
+
+        if self.location_filter.get('sigla_estado') not in INVALID_VALS:
+            filters_queries.append(
+                Elastic().dsl.Q({'match_phrase': {'estado': self.location_filter['sigla_estado']}})
+            ) 
+
+        if self.location_filter.get('cidade') not in INVALID_VALS:
+            filters_queries.append(
+                Elastic().dsl.Q({'match_phrase': {'cidade': self.location_filter['cidade']}})
+            ) 
 
         return filters_queries
 

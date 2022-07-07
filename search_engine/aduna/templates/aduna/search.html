@@ -41,7 +41,7 @@
                             <select id="filter_state" name="filtro_estado" class="form-control border-secondary">
                                 <option value="" selected disabled>Selecionar</option>
                                 {% for state in states %}
-                                <option value="{{ state.codigo }}">
+                                <option value="{{ state.sigla }}">
                                     {{ state.nome }}
                                 </option>
                                 {% endfor %}
