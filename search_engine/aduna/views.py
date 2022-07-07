@@ -1,3 +1,4 @@
+from cmath import e
 import re
 import requests
 import time
@@ -66,7 +67,7 @@ def search(request):
     # filtros PROCON -------------------------------------------------------
     filter_city = request.GET.get('filtro_cidade') 
     filter_state = request.GET.get('filtro_estado')
-    
+
     # filtros de entidades -------------------------------------------------
     filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
     filter_entidade_municipio = request.GET.getlist('filtro_entidade_municipio', [])
@@ -155,6 +156,9 @@ def search(request):
             else:
                 filter_url += filter_item + val if val else filter_item 
 
+        states = requests.get(settings.SERVICES_URL + 'states').json() if settings.API_CLIENT_NAME == 'procon' else None
+        cities = requests.get(settings.SERVICES_URL + f'cities?filtro_sigla_estado={filter_state}').json() if filter_state else None
+
         context = {
             'api_client_name': settings.API_CLIENT_NAME,
             'auth_token': request.session.get('auth_token'),
@@ -185,7 +189,10 @@ def search(request):
             'filter_entidade_organizacao': filter_entidade_organizacao,
             'filter_entidade_local': filter_entidade_local,
             'filter_url': filter_url,
-            'states': requests.get(settings.SERVICES_URL + 'states').json() if settings.API_CLIENT_NAME == 'procon' else None
+            'filter_city': filter_city,
+            'filter_state': filter_state,
+            'states': states,
+            'cities': cities  
         }
         
         return render(request, 'aduna/search.html', context)
