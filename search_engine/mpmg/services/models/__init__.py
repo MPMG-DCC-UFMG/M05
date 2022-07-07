@@ -22,3 +22,5 @@ from .reclame_aqui import ReclameAqui
 from .city import City
 from .state import State
 from .procon import Procon
+from .procon_category import ProconCategory
+from .reclame_aqui_business_category import ReclameAquiBusinessCategory
