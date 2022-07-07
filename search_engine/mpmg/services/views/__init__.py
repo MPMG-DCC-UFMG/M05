@@ -17,3 +17,5 @@ from .config_recommendation_evidence import *
 from .config_recommendation_source import *
 from .city import *
 from .state import *
+from .procon_category import *
+from .reclame_aqui_business_category import *
