@@ -23,7 +23,8 @@ class QueryFilter:
     '''
 
     def __init__(self, instances: list = [], doc_types: list = [], start_date: str = None, 
-                    end_date: str = None, entity_filter: list =[], location_filter: dict = None):
+                    end_date: str = None, entity_filter: list =[], location_filter: dict = None,
+                    business_categories_filter: list = None):
         
         self.instances = instances
         self.doc_types = doc_types
@@ -32,6 +33,7 @@ class QueryFilter:
 
         self.entity_filter = entity_filter
         self.location_filter = location_filter
+        self.business_categories_filter = business_categories_filter
 
         if self.instances in INVALID_VALS:
             self.instances = [] 
@@ -60,10 +62,12 @@ class QueryFilter:
         entidade_organizacao_filter = request.GET.getlist('filtro_entidade_organizacao', [])
         entidade_local_filter = request.GET.getlist('filtro_entidade_local', [])
 
+        filter_entities_selected = {}
+
+        # procon filters
         city_filter = request.GET.get('filtro_cidade')
         state_filter = request.GET.get('filtro_estado')
-        
-        filter_entities_selected = {}
+        business_categories_filter = request.GET.getlist('filtro_categoria_empresa')
         location_filter = {}
 
         if settings.API_CLIENT_NAME == 'procon':
@@ -86,7 +90,7 @@ class QueryFilter:
             if entidade_local_filter not in INVALID_VALS:
                 filter_entities_selected['entidade_local'] = entidade_local_filter
 
-        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected, location_filter)
+        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected, location_filter, business_categories_filter)
     
     
     def get_filters_clause(self):
@@ -130,6 +134,12 @@ class QueryFilter:
             filters_queries.append(
                 Elastic().dsl.Q({'match_phrase': {'cidade': self.location_filter['cidade']}})
             ) 
+
+        if self.business_categories_filter not in INVALID_VALS:
+            for business_category in self.business_categories_filter:
+                filters_queries.append(
+                    Elastic().dsl.Q({'match_phrase': {'categoria_empresa': business_category}})
+                )
 
         return filters_queries
 

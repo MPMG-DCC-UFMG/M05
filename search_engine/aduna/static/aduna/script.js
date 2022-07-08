@@ -91,7 +91,7 @@ $(function(){
     });
 
     $('#filter_business_categories, #filter_city').multiselect({
-        includeSelectAllOption: false,
+        includeSelectAllOption: true,
         enableFiltering: true,
         selectAllText: 'Selecionar todas',
         nonSelectedText: 'Nada selecionado',
