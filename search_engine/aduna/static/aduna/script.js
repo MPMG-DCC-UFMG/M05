@@ -76,6 +76,7 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true
     });
 
     $('#filter_doc_types').multiselect({
@@ -86,9 +87,22 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true
     });
 
-    $('#filter_entidade_pessoa, #filter_entidade_municipio, #filter_entidade_organizacao, #filter_entidade_local').multiselect({
+    $('#filter_business_categories, #filter_city').multiselect({
+        includeSelectAllOption: false,
+        enableFiltering: true,
+        selectAllText: 'Selecionar todas',
+        nonSelectedText: 'Nada selecionado',
+        filterPlaceholder: 'Procurar',
+        buttonClass: 'btn btn-outline-secondary',
+        buttonWidth: '100%',
+        maxHeight: 420,
+        enableCaseInsensitiveFiltering: true
+    });
+
+    $('#filter_entidade_pessoa, #filter_entidade_municipio, #filter_entidade_organizacao, #filter_entidade_local, #filter_state').multiselect({
         includeSelectAllOption: true,
         enableFiltering: true,
         selectAllText: 'Selecionar todos',
@@ -96,6 +110,8 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true,
+        maxHeight: 420,
     });
 
     $("#filter_start_date_display").datepicker({

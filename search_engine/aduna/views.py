@@ -158,6 +158,7 @@ def search(request):
 
         states = requests.get(settings.SERVICES_URL + 'states').json() if settings.API_CLIENT_NAME == 'procon' else None
         cities = requests.get(settings.SERVICES_URL + f'cities?filtro_sigla_estado={filter_state}').json() if filter_state else None
+        ra_business_categories = requests.get(settings.SERVICES_URL + 'reclame_aqui_business_categories').json() if settings.API_CLIENT_NAME == 'procon' else None
 
         context = {
             'api_client_name': settings.API_CLIENT_NAME,
@@ -192,7 +193,8 @@ def search(request):
             'filter_city': filter_city,
             'filter_state': filter_state,
             'states': states,
-            'cities': cities  
+            'cities': cities,
+            'ra_business_categories': ra_business_categories  
         }
         
         return render(request, 'aduna/search.html', context)

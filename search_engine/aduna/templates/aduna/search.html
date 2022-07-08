@@ -47,15 +47,28 @@
                                 {% endfor %}
                             </select>
                         </div>
+
                         <div class="form-group {% if not cities %}d-none{% endif %}" id="filter_city_wrapper">
                             <label class="control-label mb-0">Município:</label>
                             <select id="filter_city" name="filtro_cidade" class="form-control border-secondary">
-                                <option value="" disabled>Selecionar</option>
+                                <option value="" selected disabled>Selecionar</option>
                                 {% for city in cities %}
                                 <option value="{{ city.nome_cidade }}" {% if filter_city == city.nome_cidade %}selected{% endif %}>{{ city.nome_cidade }}</option>
                                 {% endfor %}
                             </select>
                         </div>
+
+                        <div class="form-group">
+                            <label class="control-label mb-0">Cetegorias de empresa:</label>
+                            <select id="filter_business_categories" name="filtro_categorias_empresa" multiple="multiple">
+                                {% for category in ra_business_categories %}
+                                <option value="{{ category.id }}">
+                                    {{ category.categoria }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                         {% endif %}
 
                         <div class="form-group">
