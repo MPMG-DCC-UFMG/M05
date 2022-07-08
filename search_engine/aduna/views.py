@@ -67,6 +67,7 @@ def search(request):
     # filtros PROCON -------------------------------------------------------
     filter_city = request.GET.get('filtro_cidade') 
     filter_state = request.GET.get('filtro_estado')
+    filter_business_category = request.GET.getlist('filtro_categoria_empresa', [])
 
     # filtros de entidades -------------------------------------------------
     filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
@@ -125,7 +126,8 @@ def search(request):
         'filtro_entidade_organizacao': filter_entidade_organizacao,
         'filtro_entidade_local': filter_entidade_local,
         'filtro_cidade': filter_city,
-        'filtro_estado': filter_state
+        'filtro_estado': filter_state,
+        'filtro_categoria_empresa': filter_business_category
     }
 
     service_response = requests.get(settings.SERVICES_URL+settings.API_CLIENT_NAME+'/search', params, headers=headers)
@@ -192,9 +194,10 @@ def search(request):
             'filter_url': filter_url,
             'filter_city': filter_city,
             'filter_state': filter_state,
+            'filter_business_category': filter_business_category,  
             'states': states,
             'cities': cities,
-            'ra_business_categories': ra_business_categories  
+            'ra_business_categories': ra_business_categories,
         }
         
         return render(request, 'aduna/search.html', context)
