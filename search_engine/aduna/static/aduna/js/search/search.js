@@ -6,12 +6,16 @@ function update_cities_select_options(data) {
     let options = ['<option value="" selected disabled>Selecionar</option>']
     let city;
 
+    console.log(data);
+
     for (let i=0;i<data.length;i++) {
         city = data[i];
         options.push(`<option value="${city.nome_cidade}">${city.nome_cidade}</option>`);
     } 
 
     filter_cities.html(options.join(''));
+
+    filter_cities.multiselect('rebuild');
 }
 
 function update_available_cities(state_id) {
