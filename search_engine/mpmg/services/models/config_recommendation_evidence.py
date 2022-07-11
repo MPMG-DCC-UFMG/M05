@@ -23,6 +23,6 @@ class ConfigRecommendationEvidence(ElasticModel):
             return super().get(conf_evidence_id)
 
         else:
-            conf_evidences_filter = {'term': {'ativo': active}} if active != None else None
+            conf_evidences_filter = [{'term': {'ativo': active}}] if active != None else []
             _, conf_evidences_found = super().get_list(filter=conf_evidences_filter, page='all')
             return conf_evidences_found
