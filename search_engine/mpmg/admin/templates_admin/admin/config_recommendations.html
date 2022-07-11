@@ -29,7 +29,7 @@
                                     </thead>
                                     <tbody>
                                         {% for conf_rec_src in conf_rec_sources  %}
-                                        <tr class="rec_confs" config="{{conf_rec_src.nome_indice}}" id="rec_{{conf_rec_src.nome_indice}}">
+                                        <tr class="rec_confs" config="{{conf_rec_src.nome_indice}}" id="rec_{{conf_rec_src.nome_indice}}" index_id="{{ conf_rec_src.id }}">
                                             <td class="text-left">{{ conf_rec_src.nome }}</td>
                                             <td><input style="width:100px;" type="number" class="rec_size" id="rec_size_{{conf_rec_src.nome_indice}}"  min="0" value="{{ conf_rec_src.quantidade }}" required/></td>
                                             <td style="text-align: center;"><input type="checkbox" class="rec_active" {% if conf_rec_src.ativo %} checked {% endif %} id="rec_{{conf_rec_src.nome_indice}}_active" autocomplete="off"></td>
@@ -96,6 +96,8 @@
         </div>
     </div>
 </div>
+
+{{ api_client_name }}
 <script>
     var EVIDENCE_TYPES = {{evidence_types | safe }};
     var SERVER_ADDRESS = window.location.origin;

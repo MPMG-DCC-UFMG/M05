@@ -16,11 +16,11 @@ class ConfigRecommendationSource(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get(self, source_id=None, active=None):
+    def get(self, source_id: str = None, active: bool = None):
         if source_id:
             return super().get(source_id)
             
         else:
-            conf_sources_filter = {'term': {'ativo': active}} if active != None else None
+            conf_sources_filter = [{'term': {'ativo': active}}] if active != None else []
             _, conf_sources_found = super().get_list(filter=conf_sources_filter, page='all')
             return conf_sources_found

@@ -269,6 +269,7 @@ class ConfigRecommendationSourceView(APIView):
             return Response({'message': 'É necessário informar nome_indice ou id_conf_fonte para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
         conf_rec_source = CONF_REC_SOURCE.get(source_conf_id)
+
         if conf_rec_source is None:
             return Response({'message': 'Configuração de fonte de recomendação não existe ou não encontrada'}, status=status.HTTP_404_NOT_FOUND)        
 

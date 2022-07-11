@@ -1,5 +1,5 @@
-from __future__ import print_function
 import json
+from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render
 from mpmg.services.models import ConfigRecommendationSource, ConfigRecommendationEvidence
@@ -24,7 +24,12 @@ class ConfigRecommendationsView(admin.AdminSite):
             'conf_rec_sources_json': json.dumps(conf_rec_sources),
             'conf_rec_evidences': conf_rec_evidences,
             'conf_rec_evidences_json': json.dumps(conf_rec_evidences),
-            'evidence_types': evidence_types
+            'evidence_types': evidence_types,
+            'api_client_name': settings.API_CLIENT_NAME
         }
         
+        print('*' * 15)
+        print(context)
+        print('*' * 15)
+
         return render(request, 'admin/config_recommendations.html', context)

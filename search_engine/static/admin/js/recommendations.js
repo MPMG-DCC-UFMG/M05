@@ -21,6 +21,7 @@ function update_config_rec_sources() {
     let config;
     let data_changed;
     let config_type;
+    let config_id;
     
     let amount;
     let active;
@@ -29,12 +30,12 @@ function update_config_rec_sources() {
 
     for (let i=0;i<confs.length;i++) {
         config_type = confs[i].getAttribute('config');
+        config_id = confs[i].getAttribute('index_id');
 
         amount = parseInt(confs[i].querySelector('.rec_size').value);
         active = confs[i].querySelector('.rec_active').checked;
-        
-        config = CONF_REC_SRC.filter(function(item) { return item.id == config_type;})[0];
 
+        config = CONF_REC_SRC.filter(function(item) { return item.nome_indice == config_type;})[0];
         data_changed = {};
 
         if (amount != config.quantidade)
@@ -44,7 +45,7 @@ function update_config_rec_sources() {
             data_changed.ativo = active;
 
         if (Object.keys(data_changed).length > 0) {
-            data_changed.id_conf_fonte = config_type;
+            data_changed.id_conf_fonte = config_id;
             wait_for_changes = true;
 
             send_change_request('sources', data_changed);
@@ -56,7 +57,6 @@ function update_config_rec_sources() {
             location.reload();
         }, 750);
     }
-
 }
 
 function update_config_rec_evidences() {
