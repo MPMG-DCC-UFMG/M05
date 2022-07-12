@@ -144,10 +144,20 @@ class QueryFilter:
         return filters_queries
 
     def get_representation(self) -> dict:
-        return dict(
-            instances = self.instances,
+        data = dict(
             doc_types = self.doc_types,
             start_date = self.start_date,
             end_date = self.end_date,
-            entity_filter = self.entity_filter
         )
+
+        if settings.API_CLIENT_NAME == 'procon':
+            data['city'] = self.location_filter.get('cidade')
+            data['state'] = self.location_filter.get('sigla_estado')
+            
+            data['business_categories_filter'] = self.business_categories_filter
+
+        else:
+            data['entity_filter'] = self.entity_filter
+            data['instances'] = self.instances
+
+        return data 
