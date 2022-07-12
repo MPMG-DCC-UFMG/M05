@@ -274,6 +274,26 @@ def document(request, tipo_documento, id_documento):
             }
             return render(request, 'aduna/document_reclame_aqui.html', context)
         
+        elif tipo_documento == 'consumidor_gov':
+            response_content = service_response.json()
+            document = response_content['document']
+
+            for i, seg in enumerate(document['segmentos']):
+                document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
+
+            context = {
+                'api_client_name': settings.API_CLIENT_NAME,
+                'services_url': settings.SERVICES_URL,
+                'user_name': request.session.get('user_info')['first_name'],
+                'document': document,
+                'query': query,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
+            }
+            return render(request, 'aduna/document_consumidor_gov.html', context)
+
         else:
             response_content = service_response.json()
             document = response_content['document']

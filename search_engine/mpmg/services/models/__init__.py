@@ -24,3 +24,4 @@ from .state import State
 from .procon import Procon
 from .procon_category import ProconCategory
 from .reclame_aqui_business_category import ReclameAquiBusinessCategory
+from .consumidor_gov import ConsumidorGov
