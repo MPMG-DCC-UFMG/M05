@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'mpmg.services',
     'aduna',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -163,8 +164,5 @@ Nome do índice de bookmarks
 '''
 BOOKMARK_INDEX = 'bookmark'
 
-
-'''
-Cliente da API. Use "gsi" ou "procon"
-'''
-API_CLIENT_NAME = 'procon'
+# custom user
+AUTH_USER_MODEL = 'accounts.User'

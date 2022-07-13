@@ -22,10 +22,11 @@ class QueryFilter:
     passando o objeto request que vem da requisição. Para mais detalhes veja na classe Query
     '''
 
-    def __init__(self, instances: list = [], doc_types: list = [], start_date: str = None, 
+    def __init__(self, api_client_name: str, instances: list = [], doc_types: list = [], start_date: str = None, 
                     end_date: str = None, entity_filter: list =[], location_filter: dict = None,
                     business_categories_filter: list = None):
         
+        self.api_client_name = api_client_name
         self.instances = instances
         self.doc_types = doc_types
         self.start_date = start_date
@@ -70,7 +71,8 @@ class QueryFilter:
         business_categories_filter = request.GET.getlist('filtro_categoria_empresa')
         location_filter = {}
 
-        if settings.API_CLIENT_NAME == 'procon':
+        api_client_name = request.user.api_client_name 
+        if api_client_name == 'procon':
             if city_filter not in INVALID_VALS:
                 location_filter['cidade'] = city_filter
 
@@ -90,7 +92,9 @@ class QueryFilter:
             if entidade_local_filter not in INVALID_VALS:
                 filter_entities_selected['entidade_local'] = entidade_local_filter
 
-        return QueryFilter(instances, doc_types, start_date, end_date, filter_entities_selected, location_filter, business_categories_filter)
+        return QueryFilter(api_client_name, instances, doc_types, 
+                            start_date, end_date, filter_entities_selected, 
+                            location_filter, business_categories_filter)
     
     
     def get_filters_clause(self):
@@ -150,7 +154,7 @@ class QueryFilter:
             end_date = self.end_date,
         )
 
-        if settings.API_CLIENT_NAME == 'procon':
+        if self.api_client_name == 'procon':
             data['city'] = self.location_filter.get('cidade')
             data['state'] = self.location_filter.get('sigla_estado')
             

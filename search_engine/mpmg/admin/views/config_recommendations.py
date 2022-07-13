@@ -25,11 +25,7 @@ class ConfigRecommendationsView(admin.AdminSite):
             'conf_rec_evidences': conf_rec_evidences,
             'conf_rec_evidences_json': json.dumps(conf_rec_evidences),
             'evidence_types': evidence_types,
-            'api_client_name': settings.API_CLIENT_NAME
+            'api_client_name': request.user.api_client_name
         }
         
-        print('*' * 15)
-        print(context)
-        print('*' * 15)
-
         return render(request, 'admin/config_recommendations.html', context)
