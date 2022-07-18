@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render
-from django.contrib.auth.models import User
+from accounts.models import User
 from django.conf import settings
 from mpmg.services.models import ElasticModel, SearchableIndicesConfigs
 from mpmg.services.metrics import Metrics

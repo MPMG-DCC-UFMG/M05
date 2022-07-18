@@ -2,7 +2,7 @@ from datetime import datetime
 from django.contrib import admin
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.models import User
+from accounts.models import User
 from mpmg.services.models import LogSearch, LogSearchClick
 
 class LogSearchView(admin.AdminSite):
