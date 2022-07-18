@@ -1,4 +1,5 @@
 from collections import defaultdict
+from shutil import ExecError
 from typing import Dict, List, Union
 from typing_extensions import Literal
 
@@ -41,7 +42,7 @@ class DocumentRecommendation(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def _get_users_ids_to_recommend(self) -> list:
+    def _get_users_ids_to_recommend(self, api_client_name: str) -> list:
         '''
         Retorna uma lista com todos os user_ids da API para fazer a recomendação.
         Como a API não controla os usuários (quem controla é o WSO2),
@@ -53,6 +54,8 @@ class DocumentRecommendation(ElasticModel):
         # busca todos os IDs, varrendo os índices de logs de buscas e bookmarks
         search_obj = self.elastic.dsl.Search(
             using=self.elastic.es, index=['log_buscas', 'bookmark'])
+
+        search_obj = search_obj.filter({'term': {'nome_cliente_api': api_client_name}})
         
         # não precisa retornar documentos, apenas a agregação
         search_obj = search_obj.extra(size=0)
@@ -92,6 +95,7 @@ class DocumentRecommendation(ElasticModel):
 
         candidates_keys = set()
         candidates = list()
+
         for item in conf_rec_sources:
             index_name = item['nome_indice']
             amount = item['quantidade']
@@ -319,7 +323,7 @@ class DocumentRecommendation(ElasticModel):
         return recommendations
 
     def recommend(self, user_id: str, api_client_name: str) -> Union[List[dict], dict]:
-        user_ids = self._get_users_ids_to_recommend() if user_id == 'all' else user_id
+        user_ids = self._get_users_ids_to_recommend(api_client_name) if user_id == 'all' else user_id
         
         if type(user_ids) is list:
             return {user_id: self._recommend(user_id, api_client_name) for user_id in user_ids}

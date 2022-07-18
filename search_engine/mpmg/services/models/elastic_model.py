@@ -1,7 +1,6 @@
 from os import PRIO_PGRP
 from typing import Tuple, Union
 from elasticsearch.exceptions import NotFoundError
-from sklearn.manifold import trustworthiness
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
