@@ -193,7 +193,7 @@ class DocumentRecommendationView(APIView):
             # TODO: Checar se o ID passado pelo usuário é valido
             pass
         
-        recommendations = DOC_REC.recommend(user_id) 
+        recommendations = DOC_REC.recommend(user_id, api_client_name) 
         return Response(recommendations, status=status.HTTP_201_CREATED)
 
     def put(self, request, api_client_name):

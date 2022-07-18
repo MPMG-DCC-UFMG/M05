@@ -8,6 +8,7 @@ class ConfigRecommendationEvidence(ElasticModel):
         meta_fields = ['id']
         index_fields = [
             'nome',
+            'nome_cliente_api',
             'tipo_evidencia',
             'nome_indice',
             'quantidade',
@@ -18,11 +19,13 @@ class ConfigRecommendationEvidence(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def get(self, conf_evidence_id: Union[str, None] = None, active: Union[bool, None] = None):
+    def get(self, api_client_name: str, conf_evidence_id: Union[str, None] = None, active: Union[bool, None] = None):
         if conf_evidence_id:
             return super().get(conf_evidence_id)
 
         else:
-            conf_evidences_filter = [{'term': {'ativo': active}}] if active != None else []
+            conf_evidences_filter = [{'term': {'nome_cliente_api': api_client_name}}]
+            if active is not None:
+                conf_evidences_filter.append({'term': {'ativo': active}})
             _, conf_evidences_found = super().get_list(filter=conf_evidences_filter, page='all')
             return conf_evidences_found
