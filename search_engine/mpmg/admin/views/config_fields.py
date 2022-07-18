@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.shortcuts import render, redirect
 from mpmg.services.models import APIConfig
-from django.conf import settings
 
 class ConfigFieldsView(admin.AdminSite):
 

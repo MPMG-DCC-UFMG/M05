@@ -1,5 +1,4 @@
 import json
-from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render
 from mpmg.services.models import ConfigRecommendationSource, ConfigRecommendationEvidence
