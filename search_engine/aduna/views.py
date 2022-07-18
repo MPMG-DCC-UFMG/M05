@@ -282,7 +282,7 @@ def document(request, tipo_documento, id_documento):
                 document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
 
             context = {
-                'api_client_name': settings.API_CLIENT_NAME,
+                'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
