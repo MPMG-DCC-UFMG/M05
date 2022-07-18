@@ -2,7 +2,6 @@ import json
 import elasticsearch
 import elasticsearch_dsl
 from elasticsearch_dsl import connections
-import requests
 import traceback
 import sys
 from elasticsearch import helpers

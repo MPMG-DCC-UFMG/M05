@@ -37,5 +37,6 @@ if args["strategy"] == "parallel":
 csv_indexer = Indexer(elastic_address=args['elastic_address'], model_path=args['model_path'], username=args['username'], password=args['password'])
 if args['strategy'] == 'simple':
     csv_indexer.simple_indexer( files_to_index, index)
+    
 elif args['strategy'] == 'parallel':
     csv_indexer.parallel_indexer(files_to_index, index, thread_count )
