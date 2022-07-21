@@ -27,6 +27,7 @@ class DocumentRecommendation(ElasticModel):
             'id_usuario',
             'id_notificacao',
             'indice_doc_recomendado',
+            'nome_cliente_api',
             'id_doc_recomendado',
             'titulo_doc_recomendado',
             'evidencia',
@@ -232,10 +233,13 @@ class DocumentRecommendation(ElasticModel):
         # Scipy retorna a distância do cossento, e não a similaridade. 
         return 1.0 - scipy_cosine_distance(doc_vec_1, doc_vec_2)
 
-    def _create_doc_rec(self, user_id: str, doc_recommended: dict, evidence_source: dict, evidence_type: str, score: float) -> dict:
+    def _create_doc_rec(self, api_client_name: str, user_id: str, doc_recommended: dict, 
+                            evidence_source: dict, evidence_type: str, score: float) -> dict:
+        
         return {
             'id_usuario': user_id,
             'id_notificacao': None,
+            'nome_cliente_api': api_client_name, 
             'indice_doc_recomendado': doc_recommended['index_name'],
             'id_doc_recomendado': doc_recommended['id'],
             'titulo_doc_recomendado': doc_recommended['title'].strip(),
@@ -294,10 +298,13 @@ class DocumentRecommendation(ElasticModel):
 
                 for i in range(min(top_n - num_docs_recommended_in_evidence, len(candidate_rankings))):
                     candidate_i, score, evidence_i = candidate_rankings[i]
-                    doc_rec = self._create_doc_rec(user_id, 
-                                                    doc_candidates[candidate_i], 
-                                                    user_evidences[evidence_i], 
-                                                    evidence_type, score)
+                    doc_rec = self._create_doc_rec(api_client_name,
+                                                user_id, 
+                                                doc_candidates[candidate_i], 
+                                                user_evidences[evidence_i], 
+                                                evidence_type, 
+                                                score)
+
                     recommendations.append(doc_rec)
 
                     del doc_candidates[candidate_i]
@@ -312,7 +319,8 @@ class DocumentRecommendation(ElasticModel):
         if len(recommendations) > 0:
             notification_id = NOTIFICATION.save({
                 'id_usuario': user_id,
-                'texto': 'Novos documentos que possam ser do seu interesse.',
+                'texto': 'Novos documentos que possam ser do seu interesse :)',
+                'nome_cliente_api': api_client_name,
                 'tipo': 'RECOMMENDATION'
             })     
 
