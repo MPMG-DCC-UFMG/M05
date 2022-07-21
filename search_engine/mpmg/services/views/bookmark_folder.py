@@ -280,7 +280,9 @@ class BookmarkFolderView(APIView):
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST) 
 
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
-            bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(user_id)
+
+            default_id = BOOKMARK_FOLDER.get_default_bookmark_folder_id(api_client_name, user_id)
+            bookmark_folders = BOOKMARK_FOLDER.get_folder_tree(api_client_name, default_id)
             
             return Response(bookmark_folders, status=status.HTTP_200_OK)
 
@@ -299,9 +301,9 @@ class BookmarkFolderView(APIView):
 
         if not parent_folder_id:
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
-            parent_folder_id = user_id
+            parent_folder_id = BOOKMARK_FOLDER.get_default_bookmark_folder_id(api_client_name, user_id)
 
-        parent_folder = BOOKMARK_FOLDER.get(parent_folder_id)
+        parent_folder = BOOKMARK_FOLDER.get(api_client_name, parent_folder_id)
         if parent_folder is None:
             return Response({'message': 'A pasta pai da pasta sendo criada não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -319,7 +321,7 @@ class BookmarkFolderView(APIView):
 
         return Response({'message': 'Não foi possível criar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request):
+    def put(self, request, api_client_name: str):
         data = get_data_from_request(request)
         
         try:
@@ -331,7 +333,7 @@ class BookmarkFolderView(APIView):
 
         del data['id_pasta']
 
-        folder = BOOKMARK_FOLDER.get(folder_id)
+        folder = BOOKMARK_FOLDER.get(api_client_name, folder_id)
 
         if folder is None:
             return Response({'message': 'A pasta não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
@@ -350,7 +352,7 @@ class BookmarkFolderView(APIView):
         
         if 'id_pasta_pai' in data:
             new_parent_folder_id = data['id_pasta_pai']
-            new_parent_folder = BOOKMARK_FOLDER.get(new_parent_folder_id)
+            new_parent_folder = BOOKMARK_FOLDER.get(api_client_name, new_parent_folder_id)
             if new_parent_folder is None:
                 return Response({'message': 'A pasta para onde a pasta sendo alterada está sendo movida não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -362,7 +364,7 @@ class BookmarkFolderView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a pasta, tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name: str):
         data = get_data_from_request(request)
 
         try:
@@ -372,12 +374,12 @@ class BookmarkFolderView(APIView):
             message = 'O campo id_pasta com o ID da pasta a ser alterada deve ser informado!'
             return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
-        folder = BOOKMARK_FOLDER.get(folder_id)
+        folder = BOOKMARK_FOLDER.get(api_client_name, folder_id)
 
         if folder is None:
             return Response({'message': 'A pasta não existe ou não foi encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if BOOKMARK_FOLDER.delete(folder_id):
+        if BOOKMARK_FOLDER.delete(api_client_name, folder_id):
             return Response(status.HTTP_204_NO_CONTENT)
         
         return Response({'message': 'Não foi possível remover a pasta, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)

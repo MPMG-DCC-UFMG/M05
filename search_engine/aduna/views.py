@@ -1,4 +1,3 @@
-from cmath import e
 import re
 import requests
 import time
@@ -297,6 +296,7 @@ def document(request, tipo_documento, id_documento):
         else:
             response_content = service_response.json()
             document = response_content['document']
+
             document['titulo'] = document['titulo'].strip() 
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
@@ -577,7 +577,9 @@ def recommendations(request):
     ctx = {
         'auth_token': request.session.get('auth_token'),
         'user_id': request.session.get('user_info')['user_id'],
-        'notification_id': notification_id
+        'notification_id': notification_id,
+        'api_client_name': api_client_name,
+        'services_url': settings.SERVICES_URL
     }
 
     return render(request, 'aduna/recommendation.html', ctx)

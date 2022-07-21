@@ -10,6 +10,7 @@ class Notification(ElasticModel):
             'id_usuario',
             'texto',
             'tipo',
+            'nome_cliente_api',
             'data_criacao',
             'data_modificacao',
             'data_visualizacao',

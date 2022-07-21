@@ -277,7 +277,8 @@ class BookmarkView(APIView):
             BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, id_usuario)
 
             query = {'term': {'id_usuario.keyword': id_usuario}}
-            _, bookmarks = BOOKMARK.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, bookmarks = BOOKMARK.get_list(query,filter=client_filter, page='all')
 
             return Response(bookmarks, status=status.HTTP_200_OK)
 
@@ -309,7 +310,7 @@ class BookmarkView(APIView):
         if not folder_id:
             folder_id = user_id
 
-        parent_folder = BOOKMARK_FOLDER.get(folder_id)
+        parent_folder = BOOKMARK_FOLDER.get(api_client_name,folder_id)
         if parent_folder is None:
             return Response({'message': 'A pasta onde o bookmark seria salvo não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -371,7 +372,7 @@ class BookmarkView(APIView):
         
         if 'id_pasta' in data:
             new_parent_folder_id = data['id_pasta']
-            new_parent_folder = BOOKMARK_FOLDER.get(new_parent_folder_id)
+            new_parent_folder = BOOKMARK_FOLDER.get(api_client_name, new_parent_folder_id)
             if new_parent_folder is None:
                 return Response({'message': 'A pasta onde o bookmark seria movido não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -170,13 +170,15 @@ class DocumentRecommendationView(APIView):
         elif 'id_notificacao' in request.GET:
             notification_id = request.GET['id_notificacao']
             query = {'term': {'id_notificacao.keyword': notification_id}}
-            _, reccomendations = DOC_REC.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, reccomendations = DOC_REC.get_list(query, filter=client_filter, page='all')
             return Response(reccomendations, status=status.HTTP_200_OK) 
 
         elif 'id_usuario' in request.GET:
             user_id = request.GET['id_usuario']
             query = {'term': {'id_usuario.keyword': user_id}}
-            _, reccomendations = DOC_REC.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, reccomendations = DOC_REC.get_list(query, filter=client_filter, page='all')
             return Response(reccomendations, status=status.HTTP_200_OK)
 
         else:

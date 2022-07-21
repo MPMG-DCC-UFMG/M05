@@ -1,5 +1,4 @@
-var RECOMMENDATION_SERVICE_URL = window.location.origin;
-var RECOMMENDATION_SERVICES_URL = RECOMMENDATION_SERVICE_URL + '/services/document_recommendation';
+var RECOMMENDATION_SERVICES_URL = SERVICES_URL + API_CLIENT_NAME + '/document_recommendation';
 var RECOMMENDATIONS;
 var ACTIVE_FILTER = 'all';
 

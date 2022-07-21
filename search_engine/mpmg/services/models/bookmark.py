@@ -14,6 +14,7 @@ class Bookmark(ElasticModel):
             'id_pasta',
             'id_usuario',
             'indice_documento',
+            'nome_cliente_api',
             'id_documento',
             'id_consulta',
             'id_sessao',

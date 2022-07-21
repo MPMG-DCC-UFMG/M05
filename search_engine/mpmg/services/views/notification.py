@@ -238,7 +238,6 @@ class NotificationView(APIView):
             query = {'term': {'id_usuario.keyword': id_usuario}}
             client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
             sort = {'data_criacao': {'order': 'desc'}}
-
             _, notifications = NOTIFICATION.get_list(query, filter=client_filter, page='all', sort=sort)
 
             return Response(notifications, status=status.HTTP_200_OK)
@@ -246,7 +245,7 @@ class NotificationView(APIView):
         else:
             return Response({'message': 'Informe o campo id_usuario ou id_notificacao!'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'texto', 'tipo'}    
@@ -269,7 +268,7 @@ class NotificationView(APIView):
 
         return Response({'message': 'Não foi possível criar a notificação, tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
         
         notification_id = data.get('id_notificacao')
@@ -315,7 +314,7 @@ class NotificationView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a notificação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
 
         try:
