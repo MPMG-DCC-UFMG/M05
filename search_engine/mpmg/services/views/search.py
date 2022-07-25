@@ -82,6 +82,23 @@ class SearchView(APIView):
                     type: array
                     items:
                         type: string
+            -   name: filtro_estado
+                in: query
+                description: Filtra documentos pela sigla de um estado do Brasil (case-insensitive), além dos termos da consulta.
+                schema:
+                    type: string
+            -   name: filtro_cidade
+                in: query
+                description: Filtra documentos de uma cidade do Brasil (case-insensitive), além dos termos da consulta.
+                schema:
+                    type: string
+            -   name: filtro_categoria_empresa
+                in: query
+                description: Filtra documentos que contém categorias de empresas informados nesta lista, alémd dos termos da consulta
+                schema:
+                    type: array
+                    items:
+                        type: string
             -   name: filtro_entidade_municipio
                 in: query
                 description: Filtra documentos que mencionem os municípios informados nesta lista, além dos termos da consulta
