@@ -128,7 +128,69 @@ class SearchView(APIView):
                     application/json:
                         schema:
                             type: object
-                            properties: {}
+                            properties: 
+                                doc_counts_by_index: 
+                                    type: object
+                                    description: Dicionário com número de documentos encontrados para pesquisa por índice.
+                                time:
+                                    type: number
+                                    description: Tempo de execução total.
+                                time_elastic:
+                                    type: number
+                                    description: Tempo de execução da consulta pelo Elastic Search.
+                                consulta:
+                                    type: string
+                                    description: Consulta que originou a busca.
+                                qid:
+                                    type: string
+                                    description: ID da consulta.
+                                resultados_por_pagina:
+                                    type: integer
+                                    description: Número de resultados por página.
+                                pagina_atual:
+                                    type: string
+                                    description: Número da página atual.
+                                documentos:
+                                    type: array
+                                    description: Lista de documentos ordenados por relevância para a consulta.
+                                    schema:
+                                        items:
+                                            type: object
+                                total_paginas:
+                                    type: string
+                                    description: Número de páginas que o resultado da busca foi paginado.
+                                filtro_data_inicio:
+                                    type: string
+                                    description: Texto correspondente ao filtro por data de início.
+                                filtro_data_fim:
+                                    type: string
+                                    description: Texto correspondente ao filtro por data final.
+                                filtro_instancias:
+                                    type: string
+                                    description: .
+                                filtro_tipos_documentos:
+                                    type: array
+                                    description: Filtro com uma lista de tipos de documentos que devem ser retornados
+                                    schema:
+                                        items:
+                                            type: string
+                                            enum:
+                                                - diarios
+                                                - processos
+                                                - licitacoes
+                                                - diarios_segmentado
+                                filtro_categoria_empresa:
+                                    type: array
+                                    description: Lista com strings utilizados na filtragem por categorias de empresa.
+                                    schema:
+                                        items:
+                                            type: string
+                                filtro_cidade:
+                                    type: string
+                                    description: Texto correspondente ao filtro de cidade.
+                                filtro_estado:
+                                    type: string
+                                    description: Texto correspondende ao filtro de estado.
             '401':
                 description: Requisição não autorizada caso não seja fornecido um token válido
     '''
@@ -150,7 +212,7 @@ class SearchView(APIView):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         # Busca os documentos no elastic
-        total_docs, total_pages, documents, response_time = self.query.execute()
+        total_docs, total_pages, documents, response_time, doc_counts_by_index = self.query.execute()
 
         # reranking goes here
         documents = self.reranker.rerank(request.GET['consulta'], documents)
@@ -159,6 +221,7 @@ class SearchView(APIView):
         wall_time = end - start
 
         data = {
+            'doc_counts_by_index': doc_counts_by_index,
             'time': wall_time,
             'time_elastic': response_time,
             'consulta': self.query.query,
@@ -172,6 +235,9 @@ class SearchView(APIView):
             'filtro_data_fim': self.query.query_filter.end_date,
             'filtro_instancias': self.query.query_filter.instances,
             'filtro_tipos_documentos': self.query.query_filter.doc_types,
+            'filtro_categoria_empresa': self.query.query_filter.business_categories_filter,
+            'filtro_cidade': self.query.query_filter.location_filter.get('cidade'),
+            'filtro_estado': self.query.query_filter.location_filter.get('sigla_estado')
         }
 
         return Response(data)
@@ -186,6 +252,10 @@ class SearchView(APIView):
 
         # o eostante dos parâmetros do request são lidos automaticamente
         query_filter = QueryFilter.create_from_request(request, api_client_name)
+
+        print('-' * 13 + '>')
+        print(query_filter.doc_types)
+        print('<' + '-' * 13)
 
         self.query = Query(raw_query, page, qid, sid,
                            user_id, api_client_name, group, query_filter=query_filter)

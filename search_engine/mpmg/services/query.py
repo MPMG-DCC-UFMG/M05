@@ -156,12 +156,12 @@ class Query:
         should_clause = self._get_should_clause()
         filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
         
-        self.total_docs, self.total_pages, self.documents, self.response_time  = Document(self.api_client_name).search( self.indices,
+        self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index  = Document(self.api_client_name).search( self.indices,
             must_clause, should_clause, filter_clause, self.page, self.results_per_page)
         
         self._log()
 
-        return self.total_docs, self.total_pages, self.documents, self.response_time
+        return self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index
 
 
     #TODO: Adicionar parametros de entidades nos logs
@@ -180,6 +180,7 @@ class Query:
             tempo_resposta = self.response_time,
             documentos=[i['tipo']+':'+i['id']
                         for i in sorted(self.documents, key=lambda x: x['posicao_ranking'])],
+            doc_counts_by_index = self.doc_counts_by_index,
             pagina = self.page,
             resultados_por_pagina = self.results_per_page,
             tempo_resposta_total = time.time() - self.start_time,

@@ -1,6 +1,8 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.api_config import APIConfig
 
+from elasticsearch_dsl import A
+
 class Document:
     '''
     Classe que abstrai as diferentes classes (índices) que podem ser
@@ -24,6 +26,8 @@ class Document:
         self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
 
     def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
+        agg = A('terms', field='_index')
+
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
 
@@ -32,11 +36,26 @@ class Document:
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
 
+        elastic_request.aggs.bucket('per_index', agg)
+
         response = elastic_request.execute()
         total_docs = response.hits.total.value
         # Total retrieved documents per page + 1 page for rest of division
         total_pages = (total_docs // results_per_page) + 1
         documents = []
+
+
+        try:
+            buckets = response.aggregations['per_index']['buckets']
+        
+        except:
+            buckets = []
+
+        doc_counts_by_index = {index: 0 for index in indices}
+        for bucket in buckets:
+            index = bucket['key']
+            doc_count = bucket['doc_count']
+            doc_counts_by_index[index] = doc_count
 
         for i, item in enumerate(response):
             dict_data = item.to_dict()
@@ -57,4 +76,4 @@ class Document:
 
             documents.append(result_class(**dict_data))
 
-        return total_docs, total_pages, documents, response.took
+        return total_docs, total_pages, documents, response.took, doc_counts_by_index
