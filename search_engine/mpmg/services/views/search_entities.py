@@ -189,7 +189,7 @@ class SearchEntities(APIView):
     def _get_entities(self, request, api_client_name: str, config: list, num_entities_field: str):
         query = request.GET['consulta']
 
-        query_filter = QueryFilter.create_from_request(request)
+        query_filter = QueryFilter.create_from_request(request, api_client_name)
 
         entity_types = [] 
         aggregation_strategy_by_entity_type = []

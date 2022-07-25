@@ -137,7 +137,7 @@ class SearchView(APIView):
 
         # reranking goes here
         documents = self.reranker.rerank(request.GET['consulta'], documents)
-
+        
         end = time.time()
         wall_time = end - start
 
@@ -156,6 +156,7 @@ class SearchView(APIView):
             'filtro_instancias': self.query.query_filter.instances,
             'filtro_tipos_documentos': self.query.query_filter.doc_types,
         }
+
         return Response(data)
 
     def _generate_query(self, request, api_client_name):
@@ -167,7 +168,7 @@ class SearchView(APIView):
         qid = request.GET.get('qid', '')
 
         # o eostante dos parâmetros do request são lidos automaticamente
-        query_filter = QueryFilter.create_from_request(request)
+        query_filter = QueryFilter.create_from_request(request, api_client_name)
 
         self.query = Query(raw_query, page, qid, sid,
                            user_id, api_client_name, group, query_filter=query_filter)
