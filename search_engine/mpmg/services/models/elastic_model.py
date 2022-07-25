@@ -1,4 +1,3 @@
-from os import PRIO_PGRP
 from typing import Tuple, Union
 from elasticsearch.exceptions import NotFoundError
 
