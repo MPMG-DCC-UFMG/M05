@@ -8,14 +8,19 @@
         {"id": 6,  "body": {"nome_cliente_api": "gsi", "ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
         {"id": 7,  "body": {"nome_cliente_api": "gsi", "ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
         {"id": 8,  "body": {"nome_cliente_api": "gsi", "ui_name":"Vetores Densos", "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}},
-
-        {"id": 9,  "body": {"nome_cliente_api": "procon", "ui_name":"Fonte",          "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 10, "body": {"nome_cliente_api": "procon", "ui_name":"Título",         "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 11, "body": {"nome_cliente_api": "procon", "ui_name":"Conteúdo",       "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
-        {"id": 12, "body": {"nome_cliente_api": "procon", "ui_name":"Pessoas",        "field_name": "entidade_pessoa",      "weight": 1, "searchable": true,  "retrievable": true}},
-        {"id": 13, "body": {"nome_cliente_api": "procon", "ui_name":"Organizações",   "field_name": "entidade_organizacao", "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 14, "body": {"nome_cliente_api": "procon", "ui_name":"Municípios",     "field_name": "entidade_municipio",   "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 15, "body": {"nome_cliente_api": "procon", "ui_name":"Locais",         "field_name": "entidade_local",       "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 16, "body": {"nome_cliente_api": "procon", "ui_name":"Vetores Densos", "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}}
+        
+        {"id": 9,  "body": {"nome_cliente_api": "procon", "ui_name":"Fonte",                    "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 10, "body": {"nome_cliente_api": "procon", "ui_name":"Título",                   "field_name": "titulo",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 11, "body": {"nome_cliente_api": "procon", "ui_name":"Conteúdo",                 "field_name": "conteudo",             "weight": 1, "searchable": true,  "retrievable": true}},
+        {"id": 12, "body": {"nome_cliente_api": "procon", "ui_name":"ID Manifestação",          "field_name": "id_manifestacao",      "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 13, "body": {"nome_cliente_api": "procon", "ui_name":"Nome autor",               "field_name": "nome_autor",           "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 14, "body": {"nome_cliente_api": "procon", "ui_name":"Cidade",                   "field_name": "cidade",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 15, "body": {"nome_cliente_api": "procon", "ui_name":"Estado",                   "field_name": "estado",               "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 16, "body": {"nome_cliente_api": "procon", "ui_name":"Nome completo da empresa", "field_name": "nome_completo_empresa","weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 17, "body": {"nome_cliente_api": "procon", "ui_name":"Categoria da reclamação",  "field_name": "categoria",            "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 18, "body": {"nome_cliente_api": "procon", "ui_name":"Data criação",             "field_name": "data_criacao",         "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 19, "body": {"nome_cliente_api": "procon", "ui_name":"Fonte",                    "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 20, "body": {"nome_cliente_api": "procon", "ui_name":"Vetores Densos",           "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}},
+        {"id": 21, "body": {"nome_cliente_api": "procon", "ui_name":"Score",           "field_name": "score",            "weight": 1, "searchable": false, "retrievable": true}}
     ]
 }

@@ -1,9 +1,6 @@
-from time import sleep
 
 from sentence_transformers import SentenceTransformer, models
-from torch import nn
 from scipy import spatial
-
 
 class Reranker():
     def __init__(self):
@@ -20,9 +17,8 @@ class Reranker():
 
     def rerank(self, text_query, documents):
         query_embedding = self.model.encode(text_query)
-        
         for document in documents:
-            document.score = self.get_bert_score(document.embedding, query_embedding)
+            document['score'] = self.get_bert_score(document.embedding, query_embedding)        
+        documents = sorted(documents, reverse=True, key=lambda doc: doc['score'])
 
-        documents = sorted(documents, reverse=True, key=lambda doc: doc.score)
         return documents

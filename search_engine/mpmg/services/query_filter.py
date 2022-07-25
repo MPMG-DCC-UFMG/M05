@@ -49,7 +49,7 @@ class QueryFilter:
             self.end_date = None
     
     @staticmethod
-    def create_from_request(request):
+    def create_from_request(request, api_client_name):
         '''
         Cria uma instância desta classe lendo diretamente os parâmetros do request
         '''
@@ -71,7 +71,6 @@ class QueryFilter:
         business_categories_filter = request.GET.getlist('filtro_categoria_empresa')
         location_filter = {}
 
-        api_client_name = request.user.api_client_name 
         if api_client_name == 'procon':
             if city_filter not in INVALID_VALS:
                 location_filter['cidade'] = city_filter
