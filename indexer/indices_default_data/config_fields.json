@@ -19,8 +19,7 @@
         {"id": 16, "body": {"nome_cliente_api": "procon", "ui_name":"Nome completo da empresa", "field_name": "nome_completo_empresa","weight": 1, "searchable": false, "retrievable": true}},
         {"id": 17, "body": {"nome_cliente_api": "procon", "ui_name":"Categoria da reclamação",  "field_name": "categoria",            "weight": 1, "searchable": false, "retrievable": true}},
         {"id": 18, "body": {"nome_cliente_api": "procon", "ui_name":"Data criação",             "field_name": "data_criacao",         "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 19, "body": {"nome_cliente_api": "procon", "ui_name":"Fonte",                    "field_name": "fonte",                "weight": 1, "searchable": false, "retrievable": true}},
         {"id": 20, "body": {"nome_cliente_api": "procon", "ui_name":"Vetores Densos",           "field_name": "embedding",            "weight": 1, "searchable": false, "retrievable": true}},
-        {"id": 21, "body": {"nome_cliente_api": "procon", "ui_name":"Score",           "field_name": "score",            "weight": 1, "searchable": false, "retrievable": true}}
+        {"id": 21, "body": {"nome_cliente_api": "procon", "ui_name":"Score",                    "field_name": "score",                "weight": 1, "searchable": false, "retrievable": true}}
     ]
 }

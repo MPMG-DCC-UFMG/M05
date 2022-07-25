@@ -19,6 +19,9 @@ class Reranker():
         query_embedding = self.model.encode(text_query)
         for document in documents:
             document['score'] = self.get_bert_score(document.embedding, query_embedding)        
-        documents = sorted(documents, reverse=True, key=lambda doc: doc['score'])
+        
+        documents.sort(key=lambda doc: doc['score'], reverse=True)
+        for ranking_position, document in enumerate(documents, 1):
+            document['posicao_ranking'] = ranking_position
 
         return documents
