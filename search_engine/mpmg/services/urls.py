@@ -29,6 +29,7 @@ urlpatterns = [
     path('states', views.StateView.as_view(), name='states'),
     path('procon_categories', views.ProconCategoryView.as_view(), name='procon_categories'),
     path('reclame_aqui_business_categories', views.ReclameAquiBusinessCategoryView.as_view(), name='ra_business_categories'),
+    path('embedding', views.EmbeddingView.as_view(), name='embedding'),
     # path('search_comparison_entity', views.CompareViewEntity.as_view(), name='search_comparison_entity'),
     # path('log_search', views.LogSearchView.as_view(), name='log_search'),
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),
