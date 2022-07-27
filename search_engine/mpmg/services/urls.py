@@ -31,9 +31,9 @@ urlpatterns = [
     path('reclame_aqui_business_categories', views.ReclameAquiBusinessCategoryView.as_view(), name='ra_business_categories'),
     path('embedding', views.EmbeddingView.as_view(), name='embedding'),
     # path('search_comparison_entity', views.CompareViewEntity.as_view(), name='search_comparison_entity'),
-    # path('log_search', views.LogSearchView.as_view(), name='log_search'),
+    # path('<str:api_client_name>/log_search', views.LogSearchView.as_view(), name='log_search'),
     # path('log_query_suggestion', views.LogQuerySuggestionView.as_view(), name='log_query_suggestion'),
-    # path('metrics', views.MetricsView.as_view(), name='metrics'),
+    # path('<str:api_client_name>/metrics', views.MetricsView.as_view(), name='metrics'),
 
     path('openapi/', get_schema_view(
         title='Áduna',

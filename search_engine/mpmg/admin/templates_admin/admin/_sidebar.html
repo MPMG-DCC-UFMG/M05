@@ -62,6 +62,8 @@
             <span class="menu-title" >Configurar Opções</span>
             </a>
         </li>
+
+        {% if user.api_client_name == 'gsi'  %}
         <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_filter_by_entity' %}active{%endif%}">
             <a class="nav-link" href="{% url 'admin:config_filter_by_entity' %}">
                 <i class="menu-icon typcn typcn-th-large-outline"></i>
@@ -73,7 +75,9 @@
                 <i class="menu-icon typcn typcn-th-large-outline"></i>
                 <span class="menu-title">Configurar ranking de <br/> entidades</span>
             </a>
-        </li>
+        </li>        
+        {% endif %}
+        
         <li class="nav-item {% if request.resolver_match.view_name == 'admin:config_recommendations' %}active{%endif%}">
             <a class="nav-link" href="{% url 'admin:config_recommendations' %}">
             <i class="menu-icon typcn typcn-th-large-outline"></i>

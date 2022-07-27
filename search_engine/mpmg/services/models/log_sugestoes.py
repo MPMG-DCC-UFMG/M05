@@ -36,7 +36,7 @@ class LogSugestoes(ElasticModel):
         return total, suggestions
     
     @staticmethod
-    def get_list_filtered(start_date=None, end_date=None, sugestao=None, page='all'):
+    def get_list_filtered(api_client_name, start_date=None, end_date=None, sugestao=None, page='all'):
         query_param = {
             "bool": {
                 "must": []
@@ -69,4 +69,8 @@ class LogSugestoes(ElasticModel):
                 }
             })
 
-        return LogSugestoes.get_list(query=query_param, page=page)
+        client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
+
+        return LogSugestoes.get_list(query=query_param, filter=client_filter, page=page)

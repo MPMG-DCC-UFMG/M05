@@ -208,6 +208,7 @@ class APIConfig():
         search_obj = search_obj.sort({'_id':{'order':'asc'}})
 
         elastic_result = search_obj.execute()
+
         result_list = []
         for item in elastic_result:
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
