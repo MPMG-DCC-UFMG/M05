@@ -308,9 +308,11 @@ class BookmarkView(APIView):
         folder_id = request.POST.get('id_pasta') 
 
         if not folder_id:
-            folder_id = user_id
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
+            folder_id = BOOKMARK_FOLDER.get_default_bookmark_folder_id(api_client_name, user_id)
 
         parent_folder = BOOKMARK_FOLDER.get(api_client_name,folder_id)
+        
         if parent_folder is None:
             return Response({'message': 'A pasta onde o bookmark seria salvo não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
