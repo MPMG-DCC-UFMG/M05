@@ -88,6 +88,8 @@ class DashboardView(admin.AdminSite):
         users = {}
         if len(metrics.query_log) > 0:
             user_ids = metrics.query_log.id_usuario.unique()
+            user_ids = user_ids[~np.isnan(user_ids)]
+
             for user in User.objects.filter(id__in=user_ids):
                 users[user.id] = {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}
             metrics.query_log['nome_usuario'] = metrics.query_log['id_usuario'].apply(lambda i: users[i]['first_name'] if i in users else '')
