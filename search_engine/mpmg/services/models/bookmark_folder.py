@@ -75,7 +75,7 @@ class BookmarkFolder(ElasticModel):
         return element
     
     def get_default_bookmark_folder_id(self, api_client_name: str, user_id: str) -> float:
-        return f'{api_client_name}:{user_id}'
+        return f'{api_client_name}-{user_id}'
 
     def create_default_bookmark_folder_if_necessary(self, api_client_name: str, user_id: str):
         ''' Cria uma pasta default para um usuário caso ela não tenha uma.
