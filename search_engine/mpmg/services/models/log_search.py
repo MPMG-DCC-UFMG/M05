@@ -33,7 +33,7 @@ class LogSearch(ElasticModel):
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
     @staticmethod
-    def get_list_filtered(id_sessao=None, id_consulta=None, id_usuario=None, text_consulta=None, algoritmo=None, start_date=None, end_date=None, page='all', tempo=None, tempo_op=None, sort=None):
+    def get_list_filtered(api_client_name, id_sessao=None, id_consulta=None, id_usuario=None, text_consulta=None, algoritmo=None, start_date=None, end_date=None, page='all', tempo=None, tempo_op=None, sort=None):
         query_param = {
             "bool": {
                 "must": []
@@ -129,8 +129,12 @@ class LogSearch(ElasticModel):
                         }
                     }
                 })
+                
+        client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
 
-        return LogSearch.get_list(query=query_param, page=page, sort=sort)
+        return LogSearch.get_list(query=query_param, page=page, filter=client_filter, sort=sort)
 
     @staticmethod
     def get_suggestions(api_client_name, query):

@@ -22,7 +22,7 @@ class LogSearchClick(ElasticModel):
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
     @staticmethod
-    def get_list_filtered(id_documento=None, tipo_documento=None, id_consulta=None, start_date=None, end_date=None, pagina_op=None, pagina=None, posicao_op=None, posicao=None, id_consultas=None, page='all', sort=None):
+    def get_list_filtered(api_client_name, id_documento=None, tipo_documento=None, id_consulta=None, start_date=None, end_date=None, pagina_op=None, pagina=None, posicao_op=None, posicao=None, id_consultas=None, page='all', sort=None):
         query_param = {
             "bool": {
                 "must": []
@@ -126,4 +126,8 @@ class LogSearchClick(ElasticModel):
                     }
                 })
 
-        return LogSearchClick.get_list(query=query_param, page=page, sort=sort)
+        client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
+        
+        return LogSearchClick.get_list(query=query_param, page=page, filter=client_filter, sort=sort)

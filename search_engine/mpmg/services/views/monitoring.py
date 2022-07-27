@@ -21,7 +21,7 @@ class ClusterStatsView(APIView):
 class MetricsView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         start_date = request.GET.get('start_date', None)
         end_date = request.GET.get('end_date', None)
         metrics = request.GET.getlist('metrics', [])
@@ -39,7 +39,7 @@ class MetricsView(APIView):
         if end_date:
             end_date = int(end_date)
 
-        m = Metrics(start_date=start_date, end_date=end_date)
+        m = Metrics(api_client_name=api_client_name, start_date=start_date, end_date=end_date)
 
         callable_funcs = []
         for func in Metrics.__dict__.values():
