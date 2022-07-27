@@ -35,7 +35,8 @@ services.create_bookmark = function() {
                 setTimeout(function () { update_folder_tree(); }, 1500);
             },
             error: function (res) {
-                alert(`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
+                let message = res.responseJSON.message; 
+                alert(`Não foi possível salvar o bookmark.\n\nErro: ${message} \n\nTente novamente!`);
             }
         });
     } else {
