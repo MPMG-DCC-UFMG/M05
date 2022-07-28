@@ -34,7 +34,7 @@ Há duas formas de se instanciar o projeto, sendo elas a versão automática ou 
      > pip install --use-deprecated=legacy-resolver -r requirements.txt
   
   4. Navegue até a pasta search_engine/mpmg e faça uma cópia do arquivo "settings.template.py" com o nome de "settings.py". Altere alguns diretórios e senhas caso necessário.
-  5. Crie um usuário para acessar a interface da API. Navegue até o diretório search_engine e rode:
+  5. Crie um usuário para acessar a interface da API. Será necessário informar qual tipo de cliente o nome usuário será, por meio de `api_client_name`. Digite `procon` ou `gsi`, de acordo com suas necessidades. Navegue até o diretório search_engine e rode:
      > python manage.py createsuperuser
 
 ## Execução
