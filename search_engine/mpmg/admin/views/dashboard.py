@@ -33,12 +33,18 @@ class DashboardView(admin.AdminSite):
         # métricas
         metrics = Metrics(request.user.api_client_name, start_date, end_date)
 
-        # informação sobre os índices
-        indices_info = ElasticModel.get_indices_info()
 
         # total de registros (considerando apenas os índices principais)
         total_records = 0
         searchable_indices = APIConfig.searchable_indices(request.user.api_client_name, group='regular')
+        
+        all_indices = APIConfig.get_indices('all')
+
+        valid_clients = ('all', request.user.api_client_name)
+        client_indices = {item['es_index_name'] for item in all_indices if item['nome_cliente_api'] in valid_clients}
+
+        # informação sobre os índices
+        indices_info = ElasticModel.get_indices_info(client_indices)
 
         for item in indices_info:
             if item['index_name'] in searchable_indices:
@@ -54,6 +60,7 @@ class DashboardView(admin.AdminSite):
                   '#ff9f40', # laranja
                   '#36a2eb', # azul
                   '#ff6384'] # rosa
+
         colors = [
             '#f94144',
             '#f3722c',

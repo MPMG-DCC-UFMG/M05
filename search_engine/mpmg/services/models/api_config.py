@@ -169,7 +169,7 @@ class APIConfig():
         '''
 
         indices = []
-        for item in cls.get_indices(api_client_name, group=group, active=True):
+        for item in cls.get_indices(api_client_name, group=group, searchable=True, active=True):
             indices.append(item['es_index_name'])
         return indices
     
@@ -187,7 +187,7 @@ class APIConfig():
 
     
     @classmethod
-    def get_indices(cls, api_client_name, group=None, active=None):
+    def get_indices(cls, api_client_name, group=None, searchable=None, active=None):
         '''
         Retorna a lista de índices. Passe group e active para filtrar.
         Cada item da lista contém:
@@ -200,11 +200,25 @@ class APIConfig():
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_INDICES)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+
+        if api_client_name not in (None, 'all'):
+            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+
         if active != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
+
         if group != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "group": group }}))
+
+        if searchable != None:
+            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "searchable": searchable }}))
+
+        # faz a consulta uma vez pra pegar o total de segmentos
+        elastic_result = search_obj.execute()
+        total_records = elastic_result.hits.total.value
+        # refaz a consulta trazendo todos os segmentos
+        search_obj = search_obj[0:total_records]
+
         search_obj = search_obj.sort({'_id':{'order':'asc'}})
 
         elastic_result = search_obj.execute()

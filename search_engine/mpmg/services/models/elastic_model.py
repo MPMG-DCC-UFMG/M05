@@ -250,9 +250,10 @@ class ElasticModel(dict):
         return total_records, result_list
 
     @staticmethod
-    def get_indices_info():
+    def get_indices_info(client_indices: set):
         info = []
         response = ElasticModel.elastic.es.cat.indices()
+
         parts = response.strip().split('\n')
 
         for part in parts:
@@ -261,7 +262,10 @@ class ElasticModel(dict):
 
                 if subpart[2][0] == '.':
                     continue
-
+                
+                if subpart[2] not in client_indices:
+                    continue 
+                
                 info.append({
                     'health': subpart[0],
                     'status': subpart[1],
