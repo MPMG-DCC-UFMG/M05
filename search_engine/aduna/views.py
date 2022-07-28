@@ -21,6 +21,9 @@ ENTITY_ICONS = {
     'entidade_tempo': 'today',
 } 
 
+
+CTRL_SYMBOLS_REGEX = re.compile(r'[\n\r\t]')
+
 def index(request):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
@@ -224,7 +227,7 @@ def document(request, tipo_documento, id_documento):
         organizacao_filter = request.GET.getlist('organizacao', [])
         local_filter = request.GET.getlist('local', [])
 
-        if tipo_documento == 'diario_segmentado':
+        if tipo_documento == 'diarios_segmentado':
             # requisita a estrutura de navegação do documento, para criar um índice lateral na página
             nav_params = {
                 'tipo_documento': tipo_documento, 
@@ -239,12 +242,16 @@ def document(request, tipo_documento, id_documento):
             navigation = nav_response.json()['navigation']
 
             response_content = service_response.json()
+            document = response_content['document']
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
+
             context = {
                 'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
-                'document': response_content['document'],
+                'document': document,
                 'navigation': navigation,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
@@ -256,6 +263,8 @@ def document(request, tipo_documento, id_documento):
         elif tipo_documento == 'reclame_aqui':
             response_content = service_response.json()
             document = response_content['document']
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
 
             for i, seg in enumerate(document['segmentos']):
                 document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
@@ -277,6 +286,8 @@ def document(request, tipo_documento, id_documento):
             response_content = service_response.json()
             document = response_content['document']
 
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
+            
             for i, seg in enumerate(document['segmentos']):
                 document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
 
@@ -297,7 +308,7 @@ def document(request, tipo_documento, id_documento):
             response_content = service_response.json()
             document = response_content['document']
 
-            document['titulo'] = document['titulo'].strip() 
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
 
@@ -533,8 +544,7 @@ def search_comparison_entity(request):
             'entities': response_content['entities'],
             'id_pos': id_pos, # Converte de volta pra dict, pois o Django Template Language não lê defaultdict
         }
-        print(response_content['entities'])
-        
+
         return render(request, 'aduna/search_comparison_entity.html', context)
 
 def bookmark(request):
