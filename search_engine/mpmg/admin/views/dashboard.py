@@ -22,7 +22,7 @@ class DashboardView(admin.AdminSite):
             end_date = datetime.strptime(end_date, '%d/%m/%Y')
             
         else:
-            end_date = datetime.today().date() #+ timedelta(days=1)
+            end_date = datetime.today().date() + timedelta(days=1)
             start_date = end_date - timedelta(days=14)
         
         # período das métricas e estatísticas
@@ -37,14 +37,9 @@ class DashboardView(admin.AdminSite):
         # total de registros (considerando apenas os índices principais)
         total_records = 0
         searchable_indices = APIConfig.searchable_indices(request.user.api_client_name, group='regular')
-        
-        all_indices = APIConfig.get_indices('all')
-
-        valid_clients = ('all', request.user.api_client_name)
-        client_indices = {item['es_index_name'] for item in all_indices if item['nome_cliente_api'] in valid_clients}
 
         # informação sobre os índices
-        indices_info = ElasticModel.get_indices_info(client_indices)
+        indices_info = ElasticModel.get_indices_info(searchable_indices)
 
         for item in indices_info:
             if item['index_name'] in searchable_indices:
@@ -73,10 +68,6 @@ class DashboardView(admin.AdminSite):
         indices_amounts = {'data':[], 'colors':[], 'labels':[]}
         for item in indices_info:
             if item['index_name'] in searchable_indices:
-                
-                print(item)
-                print('*' * 15)
-
                 indices_amounts['data'].append(item['num_documents'])
                 indices_amounts['colors'].append(colors.pop())
                 indices_amounts['labels'].append(item['index_name'])

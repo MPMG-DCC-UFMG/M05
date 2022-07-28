@@ -153,9 +153,6 @@ class LogSearch(ElasticModel):
             {"term": { "nome_cliente_api": api_client_name}}
         ]
         response = LogSearch.get_list(query=request_body, filter=api_client_filter, page='all')
-        print('-----------------------------------')
-        print(response)
-        print('-----------------------------------')
         total = response[0]
         suggestions = [hit['text_consulta'] for hit in response[1]]
         return total, suggestions

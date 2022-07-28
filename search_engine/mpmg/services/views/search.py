@@ -252,10 +252,5 @@ class SearchView(APIView):
 
         # o eostante dos parâmetros do request são lidos automaticamente
         query_filter = QueryFilter.create_from_request(request, api_client_name)
-
-        print('-' * 13 + '>')
-        print(query_filter.doc_types)
-        print('<' + '-' * 13)
-
         self.query = Query(raw_query, page, qid, sid,
                            user_id, api_client_name, group, query_filter=query_filter)

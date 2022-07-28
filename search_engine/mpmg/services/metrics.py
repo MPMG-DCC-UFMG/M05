@@ -80,7 +80,6 @@ class Metrics:
     def avg_click_position(self):
         #media da posição dos clicks
         df = pd.DataFrame(self.click_log['posicao'].astype(int))
-        print()
         response = {
             "avg_click_position": self.click_log['posicao'].astype(int).mean() if len(self.click_log) > 0 else [],
             "avg_click_position_per_day": self.click_log.groupby(by='dia').mean()['posicao'].to_dict() if len(self.click_log) > 0 else []
