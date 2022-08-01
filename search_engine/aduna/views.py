@@ -97,22 +97,28 @@ def search(request):
     filter_instances_list = filter_content['instances'] if 'instances' in filter_content else []
     filter_doc_types_list = filter_content['doc_types'] if 'doc_types' in filter_content else []
 
-    params['contexto'] = 'ranking'
-    card_ranking_entities = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
-    card_ranking_entities = card_ranking_entities.json()
-    
-    # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
-    at_least_one_entity_type_has_recommendations = False
-    
-    for entity_name, entity_vals in card_ranking_entities.items():
-        entity_vals['icone'] = ENTITY_ICONS[entity_name]
-        if len(entity_vals['ranking']) > 0:
-            at_least_one_entity_type_has_recommendations = True
+    if api_client_name == 'gsi':
+        params['contexto'] = 'ranking'
+        card_ranking_entities = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
+        card_ranking_entities = card_ranking_entities.json()
+        
+        # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
+        at_least_one_entity_type_has_recommendations = False
+        
+        for entity_name, entity_vals in card_ranking_entities.items():
+            entity_vals['icone'] = ENTITY_ICONS[entity_name]
+            if len(entity_vals['ranking']) > 0:
+                at_least_one_entity_type_has_recommendations = True
 
-    # busca entidades além de buscar a consulta
-    params['contexto'] = 'filtro'
-    entities_list = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
-    entities_list = entities_list.json()
+        # busca entidades além de buscar a consulta
+        params['contexto'] = 'filtro'
+        entities_list = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
+        entities_list = entities_list.json()
+    
+    else:
+        at_least_one_entity_type_has_recommendations = False
+        card_ranking_entities = []
+        entities_list = []
 
     # faz a busca
     params = {
