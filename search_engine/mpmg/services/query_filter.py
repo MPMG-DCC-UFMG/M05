@@ -12,6 +12,9 @@ def parse_date(text):
             pass
     raise ValueError('no valid date format found')
 
+def date_to_timestamp(date:datetime) -> int:
+    return int(datetime.timestamp(date))
+
 class QueryFilter:
     '''
     Classe que encapsula todas as opções de filtro selecionadas pelo usuário.
@@ -112,14 +115,14 @@ class QueryFilter:
             start_date = parse_date(self.start_date)
 
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data_criacao': {'gte': start_date.timestamp() }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'gte': date_to_timestamp(start_date) }}})
             )
 
         if self.end_date not in INVALID_VALS:
             end_date = parse_date(self.end_date)
 
             filters_queries.append(
-                Elastic().dsl.Q({'range': {'data_criacao': {'lte': end_date.timestamp() }}})
+                Elastic().dsl.Q({'range': {'data_criacao': {'lte': date_to_timestamp(end_date) }}})
             )
 
         for entity_field_name in self.entity_filter.keys():
