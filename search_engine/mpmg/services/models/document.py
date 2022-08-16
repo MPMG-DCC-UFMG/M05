@@ -1,6 +1,7 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.api_config import APIConfig
+from .config_learning_to_rank import ConfigLearningToRank
 
 class Document:
     '''
@@ -18,6 +19,8 @@ class Document:
     def __init__(self):
         self.elastic = Elastic()
 
+        self.ltr_config = ConfigLearningToRank().get(1)
+        print(self.ltr_config)
         self.retrievable_fields = APIConfig.retrievable_fields()
         self.highlight_field = APIConfig.highlight_field()
 
@@ -33,11 +36,12 @@ class Document:
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
 
-        elastic_request.extra(rescore={"window_size": 100,
-                                       "query": {"rescore_query": {"sltr": {
-                                            "params": {"consulta": f"{query}"},
-                                            "model": "m05_model"
-                            }}}})
+        if self.ltr_config["ativo"]:
+            elastic_request.extra(rescore={"window_size": self.ltr_config["quantidade"],
+                                            "query": {"rescore_query": {"sltr": {
+                                                "params": {"consulta": f"{query}"},
+                                                "model": self.ltr_config["modelo"]
+                                }}}})
 
         response = elastic_request.execute()
         total_docs = response.hits.total.value
