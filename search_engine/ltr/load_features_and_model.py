@@ -1,6 +1,8 @@
 import json
 import requests
 from urllib.parse import urljoin
+from os import listdir
+from os.path import isfile, join
 
 def save_model(es_host, feature_set="m05"):
     """ Save the ranklib model in Elasticsearch """
@@ -24,7 +26,9 @@ def save_model(es_host, feature_set="m05"):
     if (resp.status_code >= 300):
         print(resp.text)
 
-    modelContent =  "{\"feature_1\" : 0.3,\"feature_2\" : 0.5,\"feature_3\" : 0.1,\"feature_4\" : 0.1}"
+    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
+    modelContent = {f: 1 for f in features}
+    modelContent =  json.dumps(modelContent)
     path = "_ltr/_featureset/%s/_createmodel" % feature_set
     fullPath = urljoin(es_host, path)
     modelPayload['model']['model']['definition'] = modelContent
@@ -35,17 +39,17 @@ def save_model(es_host, feature_set="m05"):
         print(resp.text)
 
 def get_feature(feature_name):
-    with open('./features/feature_%s.json' % feature_name) as f:
+    with open('./features/%s.json' % feature_name) as f:
         return json.loads(f.read())
 
 def each_feature():
-    features = [1, 2, 3, 4]
+    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
     try:
         for feature in features:
             parsedJson = get_feature(feature)
             template = parsedJson['query']
             feature_spec = {
-                "name": "feature_%s" % feature,
+                "name": "%s" % feature,
                 "params": ["consulta"],
                 "template": template
             }
