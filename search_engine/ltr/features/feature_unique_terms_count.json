@@ -1,0 +1,12 @@
+{
+    "query": {
+        "match_explorer": {
+            "type": "unique_terms_count",
+            "query": {
+                "match": {
+                    "all": "{{consulta}}"
+                }
+            }
+        }
+    }
+}

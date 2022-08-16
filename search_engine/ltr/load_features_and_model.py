@@ -5,10 +5,7 @@ from os import listdir
 from os.path import isfile, join
 
 def save_model(es_host, feature_set="m05"):
-    """ Save the ranklib model in Elasticsearch """
-    import requests
-    import json
-    from urllib.parse import urljoin
+    """ Save the rank model in Elasticsearch """
     modelPayload = {
         "model": {
             "name": "m05_model",

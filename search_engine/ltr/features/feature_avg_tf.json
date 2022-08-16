@@ -1,7 +1,7 @@
 {
     "query": {
         "match_explorer": {
-            "type": "max_raw_df",
+            "type": "max_raw_tf",
             "query": {
                 "match": {
                     "all": "{{consulta}}"
