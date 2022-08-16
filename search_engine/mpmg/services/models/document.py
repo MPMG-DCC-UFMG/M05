@@ -20,7 +20,6 @@ class Document:
         self.elastic = Elastic()
 
         self.ltr_config = ConfigLearningToRank().get(1)
-        print(self.ltr_config)
         self.retrievable_fields = APIConfig.retrievable_fields()
         self.highlight_field = APIConfig.highlight_field()
 
