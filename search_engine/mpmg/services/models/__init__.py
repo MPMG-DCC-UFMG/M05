@@ -17,4 +17,5 @@ from .config_recommendation_evidence import ConfigRecommendationEvidence
 from .config_recommendation_source import ConfigRecommendationSource
 from .config_entity_ranking import ConfigRankingEntity
 from .config_filter_by_entity import ConfigFilterByEntity
+from .config_learning_to_rank import ConfigLearningToRank
 from .api_config import APIConfig
