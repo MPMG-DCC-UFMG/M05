@@ -1,6 +1,7 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.api_config import APIConfig
+from .config_learning_to_rank import ConfigLearningToRank
 
 class Document:
     '''
@@ -18,13 +19,14 @@ class Document:
     def __init__(self):
         self.elastic = Elastic()
 
+        self.ltr_config = ConfigLearningToRank().get(1)
         self.retrievable_fields = APIConfig.retrievable_fields()
         self.highlight_field = APIConfig.highlight_field()
-        
+
         # relaciona o nome do índice com a classe Django que o representa
         self.index_to_class = APIConfig.searchable_index_to_class()
 
-    def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
+    def search(self, indices, query, must_queries, should_queries, filter_queries, page_number, results_per_page):
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
 
@@ -32,6 +34,13 @@ class Document:
             .source(self.retrievable_fields) \
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
+
+        if self.ltr_config["ativo"]:
+            elastic_request.extra(rescore={"window_size": self.ltr_config["quantidade"],
+                                            "query": {"rescore_query": {"sltr": {
+                                                "params": {"consulta": f"{query}"},
+                                                "model": self.ltr_config["modelo"]
+                                }}}})
 
         response = elastic_request.execute()
         total_docs = response.hits.total.value
