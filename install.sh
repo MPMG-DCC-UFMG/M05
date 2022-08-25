@@ -37,6 +37,7 @@ if [[ -z $(fuser 9200/tcp) ]]; then
     ES_JAVA_OPTS=-Xmx2g ./bin/elasticsearch -d
     echo "Waiting ElasticSearch..."
     sleep 60s
+    ./bin/elasticsearch-plugin install https://github.com/o19s/elasticsearch-learning-to-rank/releases/download/v1.5.4-es7.10.2/ltr-plugin-v1.5.4-es7.10.2.zip
     cd ..
 fi
 
@@ -49,7 +50,15 @@ cd ./indexer
 if [[ -z $(curl -X GET "localhost:9200/_cat/indices/*") ]]; then
     ./indexing_script.sh
 fi
+########################################
 
+# Setting Up LTR
+echo ""
+echo "Setting Up LTR..."
+cd ../ltr
+python load_features_and_model.py
+python train.py
+#load trained model
 ########################################
 
 # Creating Database
