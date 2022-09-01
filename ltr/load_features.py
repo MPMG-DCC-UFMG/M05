@@ -23,7 +23,7 @@ def save_model(es_host, feature_set="m05"):
     if (resp.status_code >= 300):
         print(resp.text)
 
-    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
+    features = [f[:-5] for f in listdir("./ltr/features") if isfile(join("./ltr/features", f))]
     modelContent = {f: 1 for f in features}
     modelContent =  json.dumps(modelContent)
     path = "_ltr/_featureset/%s/_createmodel" % feature_set
@@ -36,11 +36,11 @@ def save_model(es_host, feature_set="m05"):
         print(resp.text)
 
 def get_feature(feature_name):
-    with open('./features/%s.json' % feature_name) as f:
+    with open('./ltr/features/%s.json' % feature_name) as f:
         return json.loads(f.read())
 
 def each_feature():
-    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
+    features = [f[:-5] for f in listdir("./ltr/features") if isfile(join("./ltr/features", f))]
     try:
         for feature in features:
             parsedJson = get_feature(feature)

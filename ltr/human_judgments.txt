@@ -1,0 +1,30 @@
+# qid:1: processo*1
+
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo

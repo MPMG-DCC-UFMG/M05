@@ -55,9 +55,8 @@ fi
 # Setting Up LTR
 echo ""
 echo "Setting Up LTR..."
-cd ../ltr
-python load_features_and_model.py
-python train.py
+cd ..
+python ./ltr/set_ltr.py
 #load trained model
 ########################################
 
