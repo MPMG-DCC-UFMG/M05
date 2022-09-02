@@ -1,30 +1,32 @@
-# qid:1: processo*1
+# qid:1: não gerou documento*1
+# qid:2: documento*1
+# qid:3: processo*1
 
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
-0	qid:1	 # _mxNqIIBClJYIu-HMbWR	processo
-2	qid:1	 # zGxMqIIBClJYIu-HarCw	processo
-4	qid:1	 # cGxMqIIBClJYIu-HarGx	processo
-1	qid:1	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:3	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:3	 # zGxMqIIBClJYIu-HarCw	processo
+4	qid:3	 # cGxMqIIBClJYIu-HarGx	processo
+2	qid:3	 # F2xMqIIBClJYIu-HyrNd	processo
+0	qid:3	 # _mxNqIIBClJYIu-HMbWR	processo
+2	qid:2	 # zGxMqIIBClJYIu-HarCw	documento
+4	qid:2	 # cGxMqIIBClJYIu-HarGx	documento
+2	qid:2	 # F2xMqIIBClJYIu-HyrNd	documento
+0	qid:2	 # _mxNqIIBClJYIu-HMbWR	documento
+2	qid:2	 # zGxMqIIBClJYIu-HarCw	documento
+4	qid:2	 # cGxMqIIBClJYIu-HarGx	documento
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	não gerou documento
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	não gerou documento
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	não gerou documento
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	não gerou documento
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	não gerou documento
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	não gerou documento
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	não gerou documento
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	não gerou documento
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	não gerou documento
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	não gerou documento
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	não gerou documento
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	não gerou documento
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	não gerou documento
+0	qid:1	 # _mxNqIIBClJYIu-HMbWR	não gerou documento
+2	qid:1	 # zGxMqIIBClJYIu-HarCw	não gerou documento
+4	qid:1	 # cGxMqIIBClJYIu-HarGx	não gerou documento
+1	qid:1	 # F2xMqIIBClJYIu-HyrNd	não gerou documento

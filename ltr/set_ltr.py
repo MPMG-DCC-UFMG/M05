@@ -1,76 +1,55 @@
 import os
 from ltr.collect_features import log_features, build_train_file
+from elasticsearch import Elasticsearch
+from sys import argv
+from ltr.judgments import judgmentsFromFile, judgmentsByQid, duplicateJudgmentsByWeight
+from time import sleep
+from ltr.load_features import init_store, load_features, save_model
+import xgboost as xgb
 
 
-def trainModel(trainingData, testData, modelOutput, whichModel=8):
-    # java -jar RankLib-2.6.jar  -metric2t NDCG@4 -ranker 6 -kcv -train osc_judgments_wfeatures_train.txt -test osc_judgments_wfeatures_test.txt -save model.txt
+def train_model(train, test):
 
-    # For random forest
-    # - bags of LambdaMART models
-    #  - each is trained against a proportion of the training data (-srate)
-    #  - each is trained using a subset of the features (-frate)
-    #  - each can be either a MART or LambdaMART model (-rtype 6 lambda mart)
-    cmd = "java -jar RankyMcRankFace-0.1.1.jar -metric2t NDCG@10 -bag 10 -srate 0.6 -frate 0.6 -rtype 6 -shrinkage 0.1 -tree 80 -ranker %s -train %s -test %s -save %s -feature features.txt" % (whichModel, trainingData, testData, modelOutput)
-    print("*********************************************************************")
-    print("*********************************************************************")
-    print("Running %s" % cmd)
-    os.system(cmd)
-    pass
+    X_train, y_train, qids = [], [], []
+    for qid, judgmentList in train.items():
+        qids.append(0)
+        for judgment in judgmentList:
+            X_train.append(judgment.features)
+            y_train.append(judgment.grade)
+            qids[-1] += 1
 
+    model = xgb.XGBRanker(
+        tree_method='hist',
+        booster='gbtree',
+        objective='rank:pairwise',
+        random_state=42,
+        learning_rate=0.1,
+        colsample_bytree=0.9,
+        eta=0.05,
+        max_depth=6,
+        n_estimators=110,
+        subsample=0.75
+    )
 
-def partitionJudgments(judgments, testProportion=0.5):
-    testJudgments = {}
-    trainJudgments = {}
+    model.fit(X_train, y_train, group=qids, verbose=True) #group=groups,
+    model = model.get_booster().get_dump(fmap="./ltr/featmap.txt", dump_format='json')
+    with open('./ltr/xgboost_model.json', "w") as output:
+        output.write('[' + ','.join(list(model)) + ']')
+        output.close()
+
+def partition_judgments(judgments, testProportion=0.5):
     from random import random
+
+    test_judgments = {}
+    train_judgments = {}
     for qid, judgment in judgments.items():
         draw = random()
         if draw <= testProportion:
-            testJudgments[qid] = judgment
+            test_judgments[qid] = judgment
         else:
-            trainJudgments[qid] = judgment
+            train_judgments[qid] = judgment
 
-    return (trainJudgments, testJudgments)
-
-
-
-def saveModel(esHost, scriptName, featureSet, modelFname):
-    """ Save the ranklib model in Elasticsearch """
-    import requests
-    import json
-    from urllib.parse import urljoin
-    modelPayload = {
-        "model": {
-            "name": scriptName,
-            "model": {
-                "type": "model/ranklib",
-                "definition": {
-                }
-            }
-        }
-    }
-
-    # Force the model cache to rebuild
-    path = "_ltr/_clearcache"
-    fullPath = urljoin(esHost, path)
-    print("POST %s" % fullPath)
-    resp = requests.post(fullPath)
-    if (resp.status_code >= 300):
-        print(resp.text)
-
-    with open(modelFname) as modelFile:
-        modelContent = modelFile.read()
-        path = "_ltr/_featureset/%s/_createmodel" % featureSet
-        fullPath = urljoin(esHost, path)
-        modelPayload['model']['model']['definition'] = modelContent
-        print("POST %s" % fullPath)
-        resp = requests.post(fullPath, json.dumps(modelPayload))
-        print(resp.status_code)
-        if (resp.status_code >= 300):
-            print(resp.text)
-
-
-
-
+    return (train_judgments, test_judgments)
 
 if __name__ == "__main__":
 
@@ -78,11 +57,6 @@ if __name__ == "__main__":
     TRAIN_JUDGMENTS = './ltr/train_judgments.txt'
     TEST_JUDGMENTS = './ltr/test_judgments.txt'
 
-    from elasticsearch import Elasticsearch
-    from sys import argv
-    from ltr.judgments import judgmentsFromFile, judgmentsByQid, duplicateJudgmentsByWeight
-    from time import sleep
-    from ltr.load_features import init_store, load_features, save_model
 
     es_host='http://localhost:9200'
     es = Elasticsearch(timeout=1000)
@@ -94,17 +68,18 @@ if __name__ == "__main__":
     # Parse a judgments
     docs_judgments = judgmentsByQid(judgmentsFromFile(filename=HUMAN_JUDGMENTS))
     docs_judgments = duplicateJudgmentsByWeight(docs_judgments)
-    trainJudgments, testJudgments = partitionJudgments(docs_judgments, testProportion=0.5)
+
+    #alterar test proportion
+    train_judgments, test_judgments = partition_judgments(docs_judgments, testProportion=0)
 
     # Use proposed Elasticsearch queries (1.json.jinja ... N.json.jinja) to generate a training set
     # output as "sample_judgments_wfeatures.txt"
     log_features(es, judgmentsByQid=docs_judgments)
 
-    build_train_file(trainJudgments, filename=TRAIN_JUDGMENTS)
-    build_train_file(testJudgments, filename=TEST_JUDGMENTS)
-
+    build_train_file(train_judgments, filename=TRAIN_JUDGMENTS)
+    build_train_file(test_judgments, filename=TEST_JUDGMENTS)
+    print("aqui",list(train_judgments.values())[0][0].features)
     # Train each ranklib model type
-    # for modelType in [8,9,6]: incluir múltiplos modelos para serem escolhidos dps
     print("Training")
-    # train here
+    train_model(train_judgments, train_judgments)
     save_model(es_host, feature_set="m05")
