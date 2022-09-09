@@ -32,6 +32,7 @@ class Document:
         end = start + results_per_page
 
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
+            .extra(track_total_hits=True) \
             .source(self.retrievable_fields) \
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
