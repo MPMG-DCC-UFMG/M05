@@ -111,7 +111,7 @@ class DocumentRecommendation(ElasticModel):
             elastic_result = search_obj.execute()
 
             for item in elastic_result:
-                key = f'{index_name}:{item.meta.id}'
+                key = f'{index_name}-{item.meta.id}'
 
                 if key not in candidates_keys:
                     candidates.append({'id': item.meta.id, 

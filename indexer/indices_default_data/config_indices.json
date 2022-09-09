@@ -1,15 +1,15 @@
 {
     "data": [
-        {"id": 1, "body": {"nome_cliente_api": "gsi", "ui_name":"Diários", "es_index_name":"diarios", "class_name":"Diario", "group":"regular", "active": true}},
-        {"id": 2, "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Segmentados", "es_index_name":"diarios_segmentado", "class_name":"DiarioSegmentado", "group":"regular", "active": true}},
-        {"id": 3, "body": {"nome_cliente_api": "gsi", "ui_name":"Licitações", "es_index_name":"licitacoes", "class_name":"Licitacao", "group":"regular", "active": true}},
-        {"id": 4, "body": {"nome_cliente_api": "gsi", "ui_name":"Processos", "es_index_name":"processos", "class_name":"Processo", "group":"regular", "active": true}},
-        {"id": 5, "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Réplica", "es_index_name":"diarios-replica", "class_name":"Diario", "group":"replica", "active": true}},
-        {"id": 6, "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Segmentados Réplica", "es_index_name":"diarios_segmentado-replica", "class_name":"DiarioSegmentado", "group":"replica", "active": true}},
-        {"id": 7, "body": {"nome_cliente_api": "gsi", "ui_name":"Licitações Réplica", "es_index_name":"licitacoes-replica", "class_name":"Licitacao", "group":"replica", "active": true}},
-        {"id": 8, "body": {"nome_cliente_api": "gsi", "ui_name":"Processos Réplica", "es_index_name":"processos-replica", "class_name":"Processo", "group":"replica", "active": true}},
+        {"id": 1,  "body": {"nome_cliente_api": "gsi", "ui_name":"Diários", "es_index_name":"diarios", "class_name":"Diario", "group":"regular", "active": true}},
+        {"id": 2,  "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Segmentados", "es_index_name":"diarios_segmentado", "class_name":"DiarioSegmentado", "group":"regular", "active": true}},
+        {"id": 3,  "body": {"nome_cliente_api": "gsi", "ui_name":"Licitações", "es_index_name":"licitacoes", "class_name":"Licitacao", "group":"regular", "active": true}},
+        {"id": 4,  "body": {"nome_cliente_api": "gsi", "ui_name":"Processos", "es_index_name":"processos", "class_name":"Processo", "group":"regular", "active": true}},
+        {"id": 5,  "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Réplica", "es_index_name":"diarios-replica", "class_name":"Diario", "group":"replica", "active": true}},
+        {"id": 6,  "body": {"nome_cliente_api": "gsi", "ui_name":"Diários Segmentados Réplica", "es_index_name":"diarios_segmentado-replica", "class_name":"DiarioSegmentado", "group":"replica", "active": true}},
+        {"id": 7,  "body": {"nome_cliente_api": "gsi", "ui_name":"Licitações Réplica", "es_index_name":"licitacoes-replica", "class_name":"Licitacao", "group":"replica", "active": true}},
+        {"id": 8,  "body": {"nome_cliente_api": "gsi", "ui_name":"Processos Réplica", "es_index_name":"processos-replica", "class_name":"Processo", "group":"replica", "active": true}},
         
-        {"id": 9, "body": {"nome_cliente_api": "procon", "ui_name":"Reclame Aqui", "es_index_name":"reclame_aqui", "class_name":"ReclameAqui", "group":"regular", "active": true}},
+        {"id": 9,  "body": {"nome_cliente_api": "procon", "ui_name":"Reclame Aqui", "es_index_name":"reclame_aqui", "class_name":"ReclameAqui", "group":"regular", "active": true}},
         {"id": 10, "body": {"nome_cliente_api": "procon", "ui_name":"Procon", "es_index_name":"procon", "class_name":"Procon", "group":"regular", "active": true}},
         {"id": 11, "body": {"nome_cliente_api": "procon", "ui_name":"Consumidor.gov", "es_index_name":"consumidor_gov", "class_name":"ConsumidorGov", "group":"regular", "active": true}}
     ]

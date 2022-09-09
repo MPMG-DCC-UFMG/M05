@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.shortcuts import render
 from accounts.models import User
 from django.conf import settings
-from mpmg.services.models import ElasticModel, SearchableIndicesConfigs
+from mpmg.services.models import ElasticModel, APIConfig
 from mpmg.services.metrics import Metrics
 
 class DashboardView(admin.AdminSite):
@@ -22,7 +22,7 @@ class DashboardView(admin.AdminSite):
             end_date = datetime.strptime(end_date, '%d/%m/%Y')
             
         else:
-            end_date = datetime.today().date() #+ timedelta(days=1)
+            end_date = datetime.today().date() + timedelta(days=1)
             start_date = end_date - timedelta(days=14)
         
         # período das métricas e estatísticas
@@ -31,32 +31,31 @@ class DashboardView(admin.AdminSite):
         days_labels = [d.strftime('%d/%m') for d in pd.date_range(start_date, end_date)]
 
         # métricas
-        metrics = Metrics(start_date, end_date)
+        metrics = Metrics(request.user.api_client_name, start_date, end_date)
 
-        # informação sobre os índices
-        indices_info = ElasticModel.get_indices_info()
 
         # total de registros (considerando apenas os índices principais)
         total_records = 0
-        searchable_indices = SearchableIndicesConfigs.get_searchable_indices(groups=['regular'])
+        searchable_indices = APIConfig.searchable_indices(request.user.api_client_name, group='regular')
+
+        # informação sobre os índices
+        indices_info = ElasticModel.get_indices_info(searchable_indices)
+
         for item in indices_info:
             if item['index_name'] in searchable_indices:
                 total_records += int(item['num_documents'])
         
-
         cluster_info = ElasticModel.get_cluster_info()
         store_size = round(cluster_info['indices']['store']['size_in_bytes'] /1024 /1024 /1024, 2)
         allocated_processors = cluster_info['nodes']['os']['allocated_processors']
         jvm_heap_size = int(cluster_info['nodes']['jvm']['mem']['heap_max_in_bytes'] /1024 /1024 /1024)
 
-
-        # dados para o gráfico de pizza com a qtde de documentos por índice
-        searchable_indices = list(SearchableIndicesConfigs.get_indices_list())
         colors = ['#ffcd56', # amarelo
                   '#6ac472', # verde
                   '#ff9f40', # laranja
                   '#36a2eb', # azul
                   '#ff6384'] # rosa
+
         colors = [
             '#f94144',
             '#f3722c',
@@ -88,6 +87,8 @@ class DashboardView(admin.AdminSite):
         users = {}
         if len(metrics.query_log) > 0:
             user_ids = metrics.query_log.id_usuario.unique()
+            user_ids = user_ids[~np.isnan(user_ids)]
+
             for user in User.objects.filter(id__in=user_ids):
                 users[user.id] = {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}
             metrics.query_log['nome_usuario'] = metrics.query_log['id_usuario'].apply(lambda i: users[i]['first_name'] if i in users else '')

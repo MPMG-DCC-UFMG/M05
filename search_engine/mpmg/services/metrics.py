@@ -10,17 +10,18 @@ from mpmg.services.models import LogSearch, LogSearchClick, LogSugestoes
 
 
 class Metrics:
-    def __init__(self, start_date=None, end_date=None):
+    def __init__(self, api_client_name, start_date=None, end_date=None):
+        self.api_client_name = api_client_name
         self.start_date = start_date 
         self.end_date = end_date
         self.query_log, self.click_log, self.sugestion_log = self._get_logs()
         
 
     def _get_logs(self):
-        _, query_log = LogSearch.get_list_filtered(start_date=self.start_date, end_date=self.end_date)
+        _, query_log = LogSearch.get_list_filtered(self.api_client_name, start_date=self.start_date, end_date=self.end_date)
         query_log = pd.DataFrame.from_dict(query_log)
         
-        _, sugestion_log = LogSugestoes.get_list_filtered(start_date=self.start_date, end_date=self.end_date)
+        _, sugestion_log = LogSugestoes.get_list_filtered(self.api_client_name, start_date=self.start_date, end_date=self.end_date)
         sugestion_log = pd.DataFrame.from_dict(sugestion_log)
 
         # create columns to help on grouping
@@ -29,7 +30,7 @@ class Metrics:
 
             id_consultas = query_log['id_consulta'].to_list()
 
-            _, click_log = LogSearchClick.get_list_filtered(id_consultas=id_consultas)
+            _, click_log = LogSearchClick.get_list_filtered(self.api_client_name, id_consultas=id_consultas)
             click_log = pd.DataFrame.from_dict(click_log)
             
             if len(click_log) > 0:
@@ -79,7 +80,6 @@ class Metrics:
     def avg_click_position(self):
         #media da posição dos clicks
         df = pd.DataFrame(self.click_log['posicao'].astype(int))
-        print()
         response = {
             "avg_click_position": self.click_log['posicao'].astype(int).mean() if len(self.click_log) > 0 else [],
             "avg_click_position_per_day": self.click_log.groupby(by='dia').mean()['posicao'].to_dict() if len(self.click_log) > 0 else []

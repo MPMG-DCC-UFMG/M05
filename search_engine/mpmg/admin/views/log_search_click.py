@@ -24,6 +24,7 @@ class LogSearchClickView(admin.AdminSite):
 
         LogSearchClick.results_per_page = self.results_per_page
         total_records, log_clicks_list = LogSearchClick.get_list_filtered(
+            api_client_name=request.user.api_client_name,
             id_documento=id_documento,
             tipo_documento=tipo_documento,
             id_consulta=id_consulta,

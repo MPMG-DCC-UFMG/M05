@@ -200,14 +200,26 @@ class APIConfig():
         '''
 
         search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_INDICES)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+
+        if api_client_name:
+            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+
         if active != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
+
         if group != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "group": group }}))
+
+        # faz a consulta uma vez pra pegar o total de segmentos
+        elastic_result = search_obj.execute()
+        total_records = elastic_result.hits.total.value
+        # refaz a consulta trazendo todos os segmentos
+        search_obj = search_obj[0:total_records]
+
         search_obj = search_obj.sort({'_id':{'order':'asc'}})
 
         elastic_result = search_obj.execute()
+
         result_list = []
         for item in elastic_result:
             result_list.append(dict({'id': item.meta.id}, **item.to_dict()))

@@ -65,7 +65,6 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         index_data = json.load(open(os.path.join(default_data_path, filename)))
         default_indices_data[index_name] = index_data
 
-
     c = 0
     for index_name, index_map_set in directory_indices.items():
         just_created = False
