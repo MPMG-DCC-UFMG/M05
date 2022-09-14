@@ -48,6 +48,8 @@ def search(request):
     api_client_name = request.session['user_info']['api_client_name']
     sid = request.session.session_key
     query = request.GET['consulta']
+    sort_order = request.GET.get('ordenacao', 'descendente')
+    sort_by = request.GET.get('tipo_ordenacao', 'relevancia')
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('pagina', 1))
     
@@ -126,6 +128,8 @@ def search(request):
         'pagina': page, 
         'sid': sid, 
         'qid': qid, 
+        'ordenacao': sort_order,
+        'tipo_ordenacao': sort_by,
         'filtro_instancias': filter_instances, 
         'filtro_tipos_documentos': filter_doc_types,
         'filtro_data_inicio': filter_start_date,
