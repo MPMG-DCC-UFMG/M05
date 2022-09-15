@@ -243,7 +243,7 @@ class SearchView(APIView):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         # Busca os documentos no elastic
-        total_docs, total_pages, documents, response_time, doc_counts_by_index = self.query.execute()
+        total_docs, total_pages, documents, response_time, doc_counts_by_index, doc_counts_by_category, doc_counts_by_company_category = self.query.execute()
 
         # # reranking goes here
 
@@ -255,6 +255,8 @@ class SearchView(APIView):
 
         data = {
             'doc_counts_by_index': doc_counts_by_index,
+            'doc_counts_by_category': doc_counts_by_category,
+            'doc_counts_by_company_category': doc_counts_by_company_category,
             'time': wall_time,
             'time_elastic': response_time,
             'consulta': self.query.query,

@@ -1,3 +1,4 @@
+from curses.ascii import isalnum
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -40,11 +41,31 @@ class SearchSimilar(APIView):
                     type: string    
             -   name: max_num_documentos
                 in: query
-                description: Número máximo de documentos similares a serem retornados.
+                description: Número máximo de documentos similares a serem retornados. Deve ser um inteiro maior que 0.
                 required: false
                 schema:
                     type: integer
                     default: 10
+        responses:
+            '200':
+                description: Retorna uma lista com os documentos encontrados
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            description: Lista de documentos ordenados por relevância.
+                            items:
+                                type: object
+            '400':
+                description: Algum(ns) dos parâmetros foram passados incorretamente.
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties: 
+                                message: 
+                                    type: string
+                                    description: Mensagem informado o parâmetro passado incorretamente.
     '''                    
     schema = AutoDocstringSchema()
     api_config = APIConfig()
@@ -54,20 +75,28 @@ class SearchSimilar(APIView):
         return set(result['es_index_name'] for result in results)
 
     def get(self, request, api_client_name):
-        tipo_documento = request.GET.get('tipo_documento')
-        id_documento = request.GET.get('id_documento')
-
-        if tipo_documento is None:
+        doc_type = request.GET.get('tipo_documento')
+        doc_id = request.GET.get('id_documento')
+    
+        if doc_type is None:
             return Response({'message': 'É necessário informar o campo tipo_documento!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if id_documento is None:
+        if doc_id is None:
             return Response({'message': 'É necessário informar o campo tipo_documento!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if tipo_documento not in self._get_valid_indices(api_client_name):
-            return Response({'message': f'O índice "{tipo_documento}" é inválido!'}, status=status.HTTP_400_BAD_REQUEST)
+        if doc_type not in self._get_valid_indices(api_client_name):
+            return Response({'message': f'O índice "{doc_type}" é inválido!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        indices = [tipo_documento]
+        try:
+            max_num_docs = int(request.GET.get('max_num_documentos', '10'))
+            if max_num_docs <= 0:
+                raise ValueError('max_num_documentos deve ser maior que zero!')
 
-        docs = Document(api_client_name).search_similar(indices, tipo_documento, id_documento)
+        except:
+            return Response({'message': '"max_num_documentos" deve ser um número inteiro maior que zero!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        indices = [doc_type]
+
+        docs = Document(api_client_name).search_similar(indices, doc_type, doc_id, max_num_docs)
 
         return Response(docs, status=status.HTTP_200_OK)

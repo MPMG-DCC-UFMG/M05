@@ -1,4 +1,5 @@
 from dataclasses import fields
+from unicodedata import category
 from urllib import response
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.api_config import APIConfig
@@ -28,32 +29,45 @@ class Document:
         # relaciona o nome do índice com a classe Django que o representa
         self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
 
-    def search_similar(self, indices, doc_type, doc_id):
+    def search_similar(self, indices, doc_type, doc_id, max_num_docs):
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
+                            .extra(track_total_hits=True) \
+                            .source(self.retrievable_fields) \
                             .query(MoreLikeThis(like=[{
                                 '_index': doc_type,
                                 '_id': doc_id,
-                            }], fields=['titulo', 'conteudo']))
+                            }], fields=['titulo', 'conteudo']))[:max_num_docs]
+
         
         response = elastic_request.execute()
-        total_docs = response.hits.total.value
 
         documents = []
-        for item in response:
+        for i, item in enumerate(response):
             dict_data = item.to_dict()
 
             dict_data['id'] = item.meta.id
-
             dict_data['tipo'] = item.meta.index
+            dict_data['posicao_ranking'] = i + 1
+            dict_data['score'] = item.meta.score
 
             result_class = self.index_to_class[item.meta.index]
 
-            documents.append(result_class(**dict_data))
-        
+            document = result_class(**dict_data)
+            del document['descricao']
+            
+            documents.append(document)
+
         return documents
 
+    def _get_doc_count_by_agg(self, buckets):
+        doc_counts_by_key = dict()
+        for bucket in buckets:
+            key = bucket['key']
+            doc_count = bucket['doc_count']
+            doc_counts_by_key[key] = doc_count
+        return doc_counts_by_key
+
     def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page, sort_by='relevancia', sort_order='desc'):
-        agg = A('terms', field='_index')
 
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
@@ -67,7 +81,13 @@ class Document:
         if sort_by == 'data':
             elastic_request = elastic_request.sort({'data_criacao': {'order': sort_order}})
 
-        elastic_request.aggs.bucket('per_index', agg)
+        agg_by_index = A('terms', field='_index')
+        agg_by_category = A('terms', field='categoria.keyword')
+        agg_by_company_category = A('terms', field='categoria_empresa.keyword')
+
+        elastic_request.aggs.bucket('per_index', agg_by_index)
+        elastic_request.aggs.bucket('per_category', agg_by_category)
+        elastic_request.aggs.bucket('per_company_category', agg_by_company_category)
 
         response = elastic_request.execute()
         total_docs = response.hits.total.value
@@ -75,17 +95,13 @@ class Document:
         total_pages = (total_docs // results_per_page) + 1
         documents = []
 
-        try:
-            buckets = response.aggregations['per_index']['buckets']
+        per_index_buckets = response.aggregations['per_index']['buckets']
+        per_category_buckets = response.aggregations['per_category']['buckets']
+        per_company_category_buckets = response.aggregations['per_company_category']['buckets']
         
-        except:
-            buckets = []
-
-        doc_counts_by_index = {index: 0 for index in indices}
-        for bucket in buckets:
-            index = bucket['key']
-            doc_count = bucket['doc_count']
-            doc_counts_by_index[index] = doc_count
+        doc_counts_by_index = self._get_doc_count_by_agg(per_index_buckets)
+        doc_counts_by_category = self._get_doc_count_by_agg(per_category_buckets)
+        doc_counts_by_company_category = self._get_doc_count_by_agg(per_company_category_buckets)
 
         for i, item in enumerate(response):
             dict_data = item.to_dict()
@@ -105,5 +121,5 @@ class Document:
             result_class = self.index_to_class[item.meta.index]
 
             documents.append(result_class(**dict_data))
-  
-        return total_docs, total_pages, documents, response.took, doc_counts_by_index
+
+        return total_docs, total_pages, documents, response.took, doc_counts_by_index, doc_counts_by_category, doc_counts_by_company_category
