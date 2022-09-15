@@ -1,7 +1,10 @@
+from dataclasses import fields
+from urllib import response
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.api_config import APIConfig
 
 from elasticsearch_dsl import A
+from elasticsearch_dsl.query import MoreLikeThis
 
 class Document:
     '''
@@ -24,6 +27,30 @@ class Document:
         
         # relaciona o nome do índice com a classe Django que o representa
         self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
+
+    def search_similar(self, indices, doc_type, doc_id):
+        elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
+                            .query(MoreLikeThis(like=[{
+                                '_index': doc_type,
+                                '_id': doc_id,
+                            }], fields=['titulo', 'conteudo']))
+        
+        response = elastic_request.execute()
+        total_docs = response.hits.total.value
+
+        documents = []
+        for item in response:
+            dict_data = item.to_dict()
+
+            dict_data['id'] = item.meta.id
+
+            dict_data['tipo'] = item.meta.index
+
+            result_class = self.index_to_class[item.meta.index]
+
+            documents.append(result_class(**dict_data))
+        
+        return documents
 
     def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page, sort_by='relevancia', sort_order='desc'):
         agg = A('terms', field='_index')

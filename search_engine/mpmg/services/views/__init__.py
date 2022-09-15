@@ -20,3 +20,4 @@ from .state import *
 from .procon_category import *
 from .reclame_aqui_business_category import *
 from .embedding import *
+from .search_similar import *
