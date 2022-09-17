@@ -25,7 +25,8 @@ class EmbeddingView(APIView):
     def get(self, request):
         text_contents = request.GET.getlist('text_contents')
 
-        model_path="neuralmind/bert-base-portuguese-cased"
+        # model_path="neuralmind/bert-base-portuguese-cased"
+        model_path="prajjwal1/bert-tiny"
         word_embedding_model = models.Transformer(model_path, max_seq_length=500)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
 
