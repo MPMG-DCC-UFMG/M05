@@ -11,7 +11,8 @@
                 }
             },
             "titulo": {
-                "type": "text", 
+                "type": "text",
+                "analyzer": "standard_asciifolding",
                 "term_vector": "with_positions_offsets", 
                 "fields": {
                     "keyword": {
@@ -22,6 +23,7 @@
             },
             "cidade": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -31,6 +33,7 @@
             },
             "estado": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -40,6 +43,7 @@
             },
             "nome_completo_empresa": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -49,6 +53,7 @@
             },
             "nome_autor": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -58,6 +63,7 @@
             },
             "categoria": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -67,6 +73,7 @@
             },
             "conteudo": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "term_vector": "with_positions_offsets", 
                 "fields": {
                     "keyword": {
@@ -94,6 +101,12 @@
                     }
                 }
             }, 
+            "num_tokens_conteudo": {
+                "type": "integer"
+            },
+            "id_tipo_documento": {
+                "type": "integer"
+            },
             "entidade_cep": {
                 "type": "text", 
                 "fields": {
@@ -123,6 +136,7 @@
             }, 
             "entidade_local": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -132,6 +146,7 @@
             }, 
             "entidade_municipio": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -141,6 +156,7 @@
             }, 
             "entidade_organizacao": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -150,6 +166,7 @@
             }, 
             "entidade_pessoa": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -159,6 +176,7 @@
             }, 
             "entidade_tempo": {
                 "type": "text", 
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword", 
@@ -172,6 +190,20 @@
         "index": {
             "highlight": {
                 "max_analyzed_offset" : "15000000"
+            }
+        },
+        "analysis": {
+            "analyzer": {
+                "standard_asciifolding": {
+                    "filter": [ "my_ascii_folding", "lowercase" ],
+                    "tokenizer": "standard"
+                }
+            },
+            "filter": {
+                "my_ascii_folding": {
+                  "type": "asciifolding",
+                  "preserve_original": true
+                }
             }
         }
     }
