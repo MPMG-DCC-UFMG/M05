@@ -163,6 +163,12 @@ class SearchView(APIView):
                                 doc_counts_by_index: 
                                     type: object
                                     description: Dicionário com número de documentos encontrados para pesquisa por índice.
+                                doc_counts_by_category: 
+                                    type: object
+                                    description: Dicionário com número de documentos encontrados para pesquisa por categoria.
+                                doc_counts_by_company_category: 
+                                    type: object
+                                    description: Dicionário com número de documentos encontrados para pesquisa por categoria de empresa.
                                 time:
                                     type: number
                                     description: Tempo de execução total.
