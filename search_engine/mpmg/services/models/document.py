@@ -1,5 +1,6 @@
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.api_config import APIConfig
+from .config_learning_to_rank import ConfigLearningToRank
 
 from elasticsearch_dsl import A
 
@@ -19,15 +20,15 @@ class Document:
     def __init__(self, api_client_name):
         self.elastic = Elastic()
         self.api_client_name = api_client_name
+        self.ltr_config = ConfigLearningToRank().get(1)
         self.retrievable_fields = APIConfig.retrievable_fields(api_client_name)
         self.highlight_field = APIConfig.highlight_field(api_client_name)
         
         # relaciona o nome do índice com a classe Django que o representa
         self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
 
-    def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
+    def search(self, indices, query, must_queries, should_queries, filter_queries, page_number, results_per_page):
         agg = A('terms', field='_index')
-
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
 
@@ -38,6 +39,12 @@ class Document:
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
 
         elastic_request.aggs.bucket('per_index', agg)
+        if self.ltr_config["ativo"]:
+            elastic_request.extra(rescore={"window_size": self.ltr_config["quantidade"],
+                                            "query": {"rescore_query": {"sltr": {
+                                                "params": {"consulta": f"{query}"},
+                                                "model": self.ltr_config["modelo"]
+                                }}}})
 
         response = elastic_request.execute()
         total_docs = response.hits.total.value
