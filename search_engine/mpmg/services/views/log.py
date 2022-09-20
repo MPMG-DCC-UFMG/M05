@@ -137,20 +137,20 @@ class LogSearchClickView(APIView):
 
     def post(self, request, api_client_name):
 
-        response = LogSearchClick().save(dict(
-            nome_cliente_api=api_client_name,
-            id_usuario=request.POST['id_usuario'],
-            id_documento=request.POST['id_documento'],
-            id_consulta=request.POST['qid'],
-            posicao=request.POST['posicao'],
-            tipo_documento=request.POST['tipo_documento'],
-            pagina=request.POST['pagina'],
-            # FIXME: Usar método padronizado para obter timestamp
-            timestamp=int(time.time() * 1000),
-        ))
-
-        return Response({"success": len(response[1]) == 0})
-
+        try:
+            response = LogSearchClick().save(dict(
+                id_usuario=request.POST['id_usuario'],
+                id_documento=request.POST['id_documento'],
+                id_consulta=request.POST['qid'],
+                posicao=request.POST['posicao'],
+                tipo_documento=request.POST['tipo_documento'],
+                pagina=request.POST['pagina'],
+                # FIXME: Usar método padronizado para obter timestamp
+                timestamp=int(time.time() * 1000),
+            ))
+            return Response({"success": len(response[1])})
+        except Exception as err:
+            return Response(status=400)
 
 class LogQuerySuggestionView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -206,7 +206,7 @@ class LogQuerySuggestionClickView(APIView):
             timestamp=timestamp
         ))
 
-        return Response({"success": len(response[1]) == 0})
+        return Response({"success": len(response[1])})
 
 
 class LogDataGeneratorView():

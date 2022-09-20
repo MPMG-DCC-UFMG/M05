@@ -1,0 +1,12 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "body": {
+                "ativo": true,
+                "modelo": "m05_model",
+                "quantidade": 100
+            }
+        }
+    ]
+}
