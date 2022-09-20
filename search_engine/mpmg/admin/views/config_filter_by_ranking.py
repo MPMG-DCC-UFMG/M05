@@ -9,7 +9,7 @@ class ConfigFilterByEntityView(admin.AdminSite):
 
     def config_filter_by_entity(self, request):
         if request.method == 'GET':
-            config_filter_by_entities = APIConfig.config_filter_by_entities()
+            config_filter_by_entities = APIConfig.config_filter_by_entities(request.user.api_client_name)
             aggregation_types = ['votes', 'combsum', 'expcombsum', 'max']
 
             context = dict(

@@ -18,3 +18,10 @@ from .config_recommendation_source import ConfigRecommendationSource
 from .config_entity_ranking import ConfigRankingEntity
 from .config_filter_by_entity import ConfigFilterByEntity
 from .api_config import APIConfig
+from .reclame_aqui import ReclameAqui
+from .city import City
+from .state import State
+from .procon import Procon
+from .procon_category import ProconCategory
+from .reclame_aqui_business_category import ReclameAquiBusinessCategory
+from .consumidor_gov import ConsumidorGov

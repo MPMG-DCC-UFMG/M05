@@ -1,7 +1,8 @@
 from mpmg.services.elastic import Elastic
-from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.api_config import APIConfig
 from .config_learning_to_rank import ConfigLearningToRank
+
+from elasticsearch_dsl import A
 
 class Document:
     '''
@@ -16,25 +17,28 @@ class Document:
     retornar os resultados como uma lista de múltiplas classes.
     '''
 
-    def __init__(self):
+    def __init__(self, api_client_name):
         self.elastic = Elastic()
-
+        self.api_client_name = api_client_name
         self.ltr_config = ConfigLearningToRank().get(1)
-        self.retrievable_fields = APIConfig.retrievable_fields()
-        self.highlight_field = APIConfig.highlight_field()
-
+        self.retrievable_fields = APIConfig.retrievable_fields(api_client_name)
+        self.highlight_field = APIConfig.highlight_field(api_client_name)
+        
         # relaciona o nome do índice com a classe Django que o representa
-        self.index_to_class = APIConfig.searchable_index_to_class()
+        self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
 
     def search(self, indices, query, must_queries, should_queries, filter_queries, page_number, results_per_page):
+        agg = A('terms', field='_index')
         start = results_per_page * (page_number - 1)
         end = start + results_per_page
 
         elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
+            .extra(track_total_hits=True) \
             .source(self.retrievable_fields) \
             .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
             .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
 
+        elastic_request.aggs.bucket('per_index', agg)
         if self.ltr_config["ativo"]:
             elastic_request.extra(rescore={"window_size": self.ltr_config["quantidade"],
                                             "query": {"rescore_query": {"sltr": {
@@ -47,6 +51,19 @@ class Document:
         # Total retrieved documents per page + 1 page for rest of division
         total_pages = (total_docs // results_per_page) + 1
         documents = []
+
+
+        try:
+            buckets = response.aggregations['per_index']['buckets']
+        
+        except:
+            buckets = []
+
+        doc_counts_by_index = {index: 0 for index in indices}
+        for bucket in buckets:
+            index = bucket['key']
+            doc_count = bucket['doc_count']
+            doc_counts_by_index[index] = doc_count
 
         for i, item in enumerate(response):
             dict_data = item.to_dict()
@@ -67,4 +84,4 @@ class Document:
 
             documents.append(result_class(**dict_data))
 
-        return total_docs, total_pages, documents, response.took
+        return total_docs, total_pages, documents, response.took, doc_counts_by_index

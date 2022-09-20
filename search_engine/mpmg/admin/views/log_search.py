@@ -2,7 +2,7 @@ from datetime import datetime
 from django.contrib import admin
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.models import User
+from accounts.models import User
 from mpmg.services.models import LogSearch, LogSearchClick
 
 class LogSearchView(admin.AdminSite):
@@ -27,6 +27,7 @@ class LogSearchView(admin.AdminSite):
         
         LogSearch.results_per_page = self.results_per_page
         total_records, log_buscas_list = LogSearch.get_list_filtered(
+            api_client_name=request.user.api_client_name,
             id_sessao=id_sessao,
             id_consulta=id_consulta,
             id_usuario=id_usuario,
@@ -73,7 +74,7 @@ class LogSearchView(admin.AdminSite):
 
     def view_detail(self, request):
         id_sessao = request.GET['id_sessao']
-        num_results, results_list = LogSearch.get_list_filtered(id_sessao=id_sessao)
+        _, results_list = LogSearch.get_list_filtered(request.user.api_client_name, id_sessao=id_sessao)
         id_consultas = set()
         session_detail = {'id_sessao':'', 'id_usuario':'', 'nome_usuario':'', 'consultas':{}}
         for item in results_list:
@@ -97,7 +98,7 @@ class LogSearchView(admin.AdminSite):
                 'cliques': ['-'] * len(item.documentos)
             }
         
-        num_click_results, click_results_list = LogSearchClick.get_list_filtered(id_consultas=list(id_consultas))
+        _, click_results_list = LogSearchClick.get_list_filtered(request.user.api_client_name, id_consultas=list(id_consultas))
         for item in click_results_list:
             resultados_por_pagina = session_detail['consultas'][item.id_consulta]['resultados_por_pagina']
             posicao = int(item.posicao) - ((int(item.pagina)-1) * resultados_por_pagina) #desconta as páginas anteriores pra ter uma posição entre 1 a 10

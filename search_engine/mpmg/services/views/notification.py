@@ -17,18 +17,24 @@ class NotificationView(APIView):
     get:
         description: Retorna uma lista de notificações de um usuário se o ID dele for informado ou uma notificação específica, se o ID dela for passado.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_usuario
               in: query
               description: ID do usuário
               required: true
               schema:
-                    type: string
+                type: string
             - name: id_notificacao
               in: query
               description: ID da notificação a ser recuperada.
               required: false
               schema:
-                    type: string
+                type: string
         responses:
             '200':
                 description: Retorna uma notifição ou uma lista dela.
@@ -218,7 +224,7 @@ class NotificationView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         id_usuario = request.GET.get('id_usuario')
         id_notificacao = request.GET.get('id_notificacao')
         
@@ -230,16 +236,16 @@ class NotificationView(APIView):
 
         elif id_usuario:
             query = {'term': {'id_usuario.keyword': id_usuario}}
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
             sort = {'data_criacao': {'order': 'desc'}}
-
-            _, notifications = NOTIFICATION.get_list(query, page='all', sort=sort)
+            _, notifications = NOTIFICATION.get_list(query, filter=client_filter, page='all', sort=sort)
 
             return Response(notifications, status=status.HTTP_200_OK)
         
         else:
             return Response({'message': 'Informe o campo id_usuario ou id_notificacao!'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'texto', 'tipo'}    
@@ -262,7 +268,7 @@ class NotificationView(APIView):
 
         return Response({'message': 'Não foi possível criar a notificação, tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
         
         notification_id = data.get('id_notificacao')
@@ -308,7 +314,7 @@ class NotificationView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a notificação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
 
         try:

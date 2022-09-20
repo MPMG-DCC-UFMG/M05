@@ -1,6 +1,18 @@
 {
     "mappings" : {
         "properties" : {
+            "nome_cliente_api": {
+                "type": "text"
+            },
+            "nome" : {
+                "type" : "text",
+                "fields" : {
+                    "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                    }
+                }
+            },
             "data_criacao" : {
                 "type" : "date"
             },
@@ -53,15 +65,6 @@
                 }
             },
             "indice_documento" : {
-                "type" : "text",
-                "fields" : {
-                    "keyword" : {
-                        "type" : "keyword",
-                        "ignore_above" : 256
-                    }
-                }
-            },
-            "nome" : {
                 "type" : "text",
                 "fields" : {
                     "keyword" : {

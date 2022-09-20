@@ -1,8 +1,11 @@
 {
     "mappings" : {
         "properties" : {
-            "active" : {
-                "type" : "boolean"
+            "nome_cliente_api" : {
+                "type" : "text"
+            },
+            "ui_name" : {
+                "type" : "text"
             },
             "class_name" : {
                 "type" : "text"
@@ -13,8 +16,8 @@
             "group" : {
                 "type" : "text"
             },
-            "ui_name" : {
-                "type" : "text"
+            "active" : {
+                "type" : "boolean"
             }
         }
     }

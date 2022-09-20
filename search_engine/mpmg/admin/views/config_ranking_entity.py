@@ -9,7 +9,7 @@ class ConfigRankingEntityView(admin.AdminSite):
 
     def view_config_ranking_entity(self, request):
         if request.method == 'GET':
-            config_ranking_entities = APIConfig.get_config_ranking_entity()
+            config_ranking_entities = APIConfig.get_config_ranking_entity(request.user.api_client_name)
             
             aggregation_types = ['votes', 'combsum', 'expcombsum', 'max']
 

@@ -11,7 +11,7 @@ class ConfigIndicesView(admin.AdminSite):
     def view_indices(self, request):
 
         if request.method == 'GET':
-            indices_list = APIConfig.get_indices()
+            indices_list = APIConfig.get_indices(request.user.api_client_name)
 
             context = dict(
                 self.each_context(request), # admin template variables.

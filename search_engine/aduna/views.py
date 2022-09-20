@@ -21,11 +21,15 @@ ENTITY_ICONS = {
     'entidade_tempo': 'today',
 } 
 
+
+CTRL_SYMBOLS_REGEX = re.compile(r'[\n\r\t]')
+
 def index(request):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
     
     context = {
+        'api_client_name': request.session['user_info']['api_client_name'],
         'user_id': request.session.get('user_info')['user_id'],
         'user_name': request.session.get('user_info')['first_name'],
         'services_url': settings.SERVICES_URL,
@@ -41,14 +45,15 @@ def search(request):
     
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
+    api_client_name = request.session['user_info']['api_client_name']
     sid = request.session.session_key
     query = request.GET['consulta']
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('pagina', 1))
     
-    filter_instances = request.GET.getlist('filtro_instancias', [])
+    # filtros em comum a todos --------------------------------------------
     filter_doc_types = request.GET.getlist('filtro_tipos_documentos', [])
-
+    
     filter_start_date = request.GET.get('filtro_data_inicio', None)
     if filter_start_date == "":
         filter_start_date = None
@@ -56,7 +61,18 @@ def search(request):
     filter_end_date = request.GET.get('filtro_data_fim', None)
     if filter_end_date == "":
         filter_end_date = None
+    
+    
+    # filtros da GSI -------------------------------------------------------
+    filter_instances = request.GET.getlist('filtro_instancias', [])
 
+    
+    # filtros PROCON -------------------------------------------------------
+    filter_city = request.GET.get('filtro_cidade') 
+    filter_state = request.GET.get('filtro_estado')
+    filter_business_category = request.GET.getlist('filtro_categoria_empresa', [])
+
+    # filtros de entidades -------------------------------------------------
     filter_entidade_pessoa = request.GET.getlist('filtro_entidade_pessoa', [])
     filter_entidade_municipio = request.GET.getlist('filtro_entidade_municipio', [])
     filter_entidade_organizacao = request.GET.getlist('filtro_entidade_organizacao', [])
@@ -75,27 +91,34 @@ def search(request):
         'filtro_entidade_local': filter_entidade_local,
     }
 
-    filter_response = requests.get(settings.SERVICES_URL+'search_filter/all', params, headers=headers)
+    # busca as opções de filtros gerais
+    filter_response = requests.get(settings.SERVICES_URL+api_client_name+'/search_filter/all', headers=headers)
     filter_content = filter_response.json()
-    filter_instances_list = filter_content['instances']
-    filter_doc_types_list = filter_content['doc_types']
+    filter_instances_list = filter_content['instances'] if 'instances' in filter_content else []
+    filter_doc_types_list = filter_content['doc_types'] if 'doc_types' in filter_content else []
 
-    params['uso'] = 'ranking'
-    card_ranking_entities = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
-    card_ranking_entities = card_ranking_entities.json()
-    
-    # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
-    at_least_one_entity_type_has_recommendations = False
-    
-    for entity_name, entity_vals in card_ranking_entities.items():
-        entity_vals['icone'] = ENTITY_ICONS[entity_name]
-        if len(entity_vals['ranking']) > 0:
-            at_least_one_entity_type_has_recommendations = True
+    if api_client_name == 'gsi':
+        params['contexto'] = 'ranking'
+        card_ranking_entities = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
+        card_ranking_entities = card_ranking_entities.json()
+        
+        # Se pelo menos um tipo de entidade teve recomendações de entidades, mostrar o card na interface
+        at_least_one_entity_type_has_recommendations = False
+        
+        for entity_name, entity_vals in card_ranking_entities.items():
+            entity_vals['icone'] = ENTITY_ICONS[entity_name]
+            if len(entity_vals['ranking']) > 0:
+                at_least_one_entity_type_has_recommendations = True
 
-    # busca entidades além de buscar a consulta
-    params['uso'] = 'filtro'
-    entities_list = requests.get(settings.SERVICES_URL+'search_entities', params, headers=headers)
-    entities_list = entities_list.json()
+        # busca entidades além de buscar a consulta
+        params['contexto'] = 'filtro'
+        entities_list = requests.get(settings.SERVICES_URL+api_client_name+'/search_entities', params, headers=headers)
+        entities_list = entities_list.json()
+    
+    else:
+        at_least_one_entity_type_has_recommendations = False
+        card_ranking_entities = []
+        entities_list = []
 
     # faz a busca
     params = {
@@ -111,9 +134,12 @@ def search(request):
         'filtro_entidade_municipio': filter_entidade_municipio,
         'filtro_entidade_organizacao': filter_entidade_organizacao,
         'filtro_entidade_local': filter_entidade_local,
+        'filtro_cidade': filter_city,
+        'filtro_estado': filter_state,
+        'filtro_categoria_empresa': filter_business_category
     }
 
-    service_response = requests.get(settings.SERVICES_URL+'search', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+api_client_name+'/search', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
@@ -141,7 +167,12 @@ def search(request):
             else:
                 filter_url += filter_item + val if val else filter_item 
 
+        states = requests.get(settings.SERVICES_URL + 'states').json() if api_client_name == 'procon' else None
+        cities = requests.get(settings.SERVICES_URL + f'cities?filtro_sigla_estado={filter_state}').json() if filter_state else None
+        ra_business_categories = requests.get(settings.SERVICES_URL + 'reclame_aqui_business_categories').json() if api_client_name == 'procon' else None
+
         context = {
+            'api_client_name': api_client_name,
             'auth_token': request.session.get('auth_token'),
             'user_name': request.session.get('user_info')['first_name'],
             'user_id': request.session.get('user_info')['user_id'],
@@ -169,7 +200,13 @@ def search(request):
             'filter_entidade_municipio': filter_entidade_municipio,
             'filter_entidade_organizacao': filter_entidade_organizacao,
             'filter_entidade_local': filter_entidade_local,
-            'filter_url': filter_url
+            'filter_url': filter_url,
+            'filter_city': filter_city,
+            'filter_state': filter_state,
+            'filter_business_category': filter_business_category,  
+            'states': states,
+            'cities': cities,
+            'ra_business_categories': ra_business_categories,
         }
         
         return render(request, 'aduna/search.html', context)
@@ -179,9 +216,11 @@ def document(request, tipo_documento, id_documento):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
     
+    api_client_name = request.session['user_info']['api_client_name']
+
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
     sid = request.session.session_key
-    service_response = requests.get(settings.SERVICES_URL+'document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+api_client_name+'/document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
 
     if service_response.status_code == 401:
         request.session['auth_token'] = None
@@ -194,7 +233,7 @@ def document(request, tipo_documento, id_documento):
         organizacao_filter = request.GET.getlist('organizacao', [])
         local_filter = request.GET.getlist('local', [])
 
-        if '_segmentado' in tipo_documento:
+        if tipo_documento == 'diarios_segmentado':
             # requisita a estrutura de navegação do documento, para criar um índice lateral na página
             nav_params = {
                 'tipo_documento': tipo_documento, 
@@ -205,30 +244,83 @@ def document(request, tipo_documento, id_documento):
                 'filtro_entidade_organizacao': organizacao_filter,
                 'filtro_local': local_filter,
                 }
-            nav_response = requests.get(settings.SERVICES_URL+'document_navigation', nav_params, headers=headers)
+            nav_response = requests.get(settings.SERVICES_URL+api_client_name+'/document_navigation', nav_params, headers=headers)
             navigation = nav_response.json()['navigation']
 
             response_content = service_response.json()
+            document = response_content['document']
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
+
             context = {
+                'api_client_name': api_client_name,
+                'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'query': query,
-                'document': response_content['document'],
+                'document': document,
                 'navigation': navigation,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
                 'user_id': request.session['user_info']['user_id'],
                 'auth_token': request.session.get('auth_token'),
             }
-            return render(request, 'aduna/document_segmented.html', context)
+            return render(request, 'aduna/document_diario_segmentado.html', context)
+        
+        elif tipo_documento == 'reclame_aqui':
+            response_content = service_response.json()
+            document = response_content['document']
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
+
+            for i, seg in enumerate(document['segmentos']):
+                document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
+
+            context = {
+                'api_client_name': api_client_name,
+                'services_url': settings.SERVICES_URL,
+                'user_name': request.session.get('user_info')['first_name'],
+                'document': document,
+                'query': query,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
+            }
+            return render(request, 'aduna/document_reclame_aqui.html', context)
+        
+        elif tipo_documento == 'consumidor_gov':
+            response_content = service_response.json()
+            document = response_content['document']
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
+            
+            for i, seg in enumerate(document['segmentos']):
+                document['segmentos'][i]['conteudo'] = seg['conteudo'].replace('\n', '<br>')
+
+            context = {
+                'api_client_name': api_client_name,
+                'services_url': settings.SERVICES_URL,
+                'user_name': request.session.get('user_info')['first_name'],
+                'document': document,
+                'query': query,
+                'doc_type': tipo_documento,
+                'doc_id': id_documento,
+                'user_id': request.session['user_info']['user_id'],
+                'auth_token': request.session.get('auth_token'),
+            }
+            return render(request, 'aduna/document_consumidor_gov.html', context)
 
         else:
             response_content = service_response.json()
             document = response_content['document']
-            document['titulo'] = document['titulo'].strip() 
+
+            document['titulo'] = CTRL_SYMBOLS_REGEX.sub(' ', document['titulo'])
             document['conteudo'] = document['conteudo'].replace('\n', '<br>')
             document['conteudo'] = re.sub('(<br>){3,}', '<br>', document['conteudo'])
 
             context = {
+                'api_client_name': api_client_name,
+                'services_url': settings.SERVICES_URL,
                 'user_name': request.session.get('user_info')['first_name'],
                 'document': document,
                 'query': query,
@@ -238,7 +330,7 @@ def document(request, tipo_documento, id_documento):
                 'auth_token': request.session.get('auth_token'),
             }
 
-            return render(request, 'aduna/document.html', context)
+            return render(request, 'aduna/document_default.html', context)
 
 def login(request):
     if request.method == 'GET':
@@ -280,9 +372,10 @@ def erro(request):
 def search_comparison(request):
     if request.GET.get('invalid_query', False) or not request.session.get('auth_token'):
         return redirect('/aduna/login')
-    
+
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
+    api_client_name = request.session['user_info']['api_client_name']
     sid = request.session.session_key
     query = request.GET.get('query', 'comparação de busca')
     qid = request.GET.get('qid', '')
@@ -290,8 +383,10 @@ def search_comparison(request):
     instances = request.GET.getlist('instance', [])
     tipo_documentos = request.GET.getlist('doc_type', [])
     start_date = request.GET.get('start_date', None)
+
     if start_date == "":
         start_date = None
+    
     end_date = request.GET.get('end_date', None)
     if end_date == "":
         end_date = None
@@ -306,7 +401,7 @@ def search_comparison(request):
         'start_date': start_date,
         'end_date': end_date
     }
-    service_response = requests.get(settings.SERVICES_URL+'search_comparison', params, headers=headers)
+    service_response = requests.get(settings.SERVICES_URL+api_client_name+'/search_comparison', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
@@ -372,15 +467,18 @@ def search_comparison_entity(request):
     
     headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
+    api_client_name = request.session['user_info']['api_client_name']
     sid = request.session.session_key
     query = request.GET.get('query', 'comparação de busca com entidade')
     qid = request.GET.get('qid', '')
     page = int(request.GET.get('page', 1))
     instances = request.GET.getlist('instance', [])
     doc_types = request.GET.getlist('doc_type', [])
+
     start_date = request.GET.get('start_date', None)
     if start_date == "":
         start_date = None
+    
     end_date = request.GET.get('end_date', None)
     if end_date == "":
         end_date = None
@@ -395,7 +493,8 @@ def search_comparison_entity(request):
         'start_date': start_date,
         'end_date': end_date
     }
-    service_response = requests.get(settings.SERVICES_URL+'search_comparison_entity', params, headers=headers)
+
+    service_response = requests.get(settings.SERVICES_URL+api_client_name+'/search_comparison_entity', params, headers=headers)
     response_content = service_response.json()
 
     if service_response.status_code == 500:
@@ -451,15 +550,17 @@ def search_comparison_entity(request):
             'entities': response_content['entities'],
             'id_pos': id_pos, # Converte de volta pra dict, pois o Django Template Language não lê defaultdict
         }
-        print(response_content['entities'])
-        
+
         return render(request, 'aduna/search_comparison_entity.html', context)
 
 def bookmark(request):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
     
+    api_client_name = request.session['user_info']['api_client_name']
+
     context = {
+        'api_client_name': api_client_name,
         'services_url': settings.SERVICES_URL,
         'auth_token': request.session.get('auth_token'),
         'user_id': request.session['user_info']['user_id']
@@ -472,11 +573,13 @@ def recommendations(request):
     if not request.session.get('auth_token'):
         return redirect('/aduna/login')
 
+    api_client_name = request.session['user_info']['api_client_name']
+
     notification_id = request.GET.get('notification_id', '')
     if notification_id:
         # Informa que a notificação foi visualizada
         headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
-        service_response = requests.put(settings.SERVICES_URL+'notification', 
+        service_response = requests.put(settings.SERVICES_URL+api_client_name+'/notification', 
                                         data={
                                             'id_notificacao': notification_id,
                                             'visualizado': True
@@ -490,7 +593,9 @@ def recommendations(request):
     ctx = {
         'auth_token': request.session.get('auth_token'),
         'user_id': request.session.get('user_info')['user_id'],
-        'notification_id': notification_id
+        'notification_id': notification_id,
+        'api_client_name': api_client_name,
+        'services_url': settings.SERVICES_URL
     }
 
     return render(request, 'aduna/recommendation.html', ctx)

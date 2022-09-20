@@ -1,6 +1,9 @@
 {
     "mappings":{
         "properties":{
+            "nome_cliente_api": {
+                "type": "text"
+            },
             "sugestao":{
                 "type": "search_as_you_type",
                 "max_shingle_size": 3

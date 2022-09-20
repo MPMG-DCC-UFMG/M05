@@ -1,10 +1,6 @@
 import csv
 import ctypes
-import os
 import time
-import json
-from copy import deepcopy
-from random import random
 import datetime
 
 import nltk
@@ -62,6 +58,9 @@ def parse_date(text):
             pass
     raise ValueError('no valid date format found')
 
+def get_current_timestamp_in_ms() -> float:
+    return round(time.time() * 1000)
+
 class Indexer:
 
     def __init__(self, elastic_address='localhost:9200', model_path="neuralmind/bert-base-portuguese-cased", username=None, password=None):
@@ -83,6 +82,9 @@ class Indexer:
         """
         Generates formated entries to indexed by the bulk API
         """
+
+        mapping = self.es.indices.get_mapping(index=index)[index]['mappings']['properties']
+
         if file_path[-3:] == '.gz':
             csv_file = gzip.open(file_path, 'rt', encoding=encoding)
             file_count = gzip.open(file_path, 'rt', encoding=encoding)
@@ -103,7 +105,7 @@ class Indexer:
             line = dict(line)
             doc = {}
             for field in columns:
-                if line[field] == '':
+                if field == 'id': # id vai separado, fora do doc
                     continue
 
                 field_name = field
@@ -114,6 +116,9 @@ class Indexer:
 
                 if field_type == "list":
                     doc[field_name] = eval(line[field])
+                
+                elif field_type == "bool":
+                    doc[field_name] = eval(line[field])
 
                 elif field_name == 'data_criacao':
                     if line[field] != '':
@@ -121,22 +126,37 @@ class Indexer:
                         timestamp = datetime.datetime.timestamp(element)
                         doc[field_name] = timestamp
 
-                elif field_name == 'data_indexacao':
-                    if line[field] != '':
-                        element = parse_date(line[field])
-                        timestamp = datetime.datetime.timestamp(element)
-                        doc[field_name] = timestamp
+                # elif field_name == 'data_indexacao':
+                #     if line[field] != '':
+                #         element = parse_date(line[field])
+                #         timestamp = datetime.datetime.timestamp(element)
+                #         doc[field_name] = timestamp
 
                 else:
                     doc[field_name] = line[field]
 
-            if self.model_path != "None":
-                doc["embedding"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
+            field_name = 'data_indexacao'
 
-            yield {
+            if field_name in mapping:
+                if bool(line.get(field_name)):
+                    element = parse_date(line[field_name])
+                    timestamp = datetime.datetime.timestamp(element)
+                    doc[field_name] = timestamp
+                else:                    
+                    doc[field_name] = get_current_timestamp_in_ms()
+
+            if self.model_path != "None" and 'conteudo' in line:
+                doc["embedding"] = change_vector_precision(get_dense_vector(self.sentence_model, line['conteudo']))
+            
+            return_item = {
                 "_index": index,
                 "_source": doc
             }
+
+            if "id" in columns:
+                return_item['_id'] = line['id']
+
+            yield return_item
         
         csv_file.close()
         file_count.close()
@@ -150,15 +170,19 @@ class Indexer:
 
         responses = {}
         for csv_file in files_to_index:
-            print("Indexing: " + csv_file)
-            responses[csv_file] =  helpers.bulk(self.es, self.generate_formated_csv_lines(csv_file, index) )
-            print("  Response: " + str(responses[csv_file]))
+            try:
+                print("Indexing: " + csv_file)
+                responses[csv_file] =  helpers.bulk(self.es, self.generate_formated_csv_lines(csv_file, index) )
+                print("  Response: " + str(responses[csv_file]))
 
-            if len(responses[csv_file][1]) > 0 :
-                print("Detected error while indexing: " + csv_file)
-            else:
-                end = time.time()
-                print("Indexing time: {:.4f} seconds.".format(end-start))
+                if len(responses[csv_file][1]) > 0 :
+                    # print("Detected error while indexing: " + csv_file)
+                    print(responses[csv_file])
+                else:
+                    end = time.time()
+                    print("Indexing time: {:.4f} seconds.".format(end-start))
+            except Exception as e:
+                print(e)
 
     def parallel_indexer(self, files_to_index, index, thread_count):
         """

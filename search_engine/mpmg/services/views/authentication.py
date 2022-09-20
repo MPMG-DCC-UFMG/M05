@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-
 class CustomAuthToken(ObtainAuthToken):
     '''
     post:
@@ -55,7 +54,7 @@ class CustomAuthToken(ObtainAuthToken):
         if valid_user:
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
-            BookmarkFolder().create_default_bookmark_folder_if_necessary(user.pk)
+            BookmarkFolder().create_default_bookmark_folder_if_necessary(user.api_client_name,user.pk)
             return Response({
                 'token': token.key,
                 'user_info': {
@@ -63,6 +62,7 @@ class CustomAuthToken(ObtainAuthToken):
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'email': user.email,
+                    'api_client_name': user.api_client_name
                 },
             })
         else:

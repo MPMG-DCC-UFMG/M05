@@ -9,6 +9,7 @@ class LogSearch(ElasticModel):
         index_name = LogSearch.index_name
         meta_fields = ['id']
         index_fields = [
+            'nome_cliente_api',
             'id_sessao',
             'id_consulta',
             'id_usuario',
@@ -20,12 +21,9 @@ class LogSearch(ElasticModel):
             'pagina',
             'resultados_por_pagina',
             'indices',
-
             'algoritmo',
             'algoritmo_variaveis',
-
             'campos_ponderados'
-
             'instancias',
             'data_inicial',
             'data_final',
@@ -35,7 +33,7 @@ class LogSearch(ElasticModel):
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
     @staticmethod
-    def get_list_filtered(id_sessao=None, id_consulta=None, id_usuario=None, text_consulta=None, algoritmo=None, start_date=None, end_date=None, page='all', tempo=None, tempo_op=None, sort=None):
+    def get_list_filtered(api_client_name, id_sessao=None, id_consulta=None, id_usuario=None, text_consulta=None, algoritmo=None, start_date=None, end_date=None, page='all', tempo=None, tempo_op=None, sort=None):
         query_param = {
             "bool": {
                 "must": []
@@ -131,11 +129,15 @@ class LogSearch(ElasticModel):
                         }
                     }
                 })
+                
+        client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
 
-        return LogSearch.get_list(query=query_param, page=page, sort=sort)
+        return LogSearch.get_list(query=query_param, page=page, filter=client_filter, sort=sort)
 
     @staticmethod
-    def get_suggestions(query):
+    def get_suggestions(api_client_name, query):
         request_body = {
             "multi_match": {
                 "query": query,
@@ -147,8 +149,10 @@ class LogSearch(ElasticModel):
                 ]
             }
         }
-
-        response = LogSearch.get_list(query=request_body, page='all')
+        api_client_filter = [
+            {"term": { "nome_cliente_api": api_client_name}}
+        ]
+        response = LogSearch.get_list(query=request_body, filter=api_client_filter, page='all')
         total = response[0]
         suggestions = [hit['text_consulta'] for hit in response[1]]
         return total, suggestions

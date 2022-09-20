@@ -1,0 +1,178 @@
+{
+    "mappings": {
+        "properties": {
+            "id_manifestacao": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "titulo": {
+                "type": "text", 
+                "term_vector": "with_positions_offsets", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "cidade": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "estado": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "nome_completo_empresa": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "nome_autor": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "categoria": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "conteudo": {
+                "type": "text", 
+                "term_vector": "with_positions_offsets", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "embedding": {
+                "type": "dense_vector",
+                "dims": 128
+            },
+            "data_criacao": {
+                "type": "date"
+            }, 
+            "data_indexacao": {
+                "type": "date"
+            }, 
+            "fonte": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_cep": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_cnpj": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_cpf": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_local": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_municipio": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_organizacao": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_pessoa": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }, 
+            "entidade_tempo": {
+                "type": "text", 
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            }
+        }
+    },
+    "settings": {
+        "index": {
+            "highlight": {
+                "max_analyzed_offset" : "15000000"
+            }
+        }
+    }
+}

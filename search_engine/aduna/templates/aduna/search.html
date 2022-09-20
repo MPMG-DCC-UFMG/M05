@@ -6,7 +6,7 @@
 
     <div class="container searchresult-container">
         <div class="row flex-xl-nowrap">
-            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-4 {% endif %}">
+            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-3 {% endif %}">
                 <div class="filter-box">
                     <p class="h5">Filtros</p>
                     <form action="{% url 'aduna:search' %}" method="GET">
@@ -21,6 +21,8 @@
                             <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
                             <input type="hidden", name="filtro_data_fim", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
                         </div>
+
+                        {% if api_client_name == 'gsi' %}
                         <div class="form-group">
                             <label class="control-label mb-0">Instância:</label>
                             <select id="filter_instances" name="filtro_instancias" multiple="multiple">
@@ -31,6 +33,44 @@
                                 {% endfor %}                            
                             </select>
                         </div>
+                        {% endif %}
+                        
+                        {% if api_client_name == 'procon' %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Estado:</label>
+                            <select id="filter_state" name="filtro_estado" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
+                                {% for state in states %}
+                                <option value="{{ state.sigla }}" {%  if filter_state == state.sigla %}selected="selected"{% endif %}>
+                                    {{ state.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group {% if not cities %}d-none{% endif %}" id="filter_city_wrapper">
+                            <label class="control-label mb-0">Município:</label>
+                            <select id="filter_city" name="filtro_cidade" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
+                                {% for city in cities %}
+                                <option value="{{ city.nome_cidade }}" {% if filter_city == city.nome_cidade %}selected{% endif %}>{{ city.nome_cidade }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label mb-0">Categorias de empresa:</label>
+                            <select id="filter_business_categories" name="filtro_categoria_empresa" multiple="multiple">
+                                {% for category in ra_business_categories %}
+                                <option value="{{ category.categoria }}" {% if category.categoria in filter_business_category %}selected="selected"{% endif %}>
+                                    {{ category.categoria }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {% endif %}
+
                         <div class="form-group">
                             <label class="control-label mb-0">Tipo de documento:</label>
                             <select id="filter_doc_types" name="filtro_tipos_documentos" multiple="multiple">
@@ -102,7 +142,7 @@
                 </div>
             </div>
 
-            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-8 {% endif %}">
+            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-9 {% endif %}">
                 <div class="container">
                     <div class="total-docs">A pesquisa retornou {{ total_docs }} documentos ({{ time|floatformat:2 }} segundos).</div>
                     <div id="results-container" data-executed-query="{{ query }}">
@@ -198,8 +238,9 @@
 {% endblock %}
 {% block script_before %}
     <script>
-        AUTH_TOKEN = "{{ auth_token }}";
+        API_CLIENT_NAME = "{{ api_client_name }}";
         SERVICES_URL = "{{ services_url }}";
+        AUTH_TOKEN = "{{ auth_token }}";
         QID = "{{ qid }}";
         PAGE = "{{ page }}";
         USER_ID = "{{ user_id }}";
@@ -208,4 +249,5 @@
 
 {% block script_after %}
     <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+    <script src="{% static 'aduna/js/search/search.js' %}"></script>
 {% endblock %}

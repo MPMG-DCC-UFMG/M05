@@ -12,6 +12,12 @@ class DocumentNavigationView(APIView):
         description: Retorna uma lista com todas as seções do documento a ser visualizado. \
         Caso a consulta e as entidades sejam passadas, as seções que contiverem os termos da consulta ou as entidades serão destacadas.
         parameters:
+            -   name: api_client_name
+                in: path
+                description: Nome do cliente da API. Passe "procon" ou "gsi".
+                required: true
+                schema:
+                    type: string
             -   name: id_documento
                 in: query
                 description: ID do documento (ou segmento) a ser buscado
@@ -58,7 +64,7 @@ class DocumentNavigationView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         try:
             id_documento = request.GET['id_documento']
             # o tipo do documento é o nome do índice

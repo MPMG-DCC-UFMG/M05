@@ -14,73 +14,36 @@
 
 {% block content %}
     <div class="container">
-        <nav id="doc-navbar">
-            <ul>
-                {% for item in navigation %}
-                <li>
-                    <a id="nav_bloco_{{ item.num_bloco }}" href="#bloco_{{ item.num_bloco }}">{{ item.entidade_bloco }}</a>
-                    <ul>
-                    {% for child in item.childs %}
-                      <li>
-                        {% if child.num_segmento_global == document.num_segmento_ativo or child.matched == 1 %}
-                        <mark class="nav{% if child.num_segmento_global == document.num_segmento_ativo %} nav-active{% endif %}">
-                        {% endif %}
-                        <a id="nav_seg_{{ child.num_segmento_global }}" href="#seg_{{ child.num_segmento_global }}">{{ child.titulo }}</a>
-                        {% if child.num_segmento_global == document.num_segmento_ativo or child.matched == 1 %}
-                        </mark>
-                        {% endif %}
-                      </li>
-                    {% endfor %}
-                    </ul>
-                </li>
-                {% endfor %}
-
-            </ul>
-            <div id="doc-navbar-toggle"><i class="fas fa-bars"></i></div>
-        </nav>
         <div class="page nav-active">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1 class="m-0"><center>{{ document.titulo }}</center></h1>
-                <div class="bookmark">
-                </div>
+                <div class="bookmark"></div>
             </div>
-            <h2><center>{{ document.data }}</center></h2>
+            <div class="info-postagem">
+                <p>{{ document.nome_completo_empresa }}</p>
+                <p>{{ document.cidade }} - {{ document.estado }}&nbsp;&nbsp;&nbsp;&nbsp;{{ document.data }}</p>
+                {% for cat in document.categoria_empresa %}
+                    {{ cat }}, 
+                {% endfor %}
+            </div>
+            
             <br><br><br>
             {% for segmento in document.segmentos %}
-                {% if segmento.num_segmento_bloco == 1 %}
-                <div id="bloco_{{ segmento.num_bloco}}">
-                    <h4 style="color: #6495ed; text-align: center;">{{ segmento.entidade_bloco }}</h4>
-                    <br>
-                {% endif %}
-                    <div id="seg_{{ segmento.num_segmento_global}}">
-                        {% if segmento.titulo != '' %}
-                        <h5>{{ segmento.titulo}}</h5>
-                        {% endif %}
-                        {% if segmento.subtitulo != '' %}
-                        <h6>{{ segmento.subtitulo }}</h6>
-                        {% endif %}
-                        <p style="text-align: justify;">
-                            {% if segmento.num_segmento_global == document.num_segmento_ativo %}
-                            <mark class="active">
-                            {% endif %}
-                            {{ segmento.conteudo }}
-                            {% if segmento.num_segmento_global == document.num_segmento_ativo %}
-                            </mark>
-                            {% endif %}
-                        </p>
-                        <br><br>
-                    </div>
-                {% if segmento.num_segmento_bloco == 1 %}
+                <div id="bloco_{{ segmento.ordem_da_interacao}}">
+                    <p style="text-align: justify;">
+                        {{ segmento.conteudo|safe }}
+                    </p>
+                    <br><br>
                 </div>
-                {% endif %}
+                <hr style="border-width:2px; border-color:black;">
             {% endfor %}
         </div>
     </div>
 {% endblock %}
 {% block script_before %}
     <script>
-        SERVER_ADDRESS = window.location.origin;
-        SERVICES_URL = SERVER_ADDRESS + '/services/';
+        API_CLIENT_NAME = '{{ api_client_name }}';
+        SERVICES_URL = '{{ services_url }}';
         AUTH_TOKEN = '{{ auth_token }}';
         QID = '{{ qid }}';
         DOC_TYPE = '{{ doc_type }}';
