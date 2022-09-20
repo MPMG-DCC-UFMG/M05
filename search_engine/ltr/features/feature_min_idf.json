@@ -1,0 +1,12 @@
+{
+    "query": {
+        "match_explorer": {
+            "type": "min_classic_idf",
+            "query": {
+                "match": {
+                    "all": "{{consulta}}"
+                }
+            }
+        }
+    }
+}
