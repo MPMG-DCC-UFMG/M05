@@ -39,15 +39,10 @@ class DocumentView(APIView):
 
         # instancia a classe apropriada e busca o registro no índice
         index_class = APIConfig.searchable_index_to_class('regular')[tipo_documento]
-
-        try:
-            document = index_class.get(id_documento)
-
+        document = index_class.get(id_documento)
+        if document:
             data = {
                 'document': document
             }
-
             return Response(data)
-        
-        except NotFoundError:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_404_NOT_FOUND)
