@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="{% static 'aduna/fontawesome/css/all.min.css' %}">
+        <link rel="stylesheet" href="{% static 'aduna/bootstrap/css/bootstrap.min.css' %}" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'aduna/jquery-ui/jquery-ui.min.css' %}">
+        <link rel="stylesheet" href="{% static 'aduna/style.css' %}">
+
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <title>Áduna</title>
+    </head>
+    <body>
+        {% block header %} 
+        {% endblock %}
+
+        <div class="vertical-center">
+            <div class="container">
+                <h1>Ops!</h1>
+                <h2>Algo não saiu como esperado...</h2>
+                <div class="row">
+                    <div class="col">
+                        <div class="error-box">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <img src="{% static 'aduna/img/broken_robot.png' %}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="{% static 'aduna/jquery-3.4.1.min.js' %}"></script>
+        <script src="{% static 'aduna/popper.min.js' %}"></script>
+        <script src="{% static 'aduna/bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'aduna/jquery-ui/jquery-ui.min.js' %}"></script>
+        <script src="{% static 'aduna/script.js' %}"></script>
+    </body>
+</html>

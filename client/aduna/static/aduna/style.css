@@ -1,0 +1,209 @@
+
+.vertical-center {
+    min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+    min-height: 100vh; /* These two lines are counted as one :-)       */
+  
+    display: flex;
+    align-items: center;
+}
+
+.aduna-title{
+    margin-bottom: 50px;
+    text-align: center;
+    font-size: 80px;
+}
+
+
+.searchbar.navbar{
+    /* top: 0px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 999; */
+}
+
+.searchbar.navbar.fixed-top{
+    -webkit-box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+    -moz-box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+    box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+}
+
+/* .searchresult-container{
+    margin-top: 100px;
+} */
+
+.navbar{
+    margin-bottom: 40px;
+    border-bottom: 1px solid #ddd;
+}
+
+.total-docs{
+    font-size: 14px;
+    color: #52565A;
+    margin-bottom: 10px;
+}
+
+.algorithm{
+    font-size: 14px;
+    color: #52565A;
+    margin-bottom: 30px;
+}
+
+.result-item{
+    margin-bottom: 30px;
+}
+
+.result-item h3{
+    font-size: 20px;
+}
+
+.result-description{
+    font-size: 14px;
+    color: #52565A;
+}
+
+.source-description{
+    font-size: 12px;
+    color: #bfbfbf;
+    padding-top: 5px;
+}
+
+
+.view-as-page{
+    background-color: #333;
+}
+
+.view-as-page .page{
+    margin-top: 100px;
+    background-color: white;
+    padding: 100px 50px;
+    -webkit-box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+    -moz-box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+    box-shadow: 10px 0px 10px 0px rgba(0,0,0,0.5);
+}
+
+.view-as-page .page.nav-active{
+    /*margin-left: 250px;*/
+}
+
+
+.error-box{
+    margin-top: 40px;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ddd;
+}
+
+.tooltip > .tooltip-inner {
+    background-color: #033d7a;
+    color: #FFFFFF;
+    padding: 15px;
+    font-size: 15px;
+    white-space: pre-wrap;
+  }
+
+
+mark.nav{
+    font-weight: bold;
+}
+
+mark.nav-active{
+    background-color: yellow;
+}
+
+mark.nav a{
+    color: #00277f !important;
+}
+
+mark.active{
+    background-color: yellow;
+}
+
+#doc-navbar{
+    position: fixed;
+    width: 250px;
+    top: 57px;
+    left: 0px;
+    height: calc(100% - 57px);
+    background-color: #ddd;
+    border: 1px solid #aaa;
+    z-index: 2000;
+
+    transition: left ease 0.25s;
+    -webkit-transition: left ease 0.25s;
+}
+
+#doc-navbar.nav-active{
+    left: -250px;
+}
+
+#doc-navbar #doc-navbar-toggle{
+    position: absolute;
+    top: 70px;
+    left: 249px;
+    background-color: white;
+    padding: 8px 12px;
+    font-size: 20px;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    border-left-color: white;
+}
+
+#doc-navbar > ul{
+    padding: 20px 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /*list-style-type: none;*/
+    padding-inline-start: 20px;
+}
+
+#doc-navbar ul li ul{
+    max-height: auto;
+    overflow: hidden;
+    padding-inline-start: 20px;
+}
+
+#doc-navbar li a{
+    font-size: 12px;
+}
+
+.highlight-text{
+    -webkit-animation: flash-text 1s ease-in-out 0s;
+    -moz-animation: flash-text 1s ease-in-out 0s;
+    -o-animation: flash-text 1s ease-in-out 0s;
+    animation: flash-text 1s ease-in-out 0s;
+}
+
+.notification {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.notification .badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: block;
+  height: 10px;
+  width: 10px;
+  /* padding: 5px 10px; */
+  border-radius: 50%;
+  background: red;
+  color: white;
+}
+
+#dropdownNotification.nav-link.dropdown-toggle::after {
+    display: none;
+}
+
+@keyframes flash-text {
+    from{
+        background-color: rgba(255, 255, 0, 1.0);
+    }
+    to{
+        background-color: rgba(255, 255, 255, 0.0);
+    }
+}

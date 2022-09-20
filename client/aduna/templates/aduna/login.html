@@ -1,0 +1,37 @@
+{% extends "./_base.html" %}
+{% block header %}
+{% endblock %}
+{% block content %}
+    <div class="vertical-center">
+        <div class="container">
+            <h1 class="aduna-title">Áduna</h1>
+            {% if messages %}
+                <div class="row justify-content-md-center">
+                <div class="col-sm-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} fade show mb-2" style="margin: auto" role="alert">
+                    {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                </div>
+            {% endif %}
+            <form action="{% url 'aduna:login' %}" method="post">
+                {% csrf_token %}
+                <div class="row justify-content-md-center">
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control shadow bg-white rounded" name="username" id="username" placeholder="Username" autocomplete="off">
+                        </div><br>
+                        <div class="input-group">
+                            <input type="password" class="form-control shadow bg-white rounded" name="password" id="password" placeholder="Senha" autocomplete="off">
+                        </div><br>
+                            <button type="submit" class="col btn btn-primary shadow mb-5 rounded">Login</button>
+                            <input type="hidden" name="sid" id="sid" value="{{ sid }}">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

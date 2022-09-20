@@ -1,0 +1,53 @@
+{% extends "./base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">Configurações</h4>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Cluster Elasticsearch</h4>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label id="regular_btn" class="btn btn-secondary">
+                            <input type="radio" name="options" id="option1" autocomplete="off"> Regular
+                        </label>
+                        <label id="replica_btn" class="btn btn-secondary">
+                            <input type="radio" name="options" id="option2" autocomplete="off"> Replica
+                        </label>
+                    </div>
+                    <form id="regular_form" action="{% url 'admin:save_config' %}" method="post" style="display: none">
+                        {% csrf_token %}
+                        <br>
+                        {{ form_regular.as_p }}
+                        <input type="hidden" id="compare_regular" name="compare" value="regular">
+                        <div class="row justify-content-end">
+                            <div class="pr-3">
+                                <button class="btn btn-primary" type="submit">Salvar</button>
+                            </div>
+                        </div>
+                    </form>
+                    <form id="replica_form" action="{% url 'admin:save_config' %}" method="post" style="display: none">
+                        {% csrf_token %}
+                        <br>
+                        {{ form_replica.as_p }}
+                        <input type="hidden" id="compare_replica" name="compare" value="replica">
+                        <div class="row justify-content-end">
+                            <div class="pr-3">
+                                <button class="btn btn-primary" type="submit">Salvar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock%}

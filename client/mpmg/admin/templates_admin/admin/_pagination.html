@@ -1,0 +1,50 @@
+{# Template de paginação                                                                        #}
+{# Parâmetros:                                                                                  #}
+{# pagination_items: lista representando a qtde de itens de paginação. Ex: range(0, 9)          #}
+{#                     esta lista não representa os números e sim a qtde de itens de paginação  #}
+{# total_pages: Total de páginas                                                                #}
+{# page: número da página corrente                                                              #}
+{# url_path: string contendo a URL dos links das páginas. Ex: 'admin:log_search'                #}
+{# url_params: string contendo os demais parâmetros a serem acrescentados nos links das páginas #}
+{#             (o parâmetro page será automaticamente acrescentado)                             #}
+
+{% load custom_tags %}
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+    {% if page == 1 %}
+        <li class="page-item disabled">
+    {% else %}
+        <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="{% url url_path %}?page={{ page|add:'-1' }}{{ url_params }}" tabindex="-1" aria-disabled="true">Previous</a>
+    </li>
+    {% for _ in pagination_items %}
+        {% if page < 6  %}
+            {% if forloop.counter == page %}
+            <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ forloop.counter }}</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{% url url_path %}?page={{ forloop.counter }}{{ url_params }}">{{ forloop.counter }}</a></li>
+            {% endif %}
+        {% elif page > total_pages|add:'-5'%}
+            {% if total_pages|add:forloop.counter|subtract_by_length:pagination_items == page %}
+            <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{% url url_path %}?page={{ total_pages|add:forloop.counter|subtract_by_length:pagination_items }}{{ url_params }}">{{ total_pages|add:forloop.counter|subtract_by_length:pagination_items }}</a></li>
+            {% endif %}
+        {% else %} 
+            {% if forloop.counter == 5 %}
+            <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{% url url_path %}?page={{ page|add:forloop.counter|add:'-5' }}{{ url_params }}">{{ page|add:forloop.counter|add:'-5' }}</a></li>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    {% if page == total_pages %}
+        <li class="page-item disabled">
+    {% else %}
+        <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="{% url url_path %}?page={{ page|add:'1' }}{{ url_params }}">Next</a>
+    </li>
+    </ul>
+</nav>

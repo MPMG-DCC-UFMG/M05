@@ -1,0 +1,70 @@
+[
+    {
+        "model": "services.searchconfigs", 
+        "pk": 10,
+        "fields": {}
+    }, 
+    {
+        "model": "services.searchableindicesconfigs", 
+        "pk": "diarios", 
+        "fields": {
+            "index_model": "Diario", 
+            "searchable": true, 
+            "group": "regular"
+        }
+    }, 
+    {
+        "model": "services.searchableindicesconfigs", 
+        "pk": "diarios-replica", 
+        "fields": {
+            "index_model": "Diario", 
+            "searchable": true, 
+            "group": "replica"
+        }
+    }, 
+    {
+        "model": "services.searchableindicesconfigs", 
+        "pk": "diarios_entidades", 
+        "fields": {
+            "index_model": "DiarioEntidade", 
+            "searchable": false, 
+            "group": "regular"
+        }
+    }, 
+    {
+        "model": "services.searchableindicesconfigs", 
+        "pk": "processos", 
+        "fields": {
+            "index_model": "Processo", 
+            "searchable": true, 
+            "group": "regular"
+        }
+    }, 
+    {
+        "model": "services.searchableindicesconfigs", 
+        "pk": "processos-replica", 
+        "fields": {
+            "index_model": "Processo", 
+            "searchable": true, 
+            "group": "replica"
+        }
+    }, 
+    {
+        "model": "services.weightedsearchfieldsconfigs", 
+        "pk": "conteudo", 
+        "fields": {
+            "field_name": "Conteudo", 
+            "weight": 1, 
+            "searchable": true
+        }
+    }, 
+    {
+        "model": "services.weightedsearchfieldsconfigs", 
+        "pk": "titulo", 
+        "fields": {
+            "field_name": "Titulo", 
+            "weight": 2, 
+            "searchable": false
+        }
+    }
+]

@@ -1,0 +1,112 @@
+{% extends "./_base.html" %}
+{% load aduna_extras %}
+{% load static %}
+{% block body_tags %}class="view-as-page"{% endblock %}
+
+{% block goback %}
+<a href="javascript:history.back()" 
+    class="btn btn-danger my-2 my-sm-0 mr-3" 
+    type="button">
+    <i class="fas fa-arrow-alt-circle-left"></i> 
+    Voltar
+</a>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="page nav-active">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="m-0"><center>{{ document.titulo }}</center></h1>
+                <div class="bookmark"></div>
+            </div>
+            <div class="info-postagem">
+                <p>{{ document.nome_completo_empresa }}</p>
+                <p>{{ document.cidade }} - {{ document.estado }}&nbsp;&nbsp;&nbsp;&nbsp;{{ document.data }}</p>
+                {% for cat in document.categoria_empresa %}
+                    {{ cat }}, 
+                {% endfor %}
+            </div>
+            
+            <br><br><br>
+            {% for segmento in document.segmentos %}
+                <div id="bloco_{{ segmento.ordem_da_interacao}}">
+                    <p style="text-align: justify;">
+                        {{ segmento.conteudo|safe }}
+                    </p>
+                    <br><br>
+                </div>
+                <hr style="border-width:2px; border-color:black;">
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+{% block script_before %}
+    <script>
+        API_CLIENT_NAME = '{{ api_client_name }}';
+        SERVICES_URL = '{{ services_url }}';
+        AUTH_TOKEN = '{{ auth_token }}';
+        QID = '{{ qid }}';
+        DOC_TYPE = '{{ doc_type }}';
+        DOC_ID = '{{ doc_id }}';
+        DOC_TITLE = '{{ document.titulo }}'
+        USER_ID = '{{ user_id }}'
+        PAGE = '{{ page }}';
+        QUERY = '{{ query }}';
+    </script>
+{% endblock %}
+{% block additional_head %}
+    <style>
+        
+    </style>
+{% endblock %}
+{% block script_after %}
+    <script src="{% static 'aduna/js/bookmark/folder.js' %}"></script>
+    <script src="{% static 'aduna/js/bookmark/services.js' %}"></script>
+    <script src="{% static 'aduna/js/bookmark/bookmark.js' %}"></script>
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+
+    <script>
+        num_segmento_ativo = {{ document.num_segmento_ativo }};
+        function scrollToSegment(id, hightlight=false){
+            $([document.documentElement, document.body]).animate({
+                scrollTop: $(id).offset().top - ($(window).height()/2)
+            }, 1000, function(){
+                if(hightlight){
+                    $(id).addClass('highlight-text'); 
+                    setTimeout(function(){
+                        $(id).removeClass('highlight-text')
+                    }, 1001)
+                }
+            });
+            
+        }
+
+        function scrollToNavItem(id){
+            $("#doc-navbar > ul").animate({
+                scrollTop: $(id).position().top - ($(this).height()/2)
+            }, 1000);
+        }
+
+        $(function(){
+            // rola a página até o segmento destacado
+            scrollToSegment("#seg_"+num_segmento_ativo);
+
+            //rola tbm o índice
+            scrollToNavItem("#nav_seg_"+num_segmento_ativo);
+
+            //quando clica em algum item do índice rola até o segmento
+            $("#doc-navbar a").click(function(event){
+                id = $(this).attr('href');
+                scrollToSegment(id, true);
+            });
+
+            //exibe-esconde o índice de navegação
+            $('#doc-navbar-toggle').click(function(event){
+                $('#doc-navbar').toggleClass('nav-active');
+                $('.page').toggleClass('nav-active');
+                event.preventDefault();
+                return false;
+            });
+        });
+    </script>
+{% endblock %}

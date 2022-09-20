@@ -4,24 +4,24 @@ services:
     client:
         build:
             context: .
-            dockerfile: ./docker/client/Dockerfile
+            dockerfile: ./misc/docker/client/Dockerfile
         command: ./django_run.sh
         ports:
             - "8086:8086"
         expose:
             - 8086
         env_file:
-            - ./docker/config/.env
+            - ./misc/docker/client/.env
         restart: on-failure
     api:
         build:
             context: .
-            dockerfile: ./docker/api/Dockerfile
+            dockerfile: ./misc/docker/api/Dockerfile
         command: ./django_run.sh
         ports:
             - "8087:8087"
         expose:
             - 8087
         env_file:
-            - ./docker/config/.env
+            - ./misc/docker/api/.env
         restart: on-failure

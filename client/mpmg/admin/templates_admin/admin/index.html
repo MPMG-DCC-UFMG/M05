@@ -1,0 +1,83 @@
+{% extends "./base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block additional_script %}
+<script>
+var indices_amounts = {{ indices_amounts|safe }};
+var total_searches_per_day = {{ total_searches_per_day|safe }};
+var no_clicks_per_day = {{ no_clicks_per_day|safe }};
+var no_results_per_day = {{ no_results_per_day|safe }};
+var porc_no_clicks_per_day = {{ porc_no_clicks_per_day|safe }};
+var porc_no_results_per_day = {{ porc_no_results_per_day|safe }};
+var response_time_per_day = {{ response_time_per_day|safe }};
+var time_to_first_click_per_day = {{ time_to_first_click_per_day|safe }};
+var avg_click_position_per_day = {{ avg_click_position_per_day|safe }};
+var avg_clicks_per_query_per_day = {{ avg_clicks_per_query_per_day|safe }};
+var avg_session_duration_per_day = {{ avg_session_duration_per_day|safe }};
+
+SERVICES_URL = "{{ services_url }}";
+
+</script>
+{% endblock %}
+{% block content %}
+<div class="content-wrapper">
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+        <div class="page-header">
+            <h4 class="page-title">Dashboard</h4>
+            <div class="quick-link-wrapper w-100 d-md-flex flex-md-wrap">
+            </div>
+        </div>
+        </div>
+        <div class="col-md-12">
+        <div class="page-header-toolbar">
+            <form class="form-inline" method="GET" action="{% url 'admin:index' %}">
+            <div class="form-group">
+                <label class="mr-2">Filtre os dados por período de dias:</label><br>
+                <div class="input-group">
+                <input type="text" name="start_date" value="{{ start_date }}" class="form-control datepicker mr-1" autocomplete="off" placeholder="Data inicial">
+                <input type="text" name="end_date" value="{{ end_date }}" class="form-control datepicker ml-1" autocomplete="off" placeholder="Data final">
+                </div>
+            </div>
+            <!-- <div class="form-group">
+                <label>Pelas últimas horas:</label>
+                <select class="form-control">
+                <option></option>
+                <option>Última 1 hora</option>
+                <option>Últimas 12 horas</option>
+                <option>Últimas 24 horas</option>
+                </select>
+            </div> -->
+            <button class="btn btn-primary ml-2" type="submit">Filtrar</button>
+            </form>
+            
+        </div>
+        </div>
+    </div>
+    <!-- Page Title Header Ends-->
+
+    <ul class="nav nav-tabs dashboard-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true"><i class="fas fa-database"></i> Índices</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false"><i class="fas fa-search"></i> Consultas</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false"><i class="fas fa-mouse-pointer"></i> Interações</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel">
+            {% include "./_dash_indices.html" with store_size=store_size indices_info=indices_info total_records=total_records %}
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel">
+            {% include "./_dash_queries.html" with total_queries=total_queries porc_total_no_clicks=porc_total_no_clicks total_no_clicks=total_no_clicks porc_total_no_results=porc_total_no_results total_no_results=total_no_results avg_query_time=avg_query_time %}
+        </div>
+        <div class="tab-pane fade" id="contact" role="tabpanel">
+            {% include "./_dash_users.html" with avg_click_position=avg_click_position avg_time_to_first_click=avg_time_to_first_click avg_clicks_per_query=avg_clicks_per_query avg_session_duration=avg_session_duration %}
+        </div>
+    </div>
+</div>
+{% endblock %}

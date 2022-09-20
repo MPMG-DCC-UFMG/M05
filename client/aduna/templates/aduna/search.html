@@ -1,0 +1,253 @@
+{% extends "./_base.html" %}
+{% load aduna_extras %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container searchresult-container">
+        <div class="row flex-xl-nowrap">
+            <div class="{% if at_least_one_entity_type_has_recommendations %} col-md-2 {% else %} col-md-3 {% endif %}">
+                <div class="filter-box">
+                    <p class="h5">Filtros</p>
+                    <form action="{% url 'aduna:search' %}" method="GET">
+                        <input type="hidden" name="consulta" id="query" value="{{ query }}">
+                        <div class="form-group">
+                            <label class="control-label mb-0">Data inicial:</label> 
+                            <input type="text" id="filter_start_date_display" class="form-control border-secondary" value="{{ filter_start_date|date:'d/m/Y' }}" autocomplete="off">
+                            <input type="hidden", name="filtro_data_inicio", id="filter_start_date" value="{{ filter_start_date|date:'Y-m-d' }}">
+                        </div>    
+                        <div class="form-group">
+                            <label class="control-label mb-0">Data final:</label>
+                            <input type="text" id="filter_end_date_display" class="form-control border-secondary" value="{{ filter_end_date|date:'d/m/Y' }}" autocomplete="off">
+                            <input type="hidden", name="filtro_data_fim", id="filter_end_date" value="{{ filter_end_date|date:'Y-m-d' }}">
+                        </div>
+
+                        {% if api_client_name == 'gsi' %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Instância:</label>
+                            <select id="filter_instances" name="filtro_instancias" multiple="multiple">
+                                {% for item in filter_instances_list %}
+                                    <option value="{{ item }}" {% if item in filter_instances %}selected="selected"{% endif %}>
+                                    {{ item }}
+                                    </option>
+                                {% endfor %}                            
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        {% if api_client_name == 'procon' %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Estado:</label>
+                            <select id="filter_state" name="filtro_estado" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
+                                {% for state in states %}
+                                <option value="{{ state.sigla }}" {%  if filter_state == state.sigla %}selected="selected"{% endif %}>
+                                    {{ state.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group {% if not cities %}d-none{% endif %}" id="filter_city_wrapper">
+                            <label class="control-label mb-0">Município:</label>
+                            <select id="filter_city" name="filtro_cidade" class="form-control border-secondary">
+                                <option value="" selected disabled>Selecionar</option>
+                                {% for city in cities %}
+                                <option value="{{ city.nome_cidade }}" {% if filter_city == city.nome_cidade %}selected{% endif %}>{{ city.nome_cidade }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label mb-0">Categorias de empresa:</label>
+                            <select id="filter_business_categories" name="filtro_categoria_empresa" multiple="multiple">
+                                {% for category in ra_business_categories %}
+                                <option value="{{ category.categoria }}" {% if category.categoria in filter_business_category %}selected="selected"{% endif %}>
+                                    {{ category.categoria }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label class="control-label mb-0">Tipo de documento:</label>
+                            <select id="filter_doc_types" name="filtro_tipos_documentos" multiple="multiple">
+                                {% for name, value in filter_doc_types_list %}
+                                    <option value="{{ value }}" style="text-transform: capitalize;" {% if value in filter_doc_types %}selected="selected"{% endif %}>
+                                    {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if entities_list.entidade_pessoa|length > 0 %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Incluir pessoa:</label>
+                            <select id="filter_entidade_pessoa" name="filter_entidade_pessoa" multiple="multiple">
+                                {% for item in entities_list.entidade_pessoa %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_pessoa %}selected="selected"{% endif %}>
+                                    {{ item }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        {% if entities_list.entidade_municipio|length > 0 %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Incluir município:</label>
+                            <select id="filter_entidade_municipio" name="filter_entidade_municipio" multiple="multiple">
+                                {% for item in entities_list.entidade_municipio %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_municipio %}selected="selected"{% endif %}>
+                                    {{ item }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        {% if entities_list.entidade_organizacao|length > 0 %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Incluir organização:</label>
+                            <select id="filter_entidade_organizacao" name="filter_entidade_organizacao" multiple="multiple">
+                                {% for item in entities_list.entidade_organizacao %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_organizacao %}selected="selected"{% endif %}>
+                                    {{ item }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        {% if entities_list.entidade_local|length > 0 %}
+                        <div class="form-group">
+                            <label class="control-label mb-0">Incluir local:</label>
+                            <select id="filter_entidade_local" name="filter_entidade_local" multiple="multiple">
+                                {% for item in entities_list.entidade_local %}
+                                    <option value="{{ item }}" style="text-transform: capitalize;" {% if item in filter_entidade_local %}selected="selected"{% endif %}>
+                                    {{ item }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <br>
+                            <input type="hidden" name="sid" id="sid" value="{{ sid }}">
+                            <button type="submit" class="btn btn-primary my-2 my-sm-0 w-100">Filtrar resultados</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <main role="main" class="{% if at_least_one_entity_type_has_recommendations %} col-md-7 {% else %} col-md-9 {% endif %}">
+                <div class="container">
+                    <div class="total-docs">A pesquisa retornou {{ total_docs }} documentos ({{ time|floatformat:2 }} segundos).</div>
+                    <div id="results-container" data-executed-query="{{ query }}">
+                    {% for doc in documents %}
+                        <div class="result-item">
+                            <h3>
+                                <a class="result-link" href="{% url 'aduna:document' doc.tipo doc.id %}?consulta={{ query }}{{ filter_url }}"
+                                    data-rank-number="{{ doc.posicao_ranking }}" data-item-id="{{ doc.id }}" data-item-type="{{ doc.tipo }}">
+                                    {{doc.titulo }}
+                                </a>
+                            </h3>
+                            <div class="result-description">
+                                {{ doc.descricao|safe }}
+                            </div>
+                            <div class="source-description">
+                                Fonte: {{ doc.fonte }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                        {% if page == 1 %}
+                            <li class="page-item disabled">
+                        {% else %}
+                            <li class="page-item">
+                        {% endif %}
+                            <a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:'-1' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        {% for _ in results_pagination_bar %}
+                            {% if page < 6  %}
+                                {% if forloop.counter == page %}
+                                <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ forloop.counter }}</a></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ forloop.counter }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ forloop.counter }}</a></li>
+                                {% endif %}
+                            {% elif page > total_pages|add:'-5'%}
+                                {% if total_pages|add:forloop.counter|subtract:results_pagination_bar == page %}
+                                <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ total_pages|add:forloop.counter|subtract:results_pagination_bar }}</a></li>
+                                {% endif %}
+                            {% else %} 
+                                {% if forloop.counter == 5 %}
+                                <li class="page-item disabled"><a class="page-link" href="#" aria-disabled="true">{{ page }}</a></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:forloop.counter|add:'-5' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">{{ page|add:forloop.counter|add:'-5' }}</a></li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if page == total_pages %}
+                            <li class="page-item disabled">
+                        {% else %}
+                            <li class="page-item">
+                        {% endif %}
+                            <a class="page-link" href="{% url 'aduna:search' %}?consulta={{ query }}&pagina={{ page|add:'1' }}{{ filter_url }}&sid={{ sid }}&qid={{ qid }}">Next</a>
+                        </li>
+                        </ul>
+                    </nav>
+                </div>
+            </main>
+
+            {% if at_least_one_entity_type_has_recommendations %}
+            <aside class="col-md-3 p-0">
+                <p class="h5">Entidades relacionadas</p>
+                <ul class="border rounded p-3 mt-3" style="list-style: none; cursor: pointer;">
+                    {% for entity_name, entity_value in card_ranking_entities.items %}
+                        {% if entity_value.ranking|length > 0 %}
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons mr-2">
+                                    {{ entity_value.icone }}
+                                </span>
+                                <strong>{{ entity_value.nome }}</strong>
+                            </div>
+                            <ul class="m-0 p-0 pt-2" style="list-style: none;">
+                                {% for entity in entity_value.ranking %}
+                                <li class="mt-1">
+                                    <a href="{% url 'aduna:search' %}?consulta={{ entity }}">{{ entity }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% if not forloop.last %}
+                            <hr>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+            </aside>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock %}
+{% block script_before %}
+    <script>
+        API_CLIENT_NAME = "{{ api_client_name }}";
+        SERVICES_URL = "{{ services_url }}";
+        AUTH_TOKEN = "{{ auth_token }}";
+        QID = "{{ qid }}";
+        PAGE = "{{ page }}";
+        USER_ID = "{{ user_id }}";
+    </script>
+{% endblock %}
+
+{% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+    <script src="{% static 'aduna/js/search/search.js' %}"></script>
+{% endblock %}

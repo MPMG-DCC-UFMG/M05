@@ -1,0 +1,100 @@
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ avg_click_position }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Posição do clique</h5>
+                        <p class="mb-0 text-muted">valor médio</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon click-pos"><i class="fas fa-list-ol"></i></div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ avg_clicks_per_query }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Cliques por consulta</h5>
+                        <p class="mb-0 text-muted">valor médio</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon num-clicks"><i class="fas fa-mouse-pointer"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ avg_time_to_first_click }}s</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Tempo até o clique</h5>
+                        <p class="mb-0 text-muted">tempo médio</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon time-click"><i class="fas fa-hourglass-half"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ avg_session_duration }}s</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Duração da sessão</h5>
+                        <p class="mb-0 text-muted">valor médio</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon session-duration"><i class="fas fa-stopwatch"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                  <h4 class="card-title">Posição média do documento clicado</h4>
+                  <canvas id="grafico-posicao-clique"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Média de cliques por consulta</h4>
+                <canvas id="grafico-cliques-por-consulta"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                  <h4 class="card-title">Tempo médio até o primeiro clique</h4>
+                  <canvas id="grafico-tempo-ate-clique"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Duração média da sessão</h4>
+                <canvas id="grafico-duracao-sessao"></canvas>
+            </div>
+        </div>
+    </div>
+</div>

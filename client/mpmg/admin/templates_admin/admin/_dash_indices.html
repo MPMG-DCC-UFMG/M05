@@ -1,0 +1,121 @@
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ store_size }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Gigabytes</h5>
+                        <p class="mb-0 text-muted">no cluster</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon space-usage"><i class="fas fa-database"></i></div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ total_records }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Registros</h5>
+                        <p class="mb-0 text-muted">excluindo os logs</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon num-records"><i class="fas fa-server"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold" id="cpu_percent">0%</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">de processamento</h5>
+                        <p class="mb-0 text-muted">CPU de {{ allocated_processors }} núcleos</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon cpu-usage"><i class="fas fa-microchip"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold" id="mem_percent">0%</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">de memória</h5>
+                        <p class="mb-0 text-muted">{{ jvm_heap_size }}GB no heap</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon mem-usage"><i class="fas fa-memory"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body"  style="height: 240px;">
+                <h4 class="card-title">Uso do Processador</h4>
+                <canvas id="grafico-uso-processador"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+      <div class="card">
+          <div class="card-body" style="height: 240px;">
+              <h4 class="card-title">Consumo do Heap JVM</h4>
+              <canvas id="grafico-uso-memoria"></canvas>
+          </div>
+      </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Informações sobre os Índices</h4>
+                <table id="indices-status" class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Saúde</th>
+                        <th>Status</th>
+                        <th>Registros</th>
+                        <th>Tamanho</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in indices_info %}
+                        <tr>
+                          <td>{{ item.index_name }}</td>
+                          <td><span class="health-circle {{ item.health }}" alt="{{ item.health }}"></span></td>
+                          <td>{{ item.status }}</td>
+                          <td>{{ item.num_documents }}</td>
+                          <td>{{ item.total_store_size }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+      <div class="card">
+          <div class="card-body">
+              <h4 class="card-title">Proporção de Dados Indexados</h4>
+              <canvas id="grafico-pizza-qtdes-indices"></canvas>
+          </div>
+      </div>
+    </div>
+</div>

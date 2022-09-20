@@ -1,0 +1,133 @@
+{% load custom_tags %}
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ total_queries }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Consultas</h5>
+                        <p class="mb-0 text-muted">no período</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon search"><i class="fas fa-search"></i></div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ porc_total_no_clicks }}%</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Sem cliques</h5>
+                        <p class="mb-0 text-muted">{{ total_no_clicks }} consultas</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon no-click"><i class="far fa-file-excel"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ porc_total_no_results}}%</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Sem resultados</h5>
+                        <p class="mb-0 text-muted">{{ total_no_results }} consultas</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon no-result"><i class="far fa-file"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mt-md-0 mt-4">
+                    <div class="d-flex">
+                    <div class="wrapper">
+                        <h3 class="mb-0 font-weight-semibold">{{ avg_query_time }}</h3>
+                        <h5 class="mb-0 font-weight-medium text-primary">Tempo de resposta</h5>
+                        <p class="mb-0 text-muted">média em segundos</p>
+                    </div>
+                    <div class="wrapper my-auto ml-auto ml-lg-4">
+                        <div class="totals-icon time"><i class="far fa-clock"></i></div>
+                    </div>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <div class="row">
+      <div class="col-md-6 grid-margin stretch-card">
+          <div class="card">
+              <div class="card-body">
+                    <h4 class="card-title">Número de Consultas</h4>
+                    <canvas id="grafico-num-buscas-dia"></canvas>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-6 grid-margin stretch-card">
+          <div class="card">
+              <div class="card-body">
+                  <h4 class="card-title">Tempo de resposta médio</h4>
+                  <canvas id="grafico-tempo-resposta"></canvas>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                  <h4 class="card-title">Porcentagem de consultas sem clique</h4>
+                  <canvas id="grafico-consultas-sem-clique"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Porcentagem de consultas sem resultados</h4>
+                <canvas id="grafico-consultas-sem-resultado"></canvas>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+      <div class="card">
+          <div class="card-body">
+              <h4 class="card-title">Últimas consultas</h4>
+              <div class='last-queries-container'>
+              <table id="las-queries" class="table table-striped">
+                  <thead>
+                      <tr>
+                          <th>Consulta</th>
+                          <th>Usuário</th>
+                          <th>Data</th>
+                          <th>Tempo<i class="far fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tempo de resposta em segundos"></i></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for item in last_queries %}
+                      <tr>
+                          <td>{{ item.texto_consulta }}</td>
+                          <td>{{ item.nome_usuario }}</td>
+                          <td>{{ item.query_log_data_criacao|to_date|date:"d/m/Y G:i:s" }}</td>
+                          <td>{{ item.tempo_resposta_total|floatformat:2 }}</td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
