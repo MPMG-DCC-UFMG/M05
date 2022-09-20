@@ -7,7 +7,9 @@ export LD_RUN_PATH=/usr/local/lib
 
 # Installing Requirements
 pip install --use-deprecated=legacy-resolver -r requirements.txt
-pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+if ! [[ -z $(pip freeze | grep "torch==1.6.0+cu101") ]]; then
+    pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+fi
 
 ########################################
 
