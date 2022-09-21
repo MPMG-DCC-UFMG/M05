@@ -20,6 +20,7 @@ services:
         command: ./django_run.sh
         ports:
             - "8087:8087"
+            - "9200:9200"
         volumes:
             - static_volume:/home/django/mpmg/staticfiles
             - migrations:/home/django/mpmg/api/mpmgmain/migrations
