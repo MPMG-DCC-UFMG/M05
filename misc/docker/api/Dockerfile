@@ -20,19 +20,16 @@ RUN useradd --create-home --home-dir $HOME django
 RUN chown -R django:django $HOME
 
 # Create the appropriate directories
-ENV APP_HOME=/home/django/mpmg
-RUN mkdir $APP_HOME
+ENV APP_HOME=/home/django
 RUN mkdir $APP_HOME/staticfiles
 WORKDIR $APP_HOME
 
 COPY requirements.txt .
-COPY search_engine/mpmg mpmg
+COPY api .
+
+COPY ./misc/docker/api/django_run.sh ./django_run.sh
+RUN chmod +x django_run.sh
 
 RUN chown -R django:django $APP_HOME
 USER django
-
-COPY docker/django_run.sh ./django_run.sh
-RUN chmod +x django_run.sh
-
-# Collect static files
-RUN python3 manage.py collectstatic --no-input --clear
+RUN pip install -r requirements.txt

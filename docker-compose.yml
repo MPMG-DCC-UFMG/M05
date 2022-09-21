@@ -1,18 +1,18 @@
 version: '3.7'
 
 services:
-    client:
-        build:
-            context: .
-            dockerfile: ./misc/docker/client/Dockerfile
-        command: ./django_run.sh
-        ports:
-            - "8086:8086"
-        expose:
-            - 8086
-        env_file:
-            - ./misc/docker/client/.env
-        restart: on-failure
+    # client:
+    #     build:
+    #         context: .
+    #         dockerfile: ./misc/docker/client/Dockerfile
+    #     command: ./django_run.sh
+    #     ports:
+    #         - "8086:8086"
+    #     expose:
+    #         - 8086
+    #     env_file:
+    #         - ./misc/docker/client/.env
+    #     restart: on-failure
     api:
         build:
             context: .
@@ -20,8 +20,20 @@ services:
         command: ./django_run.sh
         ports:
             - "8087:8087"
+        volumes:
+            - static_volume:/home/django/mpmg/staticfiles
+            - migrations:/home/django/mpmg/api/mpmgmain/migrations
         expose:
             - 8087
         env_file:
             - ./misc/docker/api/.env
         restart: on-failure
+
+volumes:
+    static_volume:
+    migrations:
+        driver: local
+        driver_opts:
+            type: 'none'
+            o: 'bind'
+            device: './api/mpmg/services/migrations'
