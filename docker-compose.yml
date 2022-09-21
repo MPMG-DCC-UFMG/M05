@@ -1,18 +1,18 @@
 version: '3.7'
 
 services:
-    # client:
-    #     build:
-    #         context: .
-    #         dockerfile: ./misc/docker/client/Dockerfile
-    #     command: ./django_run.sh
-    #     ports:
-    #         - "8086:8086"
-    #     expose:
-    #         - 8086
-    #     env_file:
-    #         - ./misc/docker/client/.env
-    #     restart: on-failure
+    client:
+        build:
+            context: .
+            dockerfile: ./misc/docker/client/Dockerfile
+        command: ./django_run.sh
+        volumes:
+            - static_volume:/home/django/mpmg/staticfiles
+            - migrations:/home/django/mpmg/client/mpmgmain/migrations
+        env_file:
+            - ./misc/docker/client/.env
+        restart: on-failure
+        network_mode: host
     api:
         build:
             context: .
