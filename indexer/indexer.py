@@ -126,6 +126,10 @@ class Indexer:
                         timestamp = datetime.datetime.timestamp(element)
                         doc[field_name] = timestamp
 
+                elif field_name == 'categoria_empresa':
+                    categories = eval(line[field])
+                    doc[field_name] = categories
+
                 # elif field_name == 'data_indexacao':
                 #     if line[field] != '':
                 #         element = parse_date(line[field])

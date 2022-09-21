@@ -30,7 +30,7 @@ class Query:
             entidades, etc.
     '''
 
-    def __init__(self, raw_query, page, qid, sid, user_id, api_client_name, group='regular', query_filter:QueryFilter=None):
+    def __init__(self, raw_query, page, qid, sid, user_id, sort_by, sort_order, api_client_name, group='regular', query_filter:QueryFilter=None):
         self.start_time = time.time()
         self.raw_query = raw_query
         self.page = page
@@ -39,6 +39,8 @@ class Query:
         self.user_id = user_id
         self.api_client_name = api_client_name
         self.group = group
+        self.sort_by = sort_by
+        self.sort_order = sort_order
         self.query_filter = query_filter
         self.data_criacao = int(time.time()*1000)
         self.use_entities = APIConfig.identify_entities_in_query(api_client_name)
@@ -155,12 +157,12 @@ class Query:
         should_clause = self._get_should_clause()
         filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
         
-        self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index  = Document(self.api_client_name).search( self.indices,
+        self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index, self.doc_counts_by_category, self.doc_counts_by_company_category  = Document(self.api_client_name).search( self.indices,
             self.raw_query, must_clause, should_clause, filter_clause, self.page, self.results_per_page)
         
         self._log()
 
-        return self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index
+        return self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index, self.doc_counts_by_category, self.doc_counts_by_company_category
 
 
     #TODO: Adicionar parametros de entidades nos logs
@@ -180,6 +182,8 @@ class Query:
             documentos=[i['tipo']+':'+i['id']
                         for i in sorted(self.documents, key=lambda x: x['posicao_ranking'])],
             doc_counts_by_index = self.doc_counts_by_index,
+            doc_counts_by_category = self.doc_counts_by_category,
+            doc_counts_by_company_category = self.doc_counts_by_company_category,
             pagina = self.page,
             resultados_por_pagina = self.results_per_page,
             tempo_resposta_total = time.time() - self.start_time,
