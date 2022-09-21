@@ -89,7 +89,7 @@ class DocumentNavigationView(APIView):
                 using=self.elastic.es, index=index_name)
             search_obj.source(['entidade_bloco', 'titulo', 'num_bloco',
                             'num_segmento_bloco', 'num_segmento_global'])
-            query_param = {"term": {"id_pai": id_pai}}
+            query_param = {"match": {"id_pai": id_pai}}
             sort_param = {'num_segmento_global': {'order': 'asc'}}
 
             # faz a consulta uma vez pra pegar o total de segmentos
@@ -99,7 +99,7 @@ class DocumentNavigationView(APIView):
 
             # refaz a consulta trazendo todos os segmentos
             search_obj = search_obj[0:total_records]
-            # search_obj = search_obj.sort(sort_param)
+            search_obj = search_obj.sort(sort_param)
             elastic_result = search_obj.execute()
 
             # faz mais uma vez pra buscar os segmentos que casam com a consulta
