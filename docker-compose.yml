@@ -18,18 +18,13 @@ services:
             context: .
             dockerfile: ./misc/docker/api/Dockerfile
         command: ./django_run.sh
-        ports:
-            - "8087:8087"
-            - "9200:9200"
         volumes:
             - static_volume:/home/django/mpmg/staticfiles
             - migrations:/home/django/mpmg/api/mpmgmain/migrations
-        expose:
-            - 8087
         env_file:
             - ./misc/docker/api/.env
         restart: on-failure
-
+        network_mode: host
 volumes:
     static_volume:
     migrations:
