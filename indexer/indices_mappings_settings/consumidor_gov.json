@@ -76,6 +76,16 @@
                     }
                 }
             },
+            "nome_completo_empresa": {
+                "type": "text", 
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword", 
+                        "ignore_above": 256
+                    }
+                }
+            },
             "embedding": {
                 "type": "dense_vector",
                 "dims": 128

@@ -19,6 +19,7 @@ class ConsumidorGov(ElasticModel):
             'tipo_interacao',
             'data_criacao',
             'conteudo',
+            'nome_completo_empresa',
             'fonte',
             'entidade_pessoa',
             'entidade_organizacao',
