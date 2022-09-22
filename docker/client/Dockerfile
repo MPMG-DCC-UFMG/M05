@@ -7,7 +7,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get autoclean && \
     apt-get install -f
 
-RUN apt-get update && apt-get install -y default-jre postgresql-client gcc musl-dev
+RUN apt-get update && apt-get install -y default-jre gcc musl-dev
 
 # Don't create bytecode files
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -18,18 +18,18 @@ ENV PYTHONUNBUFFERED 1
 ENV HOME=/home/django
 RUN useradd --create-home --home-dir $HOME django
 RUN chown -R django:django $HOME
+WORKDIR $HOME
 
-# Create the appropriate directories
-ENV APP_HOME=/home/django
-RUN mkdir $APP_HOME/staticfiles
-WORKDIR $APP_HOME
-
+# Install Requirements
 COPY requirements.txt .
+USER django
+RUN pip install -r requirements.txt
+
+USER root
 COPY search_engine .
 
 COPY ./docker/client/django_run.sh ./django_run.sh
 RUN chmod +x django_run.sh
 
-RUN chown -R django:django $APP_HOME
+RUN chown -R django:django `ls`
 USER django
-RUN pip install -r requirements.txt
