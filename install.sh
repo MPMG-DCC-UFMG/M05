@@ -54,11 +54,4 @@ fi
 
 ########################################
 
-# Creating Database
-echo ""
-echo "Creating database..."
-cd ../search_engine
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser
-########################################
+docker-compose build

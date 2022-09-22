@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+    client:
+        build:
+            context: .
+            dockerfile: ./docker/client/Dockerfile
+        command: ./django_run.sh
+        # volumes:
+            # - static_volume:/home/django/mpmg/staticfiles
+            # - migrations:/home/django/mpmg/client/mpmg/main/migrations
+        env_file:
+            - ./docker/client/.env
+        restart: on-failure
+        network_mode: host
+    api:
+        build:
+            context: .
+            dockerfile: ./docker/api/Dockerfile
+        command: ./django_run.sh
+        # volumes:
+            # - static_volume:/home/django/mpmg/staticfiles
+            # - migrations:/home/django/mpmg/api/mpmg/main/migrations
+        env_file:
+            - ./docker/api/.env
+        restart: on-failure
+        network_mode: host
+# volumes:
+#     static_volume:
+#     migrations:
+#         driver: local
+#         driver_opts:
+#             type: 'none'
+#             o: 'bind'
+#             device: './api/mpmg/services/migrations'

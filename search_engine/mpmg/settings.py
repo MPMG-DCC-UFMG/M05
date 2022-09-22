@@ -149,7 +149,7 @@ ELASTICSEARCH_DSL = {
     },
 }
 
-SERVICES_URL = 'http://127.0.0.1:8000/services/'
+SERVICES_URL = 'http://localhost:8087/services/'
 
 NER_DIR = '../NER/M02/'
 

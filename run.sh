@@ -8,5 +8,4 @@ if [[ -z $(fuser 9200/tcp) ]]; then
     cd ..
 fi
 
-cd search_engine
-python manage.py runserver localhost:8000
+docker-compose up
