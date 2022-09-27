@@ -3,6 +3,7 @@
         "properties": {
             "titulo": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "term_vector": "with_positions_offsets",
                 "fields": {
                     "keyword": {
@@ -13,6 +14,7 @@
             },
             "conteudo": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "term_vector": "with_positions_offsets",
                 "fields": {
                     "keyword": {
@@ -29,6 +31,7 @@
             },
             "instancia": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -51,6 +54,7 @@
             },
             "entidade_pessoa": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -60,6 +64,7 @@
             },
             "entidade_organizacao": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -69,6 +74,7 @@
             },
             "entidade_local": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -78,6 +84,7 @@
             },
             "entidade_tempo": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -87,6 +94,7 @@
             },
             "entidade_legislacao": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -96,6 +104,7 @@
             },
             "entidade_jurisprudencia": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -132,6 +141,7 @@
             },
             "entidade_municipio": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -141,6 +151,7 @@
             },
             "tipo_documento": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -163,6 +174,20 @@
         "index": {
             "highlight": {
                 "max_analyzed_offset": "15000000"
+            }
+        },
+        "analysis": {
+            "analyzer": {
+                "standard_asciifolding": {
+                    "filter": [ "my_ascii_folding", "lowercase" ],
+                    "tokenizer": "standard"
+                }
+            },
+            "filter": {
+                "my_ascii_folding": {
+                  "type": "asciifolding",
+                  "preserve_original": true
+                }
             }
         }
     }

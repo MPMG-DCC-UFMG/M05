@@ -105,7 +105,9 @@ def main(maps_sets_path, default_data_path, elastic_address, elastic_username=No
         if just_created == False and 'settings' in directory_indices[index_name]:
 
             if not same_keys_values(directory_indices[index_name]['settings'], elastic_indices[index_name]['settings']):
+                es.indices.close(index = index_name)
                 es.indices.put_settings(index = index_name, body = directory_indices[index_name]['settings'])
+                es.indices.open(index = index_name)
                 print('Settings atualizado:', index_name)
                 c += 1
 

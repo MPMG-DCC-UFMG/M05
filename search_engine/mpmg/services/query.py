@@ -59,12 +59,11 @@ class Query:
     def _proccess_query(self):
         '''
         Faz todo o processamento necessário em cima da consulta original (raw_query):
-            - Tokeniza a consulta ignorando tokens com apenas um caractere
             - Gera o ID da consulta (para os logs)
             - Reconhece entidades na consulta caso o atributo use_entities seja True
         '''
 
-        self.query = ' '.join([w for w in self.raw_query.split() if len(w) > 1])
+        self.query = self.raw_query
         self._generate_query_id()
         self.query_entities, entities_fields = self._get_entities_in_query()
 
