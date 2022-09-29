@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from collections import defaultdict
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
 
 ENTITY_ICONS = {
     'entidade_pessoa': 'person',
@@ -25,27 +26,26 @@ ENTITY_ICONS = {
 CTRL_SYMBOLS_REGEX = re.compile(r'[\n\r\t]')
 
 def index(request):
-    if not request.session.get('auth_token'):
+    if not request.user.is_authenticated:
         return redirect('/aduna/login')
     
     context = {
-        'api_client_name': request.session['user_info']['api_client_name'],
-        'user_id': request.session.get('user_info')['user_id'],
-        'user_name': request.session.get('user_info')['first_name'],
+        'api_client_name': request.user.api_client_name,
+        'user_id': request.user.id,
+        'user_name': request.user.username,
         'services_url': settings.SERVICES_URL,
-        'auth_token': request.session.get('auth_token'),
     }
     
     return render(request, 'aduna/index.html', context)
 
 
 def search(request):
-    if request.GET.get('invalid_query', False) or not request.session.get('auth_token'):
+    if request.GET.get('invalid_query', False) or not request.user.is_authenticated:
         return redirect('/aduna/login')
     
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+    headers = {} # headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
     sid = request.session.session_key
     query = request.GET['consulta']
     sort_order = request.GET.get('ordenacao', 'descendente')
@@ -151,8 +151,6 @@ def search(request):
         return redirect('/aduna/erro')
 
     elif service_response.status_code == 401:
-        request.session['auth_token'] = None
-        request.session['user_info'] = None
         return redirect('/aduna/login')
 
     else:
@@ -177,9 +175,8 @@ def search(request):
 
         context = {
             'api_client_name': api_client_name,
-            'auth_token': request.session.get('auth_token'),
-            'user_name': request.session.get('user_info')['first_name'],
-            'user_id': request.session.get('user_info')['user_id'],
+            'user_name': request.user.username,
+            'user_id': request.user.id,
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -217,19 +214,17 @@ def search(request):
     
 
 def document(request, tipo_documento, id_documento):
-    if not request.session.get('auth_token'):
+    if not request.user.is_authenticated:
         return redirect('/aduna/login')
     
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
 
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+    headers = {} # headers = {'Authorization': 'Token '+request.session.get('auth_token')}
     sid = request.session.session_key
     service_response = requests.get(settings.SERVICES_URL+api_client_name+'/document', {'tipo_documento': tipo_documento, 'id_documento': id_documento}, headers=headers)
 
     if service_response.status_code == 401:
-        request.session['auth_token'] = None
-        request.session['user_info'] = None
-        return redirect('/aduna/login')
+        return redirect('/aduna/')
     else:
         query = request.GET.get('query', '')
         pessoa_filter = request.GET.getlist('pessoa', [])
@@ -259,14 +254,13 @@ def document(request, tipo_documento, id_documento):
             context = {
                 'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
-                'user_name': request.session.get('user_info')['first_name'],
+                'user_name': request.user.username,
                 'query': query,
                 'document': document,
                 'navigation': navigation,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
-                'user_id': request.session['user_info']['user_id'],
-                'auth_token': request.session.get('auth_token'),
+                'user_id': request.user.id,
             }
             return render(request, 'aduna/document_diario_segmentado.html', context)
         
@@ -282,13 +276,12 @@ def document(request, tipo_documento, id_documento):
             context = {
                 'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
-                'user_name': request.session.get('user_info')['first_name'],
+                'user_name': request.user.username,
                 'document': document,
                 'query': query,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
-                'user_id': request.session['user_info']['user_id'],
-                'auth_token': request.session.get('auth_token'),
+                'user_id': request.user.id,
             }
             return render(request, 'aduna/document_reclame_aqui.html', context)
         
@@ -304,13 +297,12 @@ def document(request, tipo_documento, id_documento):
             context = {
                 'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
-                'user_name': request.session.get('user_info')['first_name'],
+                'user_name': request.user.username,
                 'document': document,
                 'query': query,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
-                'user_id': request.session['user_info']['user_id'],
-                'auth_token': request.session.get('auth_token'),
+                'user_id': request.user.id,
             }
             return render(request, 'aduna/document_consumidor_gov.html', context)
 
@@ -325,48 +317,43 @@ def document(request, tipo_documento, id_documento):
             context = {
                 'api_client_name': api_client_name,
                 'services_url': settings.SERVICES_URL,
-                'user_name': request.session.get('user_info')['first_name'],
+                'user_name': request.user.username,
                 'document': document,
                 'query': query,
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
-                'user_id': request.session['user_info']['user_id'],
-                'auth_token': request.session.get('auth_token'),
+                'user_id': request.user.id,
             }
 
             return render(request, 'aduna/document_default.html', context)
 
 def login(request):
     if request.method == 'GET':
-        if request.session.get('auth_token'):
+        if request.user.is_authenticated:
             return redirect('/aduna/')
         return render(request, 'aduna/login.html')
 
     elif request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        service_response = requests.post(settings.SERVICES_URL+'login', {'username': username, 'password': password})
-        if service_response.status_code == 401:
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            django_login(request, user)
+            return redirect('/aduna/')
+        else:
             messages.add_message(request, messages.ERROR, 'Usuário ou senha inválidos.', extra_tags='danger')
             return redirect('/aduna/login')
-        else:
-            response_content = service_response.json()
-            request.session['user_info'] = response_content['user_info']
-            request.session['auth_token'] = response_content['token']
-            return redirect('/aduna/')
             
 
 
 def logout(request):
-    if not request.session.get('auth_token'):
+    if not request.user.is_authenticated:
         return redirect('/aduna/login')
     
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
-    service_response = requests.post(settings.SERVICES_URL+'logout', headers=headers)
+    django_logout(request)
 
     messages.add_message(request, messages.INFO, 'Você saiu.', extra_tags='info')
-    request.session['user_info'] = None
-    request.session['auth_token'] = None
     return redirect('/aduna/login')
 
 def erro(request):
@@ -374,12 +361,12 @@ def erro(request):
 
 
 def search_comparison(request):
-    if request.GET.get('invalid_query', False) or not request.session.get('auth_token'):
+    if request.GET.get('invalid_query', False) or not request.user.is_authenticated:
         return redirect('/aduna/login')
 
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+    headers = {} # headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
     sid = request.session.session_key
     query = request.GET.get('query', 'comparação de busca')
     qid = request.GET.get('qid', '')
@@ -413,8 +400,6 @@ def search_comparison(request):
         return redirect('/aduna/erro')
 
     elif service_response.status_code == 401:
-        request.session['auth_token'] = None
-        request.session['user_info'] = None
         return redirect('/aduna/login')
 
     else:
@@ -432,9 +417,8 @@ def search_comparison(request):
             id_pos[k] = ''.join(v)
 
         context = {
-            'auth_token': request.session.get('auth_token'),
-            'user_name': request.session.get('user_info')['first_name'],
-            'user_id': request.session.get('user_info')['user_id'],
+            'user_name': request.user.username,
+            'user_id': request.user.id,
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -466,12 +450,12 @@ def search_comparison(request):
 
 
 def search_comparison_entity(request):
-    if request.GET.get('invalid_query', False) or not request.session.get('auth_token'):
+    if request.GET.get('invalid_query', False) or not request.user.is_authenticated:
         return redirect('/aduna/login')
     
-    headers = {'Authorization': 'Token '+request.session.get('auth_token')}
+    headers = {} # headers = {'Authorization': 'Token '+request.session.get('auth_token')}
 
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
     sid = request.session.session_key
     query = request.GET.get('query', 'comparação de busca com entidade')
     qid = request.GET.get('qid', '')
@@ -506,8 +490,6 @@ def search_comparison_entity(request):
         return redirect('/aduna/erro')
 
     elif service_response.status_code == 401:
-        request.session['auth_token'] = None
-        request.session['user_info'] = None
         return redirect('/aduna/login')
 
     else:
@@ -525,9 +507,8 @@ def search_comparison_entity(request):
             id_pos[k] = ''.join(v)
 
         context = {
-            'auth_token': request.session.get('auth_token'),
-            'user_id': request.session.get('user_info')['user_id'],
-            'user_name': request.session.get('user_info')['first_name'],
+            'user_id': request.user.id,
+            'user_name': request.user.username,
             'services_url': settings.SERVICES_URL,
             'query': query,
             'page': page,
@@ -558,31 +539,30 @@ def search_comparison_entity(request):
         return render(request, 'aduna/search_comparison_entity.html', context)
 
 def bookmark(request):
-    if not request.session.get('auth_token'):
+    if not request.user.is_authenticated:
         return redirect('/aduna/login')
     
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
 
     context = {
         'api_client_name': api_client_name,
         'services_url': settings.SERVICES_URL,
-        'auth_token': request.session.get('auth_token'),
-        'user_id': request.session['user_info']['user_id']
+        'user_id': request.user.id
     }
     
     return render(request, 'aduna/bookmark.html', context)
 
 
 def recommendations(request):
-    if not request.session.get('auth_token'):
+    if not request.user.is_authenticated:
         return redirect('/aduna/login')
 
-    api_client_name = request.session['user_info']['api_client_name']
+    api_client_name = request.user.api_client_name
 
     notification_id = request.GET.get('notification_id', '')
     if notification_id:
         # Informa que a notificação foi visualizada
-        headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
+        headers = {} # headers = {'Authorization': 'Token '+ request.session.get('auth_token')}
         service_response = requests.put(settings.SERVICES_URL+api_client_name+'/notification', 
                                         data={
                                             'id_notificacao': notification_id,
@@ -595,8 +575,7 @@ def recommendations(request):
             time.sleep(.5)
 
     ctx = {
-        'auth_token': request.session.get('auth_token'),
-        'user_id': request.session.get('user_info')['user_id'],
+        'user_id': request.user.id,
         'notification_id': notification_id,
         'api_client_name': api_client_name,
         'services_url': settings.SERVICES_URL

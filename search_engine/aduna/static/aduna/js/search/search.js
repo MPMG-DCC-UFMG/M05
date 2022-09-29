@@ -25,7 +25,6 @@ function update_available_cities(state_id) {
         url: cities_api,
         type: 'get',
         dataType: 'json',
-        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             id_usuario: USER_ID,
         },
