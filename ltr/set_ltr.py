@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     build_train_file(train_judgments, filename=TRAIN_JUDGMENTS)
     build_train_file(test_judgments, filename=TEST_JUDGMENTS)
-    print("aqui",list(train_judgments.values())[0][0].features)
+
     # Train each ranklib model type
     print("Training")
     train_model(train_judgments, train_judgments)

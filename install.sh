@@ -13,7 +13,7 @@ fi
 
 ########################################
 
-# Install ElasticSearch
+# Install ElasticSearch and LTR Plugin
 echo "Check if ElasticSearch is installed..."
 if ! [[ -d "elasticsearch-7.10.2" ]]; then
     rm elasticsearch-7.10.2-linux-x86_64.tar.gz*
@@ -21,14 +21,8 @@ if ! [[ -d "elasticsearch-7.10.2" ]]; then
     wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.2-linux-x86_64.tar.gz
     tar -xvzf elasticsearch-7.10.2-linux-x86_64.tar.gz
     rm elasticsearch-7.10.2-linux-x86_64.tar.gz
-fi
 
-########################################
-
-# Setting Elasticsearch
-echo "Checking if ElasticSearch is ON..."
-if [[ -z $(fuser 9200/tcp) ]]; then
-    echo "Initializing ElasticSearch..."
+    echo "Initializing ElasticSearch to install Plugin"
     cd ./elasticsearch-7.10.2
 
     # remove configuracoes de segurança
@@ -40,12 +34,27 @@ if [[ -z $(fuser 9200/tcp) ]]; then
     echo "Waiting ElasticSearch..."
     sleep 60s
     ./bin/elasticsearch-plugin install https://github.com/o19s/elasticsearch-learning-to-rank/releases/download/v1.5.4-es7.10.2/ltr-plugin-v1.5.4-es7.10.2.zip
+    fuser -k 9200/tcp
+
     cd ..
 fi
 
 ########################################
 
-# Indexing Documents
+# Setting Elasticsearch
+echo "Checking if ElasticSearch is ON..."
+if [[ -z $(fuser 9200/tcp) ]]; then
+    echo "Initializing ElasticSearch..."
+    cd ./elasticsearch-7.10.2
+    ES_JAVA_OPTS=-Xmx2g ./bin/elasticsearch -d
+    echo "Waiting ElasticSearch..."
+    sleep 60s
+    cd ..
+fi
+# depois de instalado, tem de reiniciar o ES para funcionar
+########################################
+
+Indexing Documents
 echo ""
 echo "Indexing documents..."
 cd ./indexer
@@ -55,6 +64,7 @@ fi
 ########################################
 
 # Setting Up LTR
+export PYTHONPATH=./
 echo ""
 echo "Setting Up LTR..."
 cd ..
