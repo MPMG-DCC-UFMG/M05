@@ -5,7 +5,6 @@ function log_search_click(link){
         url: SERVICES_URL+API_CLIENT_NAME+'/log_search_click',
         type: 'post',
         dataType: 'json',
-        headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             id_usuario: USER_ID,
             posicao: $(link).data('rank-number'),
@@ -22,7 +21,6 @@ function log_suggestion_click(item){
         url: SERVICES_URL+API_CLIENT_NAME+'/log_query_suggestion_click',
         type: 'post',
         dataType: 'json',
-        headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             posicao_ranking: item['posicao_ranking'],
             suggestion: item['value'],
@@ -37,7 +35,6 @@ $(function(){
                 url: SERVICES_URL+API_CLIENT_NAME+'/query_suggestion',
                 type: 'get',
                 dataType: 'json',
-                headers:{'Authorization': 'Token ' + AUTH_TOKEN},
                 data:{
                     consulta: request.term
                 }

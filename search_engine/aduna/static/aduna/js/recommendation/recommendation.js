@@ -24,7 +24,6 @@ function update_feedback(recommendation_id, feedback_value) {
             id_recomendacao: recommendation_id,
             aprovado: feedback_value
         },
-        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
         },
         error: function (data) {
@@ -417,7 +416,6 @@ function mark_recommendation_as_seen(recommendation_id) {
             id_recomendacao: recommendation_id,
             visualizado: true
         },
-        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (data) {
             // console.log('tudo ok');
         },
@@ -441,7 +439,6 @@ function get_recommendations() {
         type: 'get',
         dataType: 'json',
         data: data,
-        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         success: function (recommendations) {
             RECOMMENDATIONS = recommendations;
             show_recommendations('Sem recomendações!');

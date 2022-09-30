@@ -88,7 +88,6 @@ function get_notifications() {
         url: NOTIFICATION_SERVICE_URL,
         type: 'get',
         dataType: 'json',
-        headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
         data: {
             id_usuario: USER_ID,
         },

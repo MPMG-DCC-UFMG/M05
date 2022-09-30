@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+    client:
+        build:
+            context: .
+            dockerfile: ./docker/client/Dockerfile
+        command: ./django_run.sh
+        env_file:
+            - ./docker/client/.env
+        restart: on-failure
+        network_mode: host
+    api:
+        build:
+            context: .
+            dockerfile: ./docker/api/Dockerfile
+        command: ./django_run.sh
+        env_file:
+            - ./docker/api/.env
+        restart: on-failure
+        network_mode: host
