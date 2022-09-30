@@ -13,6 +13,12 @@ class BookmarkView(APIView):
         description: Busca o conteúdo de um favorito por meio de seu ID único. Também é possível buscar um favorito informando o índice e o ID do documento salvo pelo favorito, junto com o ID do usuaŕio
             que criou o favorito. Se somente o id do usuário for informado, retorna a lista de todos favoritos dele.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_favorito
               in: query
               description: ID do bookmark. 
@@ -202,17 +208,6 @@ class BookmarkView(APIView):
                                 message: 
                                     type: string
                                     description: Mensagem de erro.
-            '400':
-                description: Algum(ns) do(s) campo(s) a ser alterado foi(ram) informado(s) incorretamente.
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties: 
-                                message: 
-                                    type: string
-                                    description: Mensagem de erro.
-
     delete:
         description: Apaga um favorito.
         requestBody:
@@ -263,7 +258,7 @@ class BookmarkView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         if 'id_favorito' in request.GET:
             bookmark = BOOKMARK.get(request.GET['id_favorito'])
 
@@ -279,10 +274,11 @@ class BookmarkView(APIView):
         elif 'id_usuario' in request.GET:
             id_usuario = request.GET['id_usuario']
 
-            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(id_usuario)
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, id_usuario)
 
             query = {'term': {'id_usuario.keyword': id_usuario}}
-            _, bookmarks = BOOKMARK.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, bookmarks = BOOKMARK.get_list(query,filter=client_filter, page='all')
 
             return Response(bookmarks, status=status.HTTP_200_OK)
 
@@ -298,7 +294,7 @@ class BookmarkView(APIView):
         return Response(bookmark, status=status.HTTP_200_OK)
  
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
@@ -312,9 +308,11 @@ class BookmarkView(APIView):
         folder_id = request.POST.get('id_pasta') 
 
         if not folder_id:
-            folder_id = user_id
+            BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
+            folder_id = BOOKMARK_FOLDER.get_default_bookmark_folder_id(api_client_name, user_id)
 
-        parent_folder = BOOKMARK_FOLDER.get(folder_id)
+        parent_folder = BOOKMARK_FOLDER.get(api_client_name,folder_id)
+        
         if parent_folder is None:
             return Response({'message': 'A pasta onde o bookmark seria salvo não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -330,7 +328,7 @@ class BookmarkView(APIView):
 
         BOOKMARK.parse_data_type(data)
         
-        BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(user_id)
+        BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
 
         session_id = request.POST.get('id_sessao', request.session.session_key)
 
@@ -350,7 +348,7 @@ class BookmarkView(APIView):
 
         return Response({'id_favorito': generated_bookmark_id}, status=status.HTTP_201_CREATED)        
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
 
         bookmark_id = data.get('id_favorito')
@@ -376,7 +374,7 @@ class BookmarkView(APIView):
         
         if 'id_pasta' in data:
             new_parent_folder_id = data['id_pasta']
-            new_parent_folder = BOOKMARK_FOLDER.get(new_parent_folder_id)
+            new_parent_folder = BOOKMARK_FOLDER.get(api_client_name, new_parent_folder_id)
             if new_parent_folder is None:
                 return Response({'message': 'A pasta onde o bookmark seria movido não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -385,7 +383,7 @@ class BookmarkView(APIView):
 
         return Response({'message': 'Não foi possível atualizar o favorito, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
 
         if 'id_favorito' not in data:

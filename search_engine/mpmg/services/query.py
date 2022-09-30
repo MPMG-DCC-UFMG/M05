@@ -30,20 +30,23 @@ class Query:
             entidades, etc.
     '''
 
-    def __init__(self, raw_query, page, qid, sid, user_id, group='regular', query_filter:QueryFilter=None):
+    def __init__(self, raw_query, page, qid, sid, user_id, sort_by, sort_order, api_client_name, group='regular', query_filter:QueryFilter=None):
         self.start_time = time.time()
         self.raw_query = raw_query
         self.page = page
         self.qid = qid
         self.sid = sid
         self.user_id = user_id
+        self.api_client_name = api_client_name
         self.group = group
+        self.sort_by = sort_by
+        self.sort_order = sort_order
         self.query_filter = query_filter
         self.data_criacao = int(time.time()*1000)
-        self.use_entities = APIConfig.identify_entities_in_query()
-        self.results_per_page =  APIConfig.results_per_page()
-        self.weighted_fields = APIConfig.searchable_fields()
-        self.indices = APIConfig.searchable_indices(group)
+        self.use_entities = APIConfig.identify_entities_in_query(api_client_name)
+        self.results_per_page =  APIConfig.results_per_page(api_client_name)
+        self.weighted_fields = APIConfig.searchable_fields(api_client_name)
+        self.indices = APIConfig.searchable_indices(api_client_name, group)
         self._proccess_query()
 
         # Os doc_types são os índices onde deve ser feita a busca, se o usuário
@@ -56,12 +59,11 @@ class Query:
     def _proccess_query(self):
         '''
         Faz todo o processamento necessário em cima da consulta original (raw_query):
-            - Tokeniza a consulta ignorando tokens com apenas um caractere
             - Gera o ID da consulta (para os logs)
             - Reconhece entidades na consulta caso o atributo use_entities seja True
         '''
 
-        self.query = ' '.join([w for w in self.raw_query.split() if len(w) > 1])
+        self.query = self.raw_query
         self._generate_query_id()
         self.query_entities, entities_fields = self._get_entities_in_query()
 
@@ -154,13 +156,13 @@ class Query:
         must_clause = self._get_must_clause()
         should_clause = self._get_should_clause()
         filter_clause = self.query_filter.get_filters_clause() if self.query_filter != None else []
-
-        self.total_docs, self.total_pages, self.documents, self.response_time  = Document().search( self.indices,
+        
+        self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index, self.doc_counts_by_category, self.doc_counts_by_company_category  = Document(self.api_client_name).search( self.indices,
             self.raw_query, must_clause, should_clause, filter_clause, self.page, self.results_per_page)
-
+        
         self._log()
 
-        return self.total_docs, self.total_pages, self.documents, self.response_time
+        return self.total_docs, self.total_pages, self.documents, self.response_time, self.doc_counts_by_index, self.doc_counts_by_category, self.doc_counts_by_company_category
 
 
     #TODO: Adicionar parametros de entidades nos logs
@@ -170,6 +172,7 @@ class Query:
         '''
         algo_configs = Elastic().get_cur_algo(group=self.group)
         data = dict(
+            nome_cliente_api=self.api_client_name,
             id_sessao = self.sid,
             id_consulta = self.qid,
             id_usuario = self.user_id,
@@ -178,6 +181,9 @@ class Query:
             tempo_resposta = self.response_time,
             documentos=[i['tipo']+':'+i['id']
                         for i in sorted(self.documents, key=lambda x: x['posicao_ranking'])],
+            doc_counts_by_index = self.doc_counts_by_index,
+            doc_counts_by_category = self.doc_counts_by_category,
+            doc_counts_by_company_category = self.doc_counts_by_company_category,
             pagina = self.page,
             resultados_por_pagina = self.results_per_page,
             tempo_resposta_total = time.time() - self.start_time,

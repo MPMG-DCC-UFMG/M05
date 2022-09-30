@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.urls import path
 from django.urls import reverse
 from django.shortcuts import render, redirect
 from mpmg.admin.forms import ConfigForm

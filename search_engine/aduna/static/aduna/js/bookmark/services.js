@@ -16,7 +16,7 @@ services.create_bookmark = function() {
         bookmark_icon.addClass('fas');
         
         $.ajax({
-            url: SERVICES_URL + 'bookmark',
+            url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
             type: 'post',
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -35,13 +35,14 @@ services.create_bookmark = function() {
                 setTimeout(function () { update_folder_tree(); }, 1500);
             },
             error: function (res) {
-                alert(`Não foi possível salvar o bookmark. Erro: ${res.message}. Tente novamente!`);
+                let message = res.responseJSON.message; 
+                alert(`Não foi possível salvar o bookmark.\n\nErro: ${message} \n\nTente novamente!`);
             }
         });
     } else {
         // mudando a pasta de local
         $.ajax({
-            url: SERVICES_URL + 'bookmark',
+            url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
             type: 'put',
             dataType: 'json',
             headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -70,7 +71,7 @@ services.remove_bookmark = function(bookmark_id) {
     }
 
     $.ajax({
-        url: SERVICES_URL + 'bookmark',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
         type: 'delete',
         dataType: 'json',
         async: false,
@@ -87,7 +88,7 @@ services.remove_bookmark = function(bookmark_id) {
 
 services.start_bookmark = function(index, item_id) {
     $.ajax({
-        url: SERVICES_URL + 'bookmark',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
         type: 'get',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -115,7 +116,7 @@ services.start_bookmark = function(index, item_id) {
 
 services.get_bookmark = function (bookmark_id) {
     return $.ajax({
-        url: SERVICES_URL + 'bookmark',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
         type: 'get',
         dataType: 'json',
         data: {
@@ -159,7 +160,7 @@ services.move_bookmark = function () {
         update_gallery();
 
     $.ajax({
-        url: SERVICES_URL + 'bookmark',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
         type: 'put',
         dataType: 'json',
         async: false,
@@ -177,7 +178,7 @@ services.move_bookmark = function () {
 
 services.rename_bookmark = function (new_name, bookmark_id, folder_id) {
     $.ajax({
-        url: SERVICES_URL + 'bookmark',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -198,7 +199,7 @@ services.rename_folder = function(folder_id, new_name) {
     
 
     $.ajax({
-        url: SERVICES_URL + 'bookmark_folder',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -211,7 +212,7 @@ services.remove_folder = function(folder_id) {
     console.log(`Removendo ${folder_id}`);
     
     $.ajax({
-        url: SERVICES_URL + 'bookmark_folder',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
         type: 'delete',
         dataType: 'json',
         async: false,
@@ -226,7 +227,7 @@ services.create_folder = function(parent_id) {
     let folder_name = 'Nova pasta';
     
     let ajax = $.ajax({
-        url: SERVICES_URL + 'bookmark_folder',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
         type: 'post',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -255,7 +256,7 @@ services.create_folder = function(parent_id) {
 services.get_folder_tree = function()  {
     let tree;
     $.ajax({
-        url: SERVICES_URL + 'bookmark_folder',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
         type: 'get',
         dataType: 'json',
         async: false,
@@ -308,7 +309,7 @@ services.move_folder = function () {
 
         for (let i = 0; i < folders_to_move.length;i++) {
             $.ajax({
-                url: SERVICES_URL + 'bookmark_folder',
+                url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
                 type: 'put',
                 dataType: 'json',
                 headers: { 'Authorization': 'Token ' + AUTH_TOKEN },
@@ -335,7 +336,7 @@ services.move_folder = function () {
 
 
     $.ajax({
-        url: SERVICES_URL + 'bookmark_folder',
+        url: SERVICES_URL + API_CLIENT_NAME+'/bookmark_folder',
         type: 'put',
         dataType: 'json',
         headers: { 'Authorization': 'Token ' + AUTH_TOKEN },

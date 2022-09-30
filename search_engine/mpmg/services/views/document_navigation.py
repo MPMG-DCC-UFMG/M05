@@ -12,6 +12,12 @@ class DocumentNavigationView(APIView):
         description: Retorna uma lista com todas as seções do documento a ser visualizado. \
         Caso a consulta e as entidades sejam passadas, as seções que contiverem os termos da consulta ou as entidades serão destacadas.
         parameters:
+            -   name: api_client_name
+                in: path
+                description: Nome do cliente da API. Passe "procon" ou "gsi".
+                required: true
+                schema:
+                    type: string
             -   name: id_documento
                 in: query
                 description: ID do documento (ou segmento) a ser buscado
@@ -58,7 +64,7 @@ class DocumentNavigationView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         try:
             id_documento = request.GET['id_documento']
             # o tipo do documento é o nome do índice
@@ -83,7 +89,7 @@ class DocumentNavigationView(APIView):
                 using=self.elastic.es, index=index_name)
             search_obj.source(['entidade_bloco', 'titulo', 'num_bloco',
                             'num_segmento_bloco', 'num_segmento_global'])
-            query_param = {"term": {"id_pai": id_pai}}
+            query_param = {"match": {"id_pai": id_pai}}
             sort_param = {'num_segmento_global': {'order': 'asc'}}
 
             # faz a consulta uma vez pra pegar o total de segmentos
@@ -93,7 +99,7 @@ class DocumentNavigationView(APIView):
 
             # refaz a consulta trazendo todos os segmentos
             search_obj = search_obj[0:total_records]
-            # search_obj = search_obj.sort(sort_param)
+            search_obj = search_obj.sort(sort_param)
             elastic_result = search_obj.execute()
 
             # faz mais uma vez pra buscar os segmentos que casam com a consulta

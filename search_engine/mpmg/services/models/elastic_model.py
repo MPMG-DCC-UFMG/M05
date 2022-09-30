@@ -1,7 +1,5 @@
-from os import PRIO_PGRP
 from typing import Tuple, Union
 from elasticsearch.exceptions import NotFoundError
-from sklearn.manifold import trustworthiness
 
 from mpmg.services.elastic import Elastic
 from mpmg.services.utils import get_current_timestamp
@@ -201,7 +199,7 @@ class ElasticModel(dict):
         return True
 
     @classmethod
-    def get_list(cls, query=None, filter=None, page=1, sort=None) -> Tuple[int, list]:
+    def get_list(cls, query=None, filter=[], page=1, sort=None) -> Tuple[int, list]:
         '''
         Busca uma lista de documentos do índice. Cada item da lista é uma instância da classe
         em questão. É possível passar parâmetros de ordenação em sort, e também parâmetros de 
@@ -222,9 +220,10 @@ class ElasticModel(dict):
 
         if query != None:
             search_obj = search_obj.query(cls.elastic.dsl.Q(query))
+        
 
-        elif filter != None:
-            search_obj = search_obj.filter(filter)
+        for f in filter:
+            search_obj = search_obj.query(cls.elastic.dsl.Q(f))
 
         if page == 'all':
             total = cls.get_total()
@@ -251,9 +250,10 @@ class ElasticModel(dict):
         return total_records, result_list
 
     @staticmethod
-    def get_indices_info():
+    def get_indices_info(searchable_indices: set):
         info = []
         response = ElasticModel.elastic.es.cat.indices()
+
         parts = response.strip().split('\n')
 
         for part in parts:
@@ -262,6 +262,9 @@ class ElasticModel(dict):
 
                 if subpart[2][0] == '.':
                     continue
+                
+                if subpart[2] not in searchable_indices:
+                    continue 
 
                 info.append({
                     'health': subpart[0],

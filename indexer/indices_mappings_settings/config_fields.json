@@ -1,6 +1,12 @@
 {
     "mappings" : {
         "properties" : {
+            "nome_cliente_api" : {
+                "type" : "text"
+            },
+            "ui_name" : {
+                "type" : "text"
+            },
             "field_name" : {
                 "type" : "text"
             },
@@ -9,9 +15,6 @@
             },
             "searchable" : {
                 "type" : "boolean"
-            },
-            "ui_name" : {
-                "type" : "text"
             },
             "weight" : {
                 "type" : "integer"

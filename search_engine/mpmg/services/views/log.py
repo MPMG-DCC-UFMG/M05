@@ -20,7 +20,7 @@ from ..elastic import Elastic
 class LogSearchView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         user_id = request.GET.get('user_id',  None)
         start_date = request.GET.get('start_date', None)
         end_date = request.GET.get('end_date', None)
@@ -34,7 +34,7 @@ class LogSearchView(APIView):
             data = {'message': 'Data inicial deve ser anterior à data final.'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        log_list = LogSearch.get_list_filtered(
+        log_list = LogSearch.get_list_filtered(api_client_name,
             id_usuario=user_id, start_date=start_date, end_date=end_date, page=page)
 
         response = {
@@ -43,13 +43,14 @@ class LogSearchView(APIView):
 
         return Response(response)
 
-    def post(self, request):
+    def post(self, request,api_client_name):
         '''
         Grava o log de uma consulta. Atualmente o log da consulta já está sendo
         gravado junto do método search da API. Mas ele está exposto aqui para o
         caso dessa dinâmica mudar e ser necessário chamar o método explicitamente.
         '''
         response = LogSearch().save(dict(
+            nome_cliente_api=api_client_name,
             id_sessao=request.POST['id_sessao'],
             id_consulta=request.POST['id_consulta'],
             id_usuario=int(request.POST['id_usuario']),
@@ -75,6 +76,13 @@ class LogSearchClickView(APIView):
     '''
     post:
       description: Grava no log o documento do ranking clicado pelo usuário.
+      parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -127,21 +135,22 @@ class LogSearchClickView(APIView):
         return Response(response)
     '''
 
-    def post(self, request):
+    def post(self, request, api_client_name):
 
-        response = LogSearchClick().save(dict(
-            id_usuario=request.POST['id_usuario'],
-            id_documento=request.POST['id_documento'],
-            id_consulta=request.POST['qid'],
-            posicao=request.POST['posicao'],
-            tipo_documento=request.POST['tipo_documento'],
-            pagina=request.POST['pagina'],
-            # FIXME: Usar método padronizado para obter timestamp
-            timestamp=int(time.time() * 1000),
-        ))
-
-        return Response({"success": len(response[1]) == 0})
-
+        try:
+            response = LogSearchClick().save(dict(
+                id_usuario=request.POST['id_usuario'],
+                id_documento=request.POST['id_documento'],
+                id_consulta=request.POST['qid'],
+                posicao=request.POST['posicao'],
+                tipo_documento=request.POST['tipo_documento'],
+                pagina=request.POST['pagina'],
+                # FIXME: Usar método padronizado para obter timestamp
+                timestamp=int(time.time() * 1000),
+            ))
+            return Response({"success": len(response[1])})
+        except Exception as err:
+            return Response(status=400)
 
 class LogQuerySuggestionView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -156,6 +165,13 @@ class LogQuerySuggestionClickView(APIView):
     '''
     post:
       description: Grava no log a sugestão de consulta clicada pelo usuário
+      parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -176,7 +192,7 @@ class LogQuerySuggestionClickView(APIView):
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         # FIXME: Criar método padronizado para obter timestamp
         timestamp = int(time.time() * 1000)
 
@@ -184,12 +200,13 @@ class LogQuerySuggestionClickView(APIView):
         sugestao = request.POST.get('sugestao', None)
 
         response = LogSugestoes().save(dict(
+            nome_cliente_api=api_client_name,
             sugestao=sugestao,
             posicao=posicao,
             timestamp=timestamp
         ))
 
-        return Response({"success": len(response[1]) == 0})
+        return Response({"success": len(response[1])})
 
 
 class LogDataGeneratorView():

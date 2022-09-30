@@ -16,6 +16,12 @@ class ConfigRecommendationSourceView(APIView):
     get:
         description: Retorna a lista de configuração de fontes de recomendação, podendo ser filtradas por ativas, ou uma configuração de fonte específica, se o ID for informado.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_conf_fonte
               in: query
               description: ID do source a ser recuperada.
@@ -41,6 +47,9 @@ class ConfigRecommendationSourceView(APIView):
                                     id:
                                         type: string
                                         description: ID da source.
+                                    nome_cliente_api:
+                                        type: string
+                                        description: Nome do cliente da API.
                                     nome:
                                         type: string
                                         description: Nome amigável que aparecerá ao usuário representando a source.
@@ -214,7 +223,7 @@ class ConfigRecommendationSourceView(APIView):
     '''
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         source_id = request.GET.get('id_conf_fonte')
 
         if source_id:
@@ -229,12 +238,12 @@ class ConfigRecommendationSourceView(APIView):
         if active is not None:
             active = str2bool(active)
 
-        conf_rec_sources = CONF_REC_SOURCE.get(active=active)
+        conf_rec_sources = CONF_REC_SOURCE.get(api_client_name, active=active)
         return Response(conf_rec_sources, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
-
+  
         expected_fields = {'nome', 'nome_indice', 'quantidade', 'ativo'}
         optional_fields = {}
         all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
@@ -242,7 +251,7 @@ class ConfigRecommendationSourceView(APIView):
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_source = CONF_REC_SOURCE.get(data['nome_indice'])
+        conf_source = CONF_REC_SOURCE.get(api_client_name,source_id=data['nome_indice'])
         if conf_source is not None:
             return Response({'message': 'Só pode haver uma configuração de recomendação de fonte por índice.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -250,6 +259,7 @@ class ConfigRecommendationSourceView(APIView):
 
         source_id = CONF_REC_SOURCE.save(dict(
             nome=data['nome'],
+            nome_cliente_api=api_client_name,
             nome_indice=data['nome_indice'],
             quantidade=data['quantidade'],
             ativo=data['ativo'],
@@ -260,7 +270,7 @@ class ConfigRecommendationSourceView(APIView):
         
         return Response({'id_conf_fonte': source_id}, status=status.HTTP_201_CREATED)
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
 
         source_conf_id = data.get('id_conf_fonte') 
@@ -268,7 +278,8 @@ class ConfigRecommendationSourceView(APIView):
         if source_conf_id is None:
             return Response({'message': 'É necessário informar nome_indice ou id_conf_fonte para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_rec_source = CONF_REC_SOURCE.get(source_conf_id)
+        conf_rec_source = CONF_REC_SOURCE.get(api_client_name, source_id=source_conf_id)
+
         if conf_rec_source is None:
             return Response({'message': 'Configuração de fonte de recomendação não existe ou não encontrada'}, status=status.HTTP_404_NOT_FOUND)        
 
@@ -293,14 +304,14 @@ class ConfigRecommendationSourceView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a configuração de fonte de recomendação. Tente novamente.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)        
         conf_source_id = data.get('id_conf_fonte')
 
         if conf_source_id is None:
             return Response({'message': 'É necessário informar id_conf_fonte ou nome_indice!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_source = CONF_REC_SOURCE.get(conf_source_id)
+        conf_source = CONF_REC_SOURCE.get(api_client_name,source_id=conf_source_id)
         if conf_source is None:
             return Response({'message': 'Configuração de fonte de recomendação não encontrada para ser removido!'}, status=status.HTTP_404_NOT_FOUND)
 

@@ -1,0 +1,14 @@
+{
+    "mappings": {
+        "properties": {
+            "categoria": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        }
+    }
+}

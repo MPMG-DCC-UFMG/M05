@@ -14,6 +14,12 @@ class ConfigRecommendationEvidenceView(APIView):
     get:
         description: Retorna a lista de configuração de evidências, podendo ser filtradas por ativas, ou uma configuração de evidência específica, se o ID for informado.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string
             - name: id_conf_evidencia
               in: query
               description: ID da onfiguração de evidência a ser recuperada.
@@ -39,6 +45,9 @@ class ConfigRecommendationEvidenceView(APIView):
                                     id:
                                         type: string
                                         description: ID do tipo de evidência.
+                                    nome_cliente_api:
+                                        type: string
+                                        description: Nome do cliente da API.
                                     nome:
                                         type: string
                                         description: Nome amigável que aparecerá ao usuário representando o tipo da evidência.
@@ -152,8 +161,8 @@ class ConfigRecommendationEvidenceView(APIView):
                             nome:
                                 description: Nome amigável do tipo de evidência.
                                 type: string
-                            quantidade:
                                 type: integer
+                            quantidade:
                                 description: Quantidade de documentos representantes do tipo de evidência que será buscado no índice correspondente.
                             similaridade_minima:
                                 type: number
@@ -239,7 +248,7 @@ class ConfigRecommendationEvidenceView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         evidence_conf_id = request.GET.get('id_conf_evidencia')
 
         if evidence_conf_id:
@@ -253,11 +262,11 @@ class ConfigRecommendationEvidenceView(APIView):
         if active is not None:
             active = str2bool(active)
 
-        conf_rec_evidences = CONF_REC_EVIDENCE.get(active=active)
+        conf_rec_evidences = CONF_REC_EVIDENCE.get(api_client_name, active=active)
 
         return Response(conf_rec_evidences, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
         expected_fields = {'nome', 'tipo_evidencia', 'nome_indice', 'quantidade', 'similaridade_minima', 'top_n_recomendacoes', 'ativo'}
@@ -267,13 +276,14 @@ class ConfigRecommendationEvidenceView(APIView):
         if not all_fields_available:
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_evidence = CONF_REC_EVIDENCE.get(data['tipo_evidencia'])
+        conf_evidence = CONF_REC_EVIDENCE.get(api_client_name,conf_evidence_id=data['tipo_evidencia'])
         if conf_evidence is not None:
             return Response({'message': 'Só pode haver uma configuração de recomendação de evidência por índice.'}, status=status.HTTP_400_BAD_REQUEST)
 
         CONF_REC_EVIDENCE.parse_data_type(data)
         conf_evidence_id = CONF_REC_EVIDENCE.save(dict(
                 nome = data['nome'],
+                nome_cliente_api = api_client_name,
                 tipo_evidencia = data['tipo_evidencia'],
                 nome_indice = data['nome_indice'],
                 quantidade = data['quantidade'],
@@ -288,21 +298,21 @@ class ConfigRecommendationEvidenceView(APIView):
         
         return Response({'id_conf_evidencia': conf_evidence_id}, status=status.HTTP_201_CREATED)
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
         evidence_conf_id = data.get('id_conf_evidencia')
 
         if evidence_conf_id is None:
             return Response({'message': 'É necessário informar id_conf_evidencia para alteração.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        conf_rec_evidence = CONF_REC_EVIDENCE.get(evidence_conf_id) 
+        conf_rec_evidence = CONF_REC_EVIDENCE.get(api_client_name, conf_evidence_id=evidence_conf_id) 
         if conf_rec_evidence is None:
             return Response({'message': 'Configuração de evidência não existe ou não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         if 'id_conf_evidencia' in data:
             del data['id_conf_evidencia']
             
-        valid_fields = {'similaridade_minima', 'quantidade', 'top_n_recomendacoes', 'ativo', 'nome'} 
+        valid_fields = {'similaridade_minima', 'nome_cliente_api', 'quantidade', 'top_n_recomendacoes', 'ativo', 'nome'} 
         data_fields_valid, unexpected_fields_message = validators.some_expected_fields_are_available(data, valid_fields)
 
         if not data_fields_valid:
@@ -318,14 +328,14 @@ class ConfigRecommendationEvidenceView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a configuração da evidência. Tente novamente!'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
         conf_evidence_id = data.get('id_conf_evidencia')
 
         if conf_evidence_id is None:
             return Response({'message': 'É necessário informar id_conf_evidencia!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        evidence = CONF_REC_EVIDENCE.get(conf_evidence_id)
+        evidence = CONF_REC_EVIDENCE.get(api_client_name, conf_evidence_id=conf_evidence_id)
         if evidence is None:
             return Response({'message': 'A configuração de evidência não existe ou não foi encontrada!'}, status=status.HTTP_404_NOT_FOUND)
 

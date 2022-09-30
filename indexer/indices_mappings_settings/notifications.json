@@ -1,6 +1,17 @@
 {
     "mappings" : {
         "properties" : {
+            "nome_cliente_api": {
+                "type": "text"
+            },
+            "id_usuario" : {
+                "type" : "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
             "data_criacao" : {
                 "type" : "date"
             },
@@ -12,14 +23,6 @@
             },
             "tipo" : {
                 "type" : "text"
-            },
-            "id_usuario" : {
-                "type" : "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword"
-                    }
-                }
             }
         }
     }

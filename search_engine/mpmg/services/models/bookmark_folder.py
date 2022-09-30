@@ -13,6 +13,7 @@ class BookmarkFolder(ElasticModel):
         index_fields = [
             'id_usuario',
             'id_pasta_pai',
+            'nome_cliente_api',
             'nome',
             'data_criacao',
             'data_modificacao',
@@ -29,7 +30,7 @@ class BookmarkFolder(ElasticModel):
             Retorna uma lista onde cada elemento é um dicionário representando as subpastas da pasta folder_id.
 
         '''
-        filter = {'term': {'id_pasta_pai.keyword': folder_id}}
+        filter = [{'term': {'id_pasta_pai.keyword': folder_id}}]
         _, folders_found = super().get_list(filter=filter, page='all')
         return folders_found
 
@@ -46,7 +47,7 @@ class BookmarkFolder(ElasticModel):
         
         return doc_filter(settings.BOOKMARK_INDEX, {'term': {'id_pasta.keyword': folder_id}}) 
          
-    def get(self, folder_id: str) -> dict:
+    def get(self, api_client_name: str, folder_id: str) -> dict:
         '''Recupera a pasta de ID folder_id.
 
         Args:
@@ -59,38 +60,46 @@ class BookmarkFolder(ElasticModel):
         
         try:
             retrieved_element = self.elastic.es.get(index=self.index_name, id=folder_id)
+            source = retrieved_element['_source']
+            element = {'id': retrieved_element['_id'], **source}
         
         except NotFoundError:
             return None 
 
-        source = retrieved_element['_source']
-        element = {'id': retrieved_element['_id'], **source}
+        if element['nome_cliente_api'] != api_client_name:
+            return None 
 
         element['subpastas'] = self._get_subfolders(folder_id)
         element['favoritos'] = self._get_bookmarks(folder_id)
 
         return element
+    
+    def get_default_bookmark_folder_id(self, api_client_name: str, user_id: str) -> float:
+        return f'{api_client_name}-{user_id}'
 
-    def create_default_bookmark_folder_if_necessary(self, user_id: str):
+    def create_default_bookmark_folder_if_necessary(self, api_client_name: str, user_id: str):
         ''' Cria uma pasta default para um usuário caso ela não tenha uma.
 
         Args:
             - user_id: ID do usuário a ter uma pasta default criada.
         '''
         
+        default_id = self.get_default_bookmark_folder_id(api_client_name, user_id)
+
         try:
-            self.elastic.es.get(index=self.index_name, id=user_id)
+            self.elastic.es.get(index=self.index_name, id=default_id)
 
         except NotFoundError:
             data = dict(
                 criador=str(user_id),
                 nome=settings.DEFAULT_BOOKMARK_FOLDER_NAME,
                 pasta_pai=None,
+                nome_cliente_api=api_client_name,
             )
 
-            super().save(data, user_id)
+            super().save(data, default_id)
 
-    def delete(self, folder_id: str) -> bool:
+    def delete(self, api_client_name: str, folder_id: str) -> bool:
         ''' Deleta a pasta folder_id junto com todas suas subpastas e bookmarks.
 
         TODO: Tornar as operações feitas aqui atômicas.
@@ -101,10 +110,10 @@ class BookmarkFolder(ElasticModel):
         Returns:
             Retorna True se a última deleção ocorreu corretamente, False, caso contrário.
         '''
-        folder = self.get(folder_id)
+        folder = self.get(api_client_name, folder_id)
             
         for subfolder in folder['subpastas']:
-            self.delete(subfolder['id'])
+            self.delete(api_client_name, subfolder['id'])
         
         for bookmark in folder['favoritos']:
             self.elastic.es.delete(index=settings.BOOKMARK_INDEX, id=bookmark['id'])
@@ -112,7 +121,7 @@ class BookmarkFolder(ElasticModel):
         response = self.elastic.es.delete(index=self.index_name, id=folder_id)
         return response['result'] == 'deleted'
 
-    def get_folder_tree(self, folder_id: str) -> dict:
+    def get_folder_tree(self, api_client_name: str, folder_id: str) -> dict:
         '''Retorna a árvore de pastas a partir de folder_id. 
 
         Args:
@@ -123,12 +132,12 @@ class BookmarkFolder(ElasticModel):
             
         '''
         
-        folder = self.get(folder_id)
+        folder = self.get(api_client_name, folder_id)
 
         subpastas = list()
         for subfolder in folder['subpastas']:
             subfolder_id = subfolder['id']
-            subpastas.append(self.get_folder_tree(subfolder_id))
+            subpastas.append(self.get_folder_tree(api_client_name, subfolder_id))
 
         folder['subpastas'] = subpastas
         return folder

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from shutil import ExecError
 from typing import Dict, List, Union
 from typing_extensions import Literal
 
@@ -26,6 +27,7 @@ class DocumentRecommendation(ElasticModel):
             'id_usuario',
             'id_notificacao',
             'indice_doc_recomendado',
+            'nome_cliente_api',
             'id_doc_recomendado',
             'titulo_doc_recomendado',
             'evidencia',
@@ -41,7 +43,7 @@ class DocumentRecommendation(ElasticModel):
 
         super().__init__(index_name, meta_fields, index_fields, **kwargs)
 
-    def _get_users_ids_to_recommend(self) -> list:
+    def _get_users_ids_to_recommend(self, api_client_name: str) -> list:
         '''
         Retorna uma lista com todos os user_ids da API para fazer a recomendação.
         Como a API não controla os usuários (quem controla é o WSO2),
@@ -53,6 +55,8 @@ class DocumentRecommendation(ElasticModel):
         # busca todos os IDs, varrendo os índices de logs de buscas e bookmarks
         search_obj = self.elastic.dsl.Search(
             using=self.elastic.es, index=['log_buscas', 'bookmark'])
+
+        search_obj = search_obj.filter({'term': {'nome_cliente_api': api_client_name}})
         
         # não precisa retornar documentos, apenas a agregação
         search_obj = search_obj.extra(size=0)
@@ -75,7 +79,7 @@ class DocumentRecommendation(ElasticModel):
         # TODO: pegar dinamicamente a data
         return 0
 
-    def _get_candidate_documents(self, reference_date: int) -> list:
+    def _get_candidate_documents(self, api_client_name, reference_date: int) -> list:
         '''
         Retorna uma lista de documentos candidatos para serem recomendados.
         Os documentos devem ter a data de indexação posterior à reference_date
@@ -88,10 +92,11 @@ class DocumentRecommendation(ElasticModel):
         '''
 
         # qtde e tipo dos documentos candidatos
-        conf_rec_sources = CONF_REC_SOURCE.get(active=True)
+        conf_rec_sources = CONF_REC_SOURCE.get(api_client_name, active=True)
 
         candidates_keys = set()
         candidates = list()
+
         for item in conf_rec_sources:
             index_name = item['nome_indice']
             amount = item['quantidade']
@@ -106,7 +111,7 @@ class DocumentRecommendation(ElasticModel):
             elastic_result = search_obj.execute()
 
             for item in elastic_result:
-                key = f'{index_name}:{item.meta.id}'
+                key = f'{index_name}-{item.meta.id}'
 
                 if key not in candidates_keys:
                     candidates.append({'id': item.meta.id, 
@@ -185,7 +190,10 @@ class DocumentRecommendation(ElasticModel):
 
         return user_evidences
 
-    def _get_evidences(self, user_id: str, evidence_type: Literal["query", "click", "bookmark"], evidence_index: str, amount: int) -> List[Dict]:
+    def _get_evidences(self, user_id: str, 
+                            evidence_type: Literal["query", "click", "bookmark"], 
+                            evidence_index: str, 
+                            amount: int) -> List[Dict]:
         '''
         Retorna uma lista de evidências do usuário para servir como base de recomendação.
         As evidências podem ser 3:
@@ -225,10 +233,13 @@ class DocumentRecommendation(ElasticModel):
         # Scipy retorna a distância do cossento, e não a similaridade. 
         return 1.0 - scipy_cosine_distance(doc_vec_1, doc_vec_2)
 
-    def _create_doc_rec(self, user_id: str, doc_recommended: dict, evidence_source: dict, evidence_type: str, score: float) -> dict:
+    def _create_doc_rec(self, api_client_name: str, user_id: str, doc_recommended: dict, 
+                            evidence_source: dict, evidence_type: str, score: float) -> dict:
+        
         return {
             'id_usuario': user_id,
             'id_notificacao': None,
+            'nome_cliente_api': api_client_name, 
             'indice_doc_recomendado': doc_recommended['index_name'],
             'id_doc_recomendado': doc_recommended['id'],
             'titulo_doc_recomendado': doc_recommended['title'].strip(),
@@ -242,11 +253,11 @@ class DocumentRecommendation(ElasticModel):
             'data_visualizacao': None
         }
 
-    def _recommend(self, user_id: str) -> List[Dict]:
+    def _recommend(self, user_id: str, api_client_name: str) -> List[Dict]:
         ref_date = self._get_last_recommendation_date(user_id)
-        doc_candidates = self._get_candidate_documents(ref_date)
+        doc_candidates = self._get_candidate_documents(api_client_name, ref_date)
 
-        configs_rec_evidences = CONF_REC_EVIDENCE.get(active=True)        
+        configs_rec_evidences = CONF_REC_EVIDENCE.get(api_client_name, active=True)        
         recommendations = list()
 
         for conf_rec_evidence in configs_rec_evidences:
@@ -259,9 +270,6 @@ class DocumentRecommendation(ElasticModel):
             amount = conf_rec_evidence['quantidade']
             
             user_evidences = self._get_evidences(user_id, evidence_type, evidence_index, amount)
-
-            # computa a similaridade entre os documentos candidatos e a evidência
-            similarity_ranking = list()
 
             evidence_ranking = dict()
             for evidence_idx, evidence_doc in enumerate(user_evidences):
@@ -290,10 +298,13 @@ class DocumentRecommendation(ElasticModel):
 
                 for i in range(min(top_n - num_docs_recommended_in_evidence, len(candidate_rankings))):
                     candidate_i, score, evidence_i = candidate_rankings[i]
-                    doc_rec = self._create_doc_rec(user_id, 
-                                                    doc_candidates[candidate_i], 
-                                                    user_evidences[evidence_i], 
-                                                    evidence_type, score)
+                    doc_rec = self._create_doc_rec(api_client_name,
+                                                user_id, 
+                                                doc_candidates[candidate_i], 
+                                                user_evidences[evidence_i], 
+                                                evidence_type, 
+                                                score)
+
                     recommendations.append(doc_rec)
 
                     del doc_candidates[candidate_i]
@@ -308,7 +319,8 @@ class DocumentRecommendation(ElasticModel):
         if len(recommendations) > 0:
             notification_id = NOTIFICATION.save({
                 'id_usuario': user_id,
-                'texto': 'Novos documentos que possam ser do seu interesse.',
+                'texto': 'Novos documentos que possam ser do seu interesse :)',
+                'nome_cliente_api': api_client_name,
                 'tipo': 'RECOMMENDATION'
             })     
 
@@ -318,10 +330,10 @@ class DocumentRecommendation(ElasticModel):
         
         return recommendations
 
-    def recommend(self, user_id: str) -> Union[List[dict], dict]:
-        user_ids = self._get_users_ids_to_recommend() if user_id == 'all' else user_id
+    def recommend(self, user_id: str, api_client_name: str) -> Union[List[dict], dict]:
+        user_ids = self._get_users_ids_to_recommend(api_client_name) if user_id == 'all' else user_id
         
         if type(user_ids) is list:
-            return {user_id: self._recommend(user_id) for user_id in user_ids}
+            return {user_id: self._recommend(user_id, api_client_name) for user_id in user_ids}
 
-        return self._recommend(user_id)
+        return self._recommend(user_id, api_client_name)

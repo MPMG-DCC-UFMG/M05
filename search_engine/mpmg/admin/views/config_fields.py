@@ -11,7 +11,7 @@ class ConfigFieldsView(admin.AdminSite):
     def view_fields(self, request):
 
         if request.method == 'GET':
-            fields_list = APIConfig.get_fields()
+            fields_list = APIConfig.get_fields(request.user.api_client_name)
 
             context = dict(
                 self.each_context(request), # admin template variables.

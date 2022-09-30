@@ -13,6 +13,12 @@ class DocumentView(APIView):
     get:
       description: Busca o conteúdo completo de um documento específico.
       parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
         - name: id_documento
           in: query
           description: ID do documento
@@ -33,21 +39,16 @@ class DocumentView(APIView):
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         tipo_documento = request.GET['tipo_documento']
         id_documento = request.GET['id_documento']
 
         # instancia a classe apropriada e busca o registro no índice
-        index_class = APIConfig.searchable_index_to_class('regular')[tipo_documento]
-
-        try:
-            document = index_class.get(id_documento)
-
+        index_class = APIConfig.searchable_index_to_class(api_client_name, 'regular')[tipo_documento]
+        document = index_class.get(id_documento)
+        if document:
             data = {
                 'document': document
             }
-
             return Response(data)
-        
-        except NotFoundError:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_404_NOT_FOUND)

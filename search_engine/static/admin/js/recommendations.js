@@ -1,6 +1,6 @@
 function send_change_request(conf_type, data) {
     $.ajax({
-        url: SERVICES_URL + `config_recommendation/${conf_type}`,
+        url: SERVICES_URL + `${API_CLIENT_NAME}/config_recommendation/${conf_type}`,
         type: 'put',
         dataType: 'json',
         async: false,
@@ -20,7 +20,7 @@ function update_config_rec_sources() {
 
     let config;
     let data_changed;
-    let config_type;
+    let config_id;
     
     let amount;
     let active;
@@ -28,13 +28,12 @@ function update_config_rec_sources() {
     let wait_for_changes = false;
 
     for (let i=0;i<confs.length;i++) {
-        config_type = confs[i].getAttribute('config');
+        config_id = confs[i].getAttribute('index_id');
 
         amount = parseInt(confs[i].querySelector('.rec_size').value);
         active = confs[i].querySelector('.rec_active').checked;
-        
-        config = CONF_REC_SRC.filter(function(item) { return item.id == config_type;})[0];
 
+        config = CONF_REC_SRC.filter(function (item) { return item.id == config_id;})[0];
         data_changed = {};
 
         if (amount != config.quantidade)
@@ -44,7 +43,7 @@ function update_config_rec_sources() {
             data_changed.ativo = active;
 
         if (Object.keys(data_changed).length > 0) {
-            data_changed.id_conf_fonte = config_type;
+            data_changed.id_conf_fonte = config_id;
             wait_for_changes = true;
 
             send_change_request('sources', data_changed);
@@ -56,7 +55,6 @@ function update_config_rec_sources() {
             location.reload();
         }, 750);
     }
-
 }
 
 function update_config_rec_evidences() {
@@ -66,7 +64,7 @@ function update_config_rec_evidences() {
 
     let config;
     let data_changed;
-    let config_type;
+    let config_id;
     
     let amount;
     let min_similarity;
@@ -76,14 +74,14 @@ function update_config_rec_evidences() {
     let wait_for_changes = false;
 
     for (let i=0;i<confs.length;i++) {
-        config_type = confs[i].getAttribute('config');
+        config_id = confs[i].getAttribute('index_id');
 
         amount = parseInt(confs[i].querySelector('.ev_amount').value);
         min_similarity = parseInt(confs[i].querySelector('.ev_min_sim').value);
         top_n_recommendations = parseInt(confs[i].querySelector('.ev_top_n').value);
         active = confs[i].querySelector('.ev_active').checked;
         
-        config = CONF_REC_EV.filter(function (item) { return item.id == config_type })[0];
+        config = CONF_REC_EV.filter(function (item) { return item.id == config_id })[0];
         data_changed = {};
 
         if (amount != config.quantidade)
@@ -100,7 +98,7 @@ function update_config_rec_evidences() {
 
         
         if (Object.keys(data_changed).length > 0) {
-            data_changed.id_conf_evidencia = config_type;
+            data_changed.id_conf_evidencia = config_id;
             wait_for_changes = true;
 
             send_change_request('evidences', data_changed);
@@ -112,8 +110,6 @@ function update_config_rec_evidences() {
             location.reload();
         }, 950);
     }
-
-   
 }
 
 function bind_label_to_range(id) {

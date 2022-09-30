@@ -1,10 +1,4 @@
-from os import stat
-from time import time
-
-import numpy as np
-from aduna.views import recommendations
-from mpmg.services.models import (ConfigRecommendationEvidence,
-                                  DocumentRecommendation, Notification)
+from mpmg.services.models import DocumentRecommendation
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +14,12 @@ class DocumentRecommendationView(APIView):
     get:
         description: Retorna a lista de recomendações de um usuário. Se o ID da notificação que gerou as recomendações for passado, só elas serão retornadas.
         parameters:
+            - name: api_client_name
+              in: path
+              description: Nome do cliente da API. Passe "procon" ou "gsi".
+              required: true
+              schema:
+                type: string        
             - name: id_usuario
               in: query
               description: ID do usuário
@@ -159,7 +159,7 @@ class DocumentRecommendationView(APIView):
 
     schema = AutoDocstringSchema()
     
-    def get(self, request):
+    def get(self, request, api_client_name):
         if 'id_recomendacao' in request.GET:
             rec_id = request.GET['id_recomendacao']
             reccomendation = DOC_REC.get(rec_id)
@@ -170,32 +170,35 @@ class DocumentRecommendationView(APIView):
         elif 'id_notificacao' in request.GET:
             notification_id = request.GET['id_notificacao']
             query = {'term': {'id_notificacao.keyword': notification_id}}
-            _, reccomendations = DOC_REC.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, reccomendations = DOC_REC.get_list(query, filter=client_filter, page='all')
             return Response(reccomendations, status=status.HTTP_200_OK) 
 
         elif 'id_usuario' in request.GET:
             user_id = request.GET['id_usuario']
             query = {'term': {'id_usuario.keyword': user_id}}
-            _, reccomendations = DOC_REC.get_list(query, page='all')
+            client_filter = [{"term": { "nome_cliente_api": api_client_name}}]
+            _, reccomendations = DOC_REC.get_list(query, filter=client_filter, page='all')
             return Response(reccomendations, status=status.HTTP_200_OK)
 
         else:
             return Response({'message': 'É necessário informar pelo menos um dos campos: id_usuario, id_notificacao ou id_recomendacao.'})
     
-    def post(self, request):
+    def post(self, request, api_client_name):
         user_id = request.POST.get('id_usuario')
 
         if user_id in (None, ''):
             user_id = 'all'
 
         else:
+
             # TODO: Checar se o ID passado pelo usuário é valido
             pass
         
-        recommendations = DOC_REC.recommend(user_id) 
+        recommendations = DOC_REC.recommend(user_id, api_client_name) 
         return Response(recommendations, status=status.HTTP_201_CREATED)
 
-    def put(self, request):
+    def put(self, request, api_client_name):
         data = get_data_from_request(request)
 
         rec_id = data.get('id_recomendacao')
@@ -239,7 +242,7 @@ class DocumentRecommendationView(APIView):
 
         return Response({'message': 'Não foi possível atualizar a recomendação, tente novamente.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-    def delete(self, request):
+    def delete(self, request, api_client_name):
         data = get_data_from_request(request)
 
         if 'id_recomendacao' not in data:

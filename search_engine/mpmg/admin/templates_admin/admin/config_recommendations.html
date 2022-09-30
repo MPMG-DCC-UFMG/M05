@@ -29,7 +29,7 @@
                                     </thead>
                                     <tbody>
                                         {% for conf_rec_src in conf_rec_sources  %}
-                                        <tr class="rec_confs" config="{{conf_rec_src.nome_indice}}" id="rec_{{conf_rec_src.nome_indice}}">
+                                        <tr class="rec_confs" config="{{conf_rec_src.nome_indice}}" id="rec_{{conf_rec_src.nome_indice}}" index_id="{{ conf_rec_src.id }}">
                                             <td class="text-left">{{ conf_rec_src.nome }}</td>
                                             <td><input style="width:100px;" type="number" class="rec_size" id="rec_size_{{conf_rec_src.nome_indice}}"  min="0" value="{{ conf_rec_src.quantidade }}" required/></td>
                                             <td style="text-align: center;"><input type="checkbox" class="rec_active" {% if conf_rec_src.ativo %} checked {% endif %} id="rec_{{conf_rec_src.nome_indice}}_active" autocomplete="off"></td>
@@ -69,7 +69,7 @@
                                     </thead>
                                     <tbody>
                                         {% for conf_rec_evidence in conf_rec_evidences %}
-                                        <tr class="ev_confs" config="{{conf_rec_evidence.tipo_evidencia}}" id="ev_{{ conf_rec_evidence.tipo_evidencia }}">
+                                        <tr class="ev_confs" config="{{conf_rec_evidence.tipo_evidencia}}" id="ev_{{ conf_rec_evidence.tipo_evidencia }}" index_id="{{ conf_rec_evidence.id }}">
                                             <td class="text-left">{{ conf_rec_evidence.nome }}</td>
                                             <td><input style="width:100px;" class="ev_amount" type="number" min="0" id="ev_{{conf_rec_evidence.tipo_evidencia}}_amount" value="{{ conf_rec_evidence.quantidade }}" /></td>
                                             <td style="text-align: center;">
@@ -96,6 +96,7 @@
         </div>
     </div>
 </div>
+
 <script>
     var EVIDENCE_TYPES = {{evidence_types | safe }};
     var SERVER_ADDRESS = window.location.origin;
@@ -103,6 +104,8 @@
 
     var CONF_REC_SRC = {{ conf_rec_sources_json | safe }};
     var CONF_REC_EV = {{ conf_rec_evidences_json | safe }};
+
+    var API_CLIENT_NAME = '{{ api_client_name }}';
 
 </script>
 {% endblock%}

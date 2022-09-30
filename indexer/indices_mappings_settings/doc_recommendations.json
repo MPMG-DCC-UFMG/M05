@@ -1,6 +1,17 @@
 {
     "mappings" : {
         "properties" : {
+            "nome_cliente_api": {
+                "type": "text"
+            },
+            "id_usuario" : {
+                "type" : "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
             "aprovado" : {
                 "type" : "boolean"
             },
@@ -44,14 +55,6 @@
             },
             "similaridade" : {
                 "type" : "float"
-            },
-            "id_usuario" : {
-                "type" : "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword"
-                    }
-                }
             }
         }
     }

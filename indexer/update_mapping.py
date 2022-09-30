@@ -35,10 +35,9 @@ def main(args):
 
     if args['username'] != None and args['password'] != None:
         es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True, http_auth=(args['username'], args['password']))
+    
     else:
         es = Elasticsearch([elastic_address], timeout=120, max_retries=3, retry_on_timeout=True)
-
-
 
     settings = json.load(open('additional_settings.json'))
     updated_mappings = json.load(open(mappings_path))

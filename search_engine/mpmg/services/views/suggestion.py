@@ -12,6 +12,12 @@ class QuerySuggestionView(APIView):
     get:
       description: Retorna uma lista de sugestões de consultas baseadas na consulta fornecida
       parameters:
+        - name: api_client_name
+          in: path
+          description: Nome do cliente da API. Passe "procon" ou "gsi".
+          required: true
+          schema:
+            type: string
         - name: consulta
           in: query
           description: Texto da consulta
@@ -22,16 +28,14 @@ class QuerySuggestionView(APIView):
 
     schema = AutoDocstringSchema()
 
-    def get(self, request):
+    def get(self, request, api_client_name):
         consulta = request.GET.get('consulta', None)
-
-        print(request.GET)
         
         if not consulta or len(consulta) < 1:
             data = {'message': 'Termo de consulta inválido.'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        total, search_response = LogSearch.get_suggestions(consulta)
+        total, search_response = LogSearch.get_suggestions(api_client_name, consulta)
         processed_suggestions = []
         if total > 0:
             suggestions = pd.Series(

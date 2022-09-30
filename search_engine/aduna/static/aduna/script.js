@@ -2,10 +2,9 @@ function log_search_click(link){
     // var query = $('#results-container').data('executed-query');
     $.ajax({
         async: false,
-        url: SERVICES_URL+'log_search_click',
+        url: SERVICES_URL+API_CLIENT_NAME+'/log_search_click',
         type: 'post',
         dataType: 'json',
-        headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             id_usuario: USER_ID,
             posicao: $(link).data('rank-number'),
@@ -19,10 +18,9 @@ function log_search_click(link){
 
 function log_suggestion_click(item){
     $.ajax({
-        url: SERVICES_URL+'log_query_suggestion_click',
+        url: SERVICES_URL+API_CLIENT_NAME+'/log_query_suggestion_click',
         type: 'post',
         dataType: 'json',
-        headers:{'Authorization': 'Token ' + AUTH_TOKEN},
         data:{
             posicao_ranking: item['posicao_ranking'],
             suggestion: item['value'],
@@ -34,10 +32,9 @@ $(function(){
     $("#query").autocomplete({
         source: function(request, response){
             var ajax = $.ajax({
-                url: SERVICES_URL+'query_suggestion',
+                url: SERVICES_URL+API_CLIENT_NAME+'/query_suggestion',
                 type: 'get',
                 dataType: 'json',
-                headers:{'Authorization': 'Token ' + AUTH_TOKEN},
                 data:{
                     consulta: request.term
                 }
@@ -60,7 +57,8 @@ $(function(){
             log_search_click(e2.target);
           }
         });
-      });
+        return false;
+    });
 
     $('#results-container .result-link').click(function(e){
         // e.preventDefault();
@@ -75,6 +73,7 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true
     });
 
     $('#filter_doc_types').multiselect({
@@ -85,9 +84,22 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true
     });
 
-    $('#filter_entidade_pessoa, #filter_entidade_municipio, #filter_entidade_organizacao, #filter_entidade_local').multiselect({
+    $('#filter_business_categories, #filter_city').multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        selectAllText: 'Selecionar todas',
+        nonSelectedText: 'Nada selecionado',
+        filterPlaceholder: 'Procurar',
+        buttonClass: 'btn btn-outline-secondary',
+        buttonWidth: '100%',
+        maxHeight: 420,
+        enableCaseInsensitiveFiltering: true
+    });
+
+    $('#filter_entidade_pessoa, #filter_entidade_municipio, #filter_entidade_organizacao, #filter_entidade_local, #filter_state').multiselect({
         includeSelectAllOption: true,
         enableFiltering: true,
         selectAllText: 'Selecionar todos',
@@ -95,6 +107,8 @@ $(function(){
         filterPlaceholder: 'Procurar',
         buttonClass: 'btn btn-outline-secondary',
         buttonWidth: '100%',
+        enableCaseInsensitiveFiltering: true,
+        maxHeight: 420,
     });
 
     $("#filter_start_date_display").datepicker({

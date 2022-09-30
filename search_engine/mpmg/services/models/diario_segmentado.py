@@ -45,8 +45,8 @@ class DiarioSegmentado(ElasticModel):
 
         search_obj = cls.elastic.dsl.Search(
             using=cls.elastic.es, index=cls.index_name)
-        query_param = {"term": {"id_pai": id_pai}}
-        sort_param = {'num_segmento_global.keyword': {'order': 'asc'}}
+        query_param = {"match": {"id_pai": id_pai}}
+        sort_param = {'num_segmento_global': {'order': 'asc'}}
 
         # faz a consulta uma vez pra pegar o total de segmentos
         search_obj = search_obj.query(cls.elastic.dsl.Q(query_param))
@@ -55,7 +55,7 @@ class DiarioSegmentado(ElasticModel):
 
         # refaz a consulta trazendo todos os segmentos
         search_obj = search_obj[0:total_records]
-        # search_obj = search_obj.sort(sort_param)
+        search_obj = search_obj.sort(sort_param)
         segments_result = search_obj.execute()
 
         all_segments = []
