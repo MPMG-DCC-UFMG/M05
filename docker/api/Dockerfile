@@ -21,11 +21,13 @@ RUN chown -R django:django $HOME
 WORKDIR $HOME
 
 # Install Requirements
-COPY backend/ .
+COPY api/requirements.txt .
 USER django
-RUN pip install -r backend/requirements.txt
+RUN pip install -r requirements.txt
 
 USER root
+COPY api .
+
 COPY ./docker/api/django_run.sh ./django_run.sh
 RUN chmod +x django_run.sh
 

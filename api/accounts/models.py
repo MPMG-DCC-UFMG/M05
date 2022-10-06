@@ -11,12 +11,6 @@ class CustomUserManager(UserManager):
         """
         Create and save a user with the given username, email, and password.
         """
-        print('*' * 35)
-        print('*' * 35)
-        print(extra_fields)
-        print('*' * 35)
-        print('*' * 35)
-        
         if not username:
             raise ValueError('The given username must be set')
 

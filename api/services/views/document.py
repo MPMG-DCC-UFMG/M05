@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from elasticsearch.exceptions import NotFoundError
 from services.models import *
@@ -46,9 +47,10 @@ class DocumentView(APIView):
         # instancia a classe apropriada e busca o registro no índice
         index_class = APIConfig.searchable_index_to_class(api_client_name, 'regular')[tipo_documento]
         document = index_class.get(id_documento)
+
+        data = {}
+        status_code = status.HTTP_404_NOT_FOUND
         if document:
-            data = {
-                'document': document
-            }
-            return Response(data)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+            status_code = status.HTTP_200_OK
+            data = {'document': document}
+        return Response(data, status=status_code)

@@ -85,7 +85,7 @@ class ReclameAqui(ElasticModel):
             'nome_completo_empresa': retrieved_doc['nome_completo_empresa'],
             'nome_curto_empresa': retrieved_doc['nome_curto_empresa'],
             'site_empresa': retrieved_doc['site_empresa'],
-            'categoria_empresa': eval(retrieved_doc['categoria_empresa']) if retrieved_doc['categoria_empresa'] != '' else [],
+            'categoria_empresa': [*retrieved_doc['categoria_empresa']],
             'segmentos': all_segments
         }
 
