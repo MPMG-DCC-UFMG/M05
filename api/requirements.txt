@@ -31,7 +31,7 @@ huggingface-hub==0.4.0
 idna==3.3
 importlib-metadata==4.11.3
 Jinja2==3.1.1
-joblib==1.1.0
+joblib==1.2.0
 keras==2.8.0
 Keras-Preprocessing==1.1.2
 langcodes==3.3.0
