@@ -308,13 +308,12 @@ class BookmarkFolderView(APIView):
             return Response({'message': 'A pasta pai da pasta sendo criada não existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
         BOOKMARK_FOLDER.parse_data_type(data)
+
+        data['id_pasta_pai'] = parent_folder_id
+        data['criador'] = user_id
+        data['nome_cliente_api'] = api_client_name
         
-        folder_id = BOOKMARK_FOLDER.save(dict(
-            criador = user_id,
-            nome=data['nome'],
-            id_pasta_pai=parent_folder_id,
-            nome_cliente_api=api_client_name,
-        ))
+        folder_id = BOOKMARK_FOLDER.save(data)
         
         if folder_id:
             return Response({'id_pasta': folder_id}, status=status.HTTP_201_CREATED)        

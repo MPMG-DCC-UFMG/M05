@@ -256,14 +256,9 @@ class ConfigRecommendationSourceView(APIView):
             return Response({'message': 'Só pode haver uma configuração de recomendação de fonte por índice.'}, status=status.HTTP_400_BAD_REQUEST)
 
         CONF_REC_EVIDENCE.parse_data_type(data)
+        data['nome_cliente_api'] = api_client_name
 
-        source_id = CONF_REC_SOURCE.save(dict(
-            nome=data['nome'],
-            nome_cliente_api=api_client_name,
-            nome_indice=data['nome_indice'],
-            quantidade=data['quantidade'],
-            ativo=data['ativo'],
-        ), data['nome_indice'])
+        source_id = CONF_REC_SOURCE.save(data, data['nome_indice'])
 
         if source_id is None:
             return Response({'message': 'Não foi possível criar a configuração de fonte de recomendação. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

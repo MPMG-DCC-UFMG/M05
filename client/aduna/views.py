@@ -261,6 +261,7 @@ def document(request, tipo_documento, id_documento):
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
                 'user_id': request.user.id,
+                'session_id': sid,
             }
             return render(request, 'aduna/document_diario_segmentado.html', context)
         
@@ -282,6 +283,7 @@ def document(request, tipo_documento, id_documento):
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
                 'user_id': request.user.id,
+                'session_id': sid,
             }
             return render(request, 'aduna/document_reclame_aqui.html', context)
         
@@ -303,6 +305,7 @@ def document(request, tipo_documento, id_documento):
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
                 'user_id': request.user.id,
+                'session_id': sid,
             }
             return render(request, 'aduna/document_consumidor_gov.html', context)
 
@@ -323,6 +326,7 @@ def document(request, tipo_documento, id_documento):
                 'doc_type': tipo_documento,
                 'doc_id': id_documento,
                 'user_id': request.user.id,
+                'session_id': sid,
             }
 
             return render(request, 'aduna/document_default.html', context)
@@ -547,7 +551,8 @@ def bookmark(request):
     context = {
         'api_client_name': api_client_name,
         'services_url': settings.SERVICES_URL,
-        'user_id': request.user.id
+        'user_id': request.user.id,
+        'session_id': request.session.session_key,
     }
     
     return render(request, 'aduna/bookmark.html', context)

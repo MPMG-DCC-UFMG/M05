@@ -27,16 +27,8 @@ services.create_bookmark = function() {
                 nome: bookmark.name,
                 indice_documento: DOC_TYPE,
                 id_documento: DOC_ID,
-                id_consulta: QID
-            },
-            success: function (res) {
-                bookmark.id = res.id_favorito;
-                // delay para que o elastic search tenha tempo de atualizar os dados
-                setTimeout(function () { update_folder_tree(); }, 1500);
-            },
-            error: function (res) {
-                let message = res.responseJSON.message; 
-                alert(`Não foi possível salvar o bookmark.\n\nErro: ${message} \n\nTente novamente!`);
+                id_consulta: QID,
+                id_sessao: SESSION_ID,
             }
         });
     } else {

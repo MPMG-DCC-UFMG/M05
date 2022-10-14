@@ -8,6 +8,7 @@ class LogSugestoes(ElasticModel):
         index_name = LogSugestoes.index_name
         meta_fields = ['id']
         index_fields = [
+            'nome_cliente_api',
             'sugestao',
             'posicao',
             'data_criacao',

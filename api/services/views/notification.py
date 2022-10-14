@@ -256,12 +256,9 @@ class NotificationView(APIView):
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
         
         NOTIFICATION.parse_data_type(data)
-        id_notificacao = NOTIFICATION.save(dict(
-            id_usuario=data['id_usuario'],
-            texto=data['texto'],
-            tipo=data['tipo'],
-            data_visualizacao=data.get('data_visualizacao'),
-        ))
+        data['nome_cliente_api'] = api_client_name
+        
+        id_notificacao = NOTIFICATION.save(data)
 
         if id_notificacao:
             return Response({'id_notificacao': id_notificacao}, status=status.HTTP_201_CREATED)

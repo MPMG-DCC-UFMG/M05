@@ -155,6 +155,7 @@ class LogSearchClickView(APIView):
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
         LOG_SEARCH_CLICK.parse_data_type(data)
+        data['nome_cliente_api'] = api_client_name
 
         created_id = LOG_SEARCH_CLICK.save(data)
 
@@ -214,6 +215,7 @@ class LogQuerySuggestionClickView(APIView):
             return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
         LOG_SUGGESTION.parse_data_type(data)
+        data['nome_cliente_api'] = api_client_name
 
         created_id = LOG_SUGGESTION.save(data)
 

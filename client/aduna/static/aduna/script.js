@@ -10,8 +10,13 @@ function log_search_click(link){
             posicao: $(link).data('rank-number'),
             id_documento: $(link).data('item-id'),
             tipo_documento: $(link).data('item-type'),
-            qid: QID,
+            id_consulta: QID,
+            id_sessao: SESSION_ID,
             pagina: PAGE,
+        },
+        error: function (res) {
+            let message = res.responseJSON.message;
+            alert(message);
         }
     });
 }

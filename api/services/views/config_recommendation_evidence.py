@@ -281,17 +281,9 @@ class ConfigRecommendationEvidenceView(APIView):
             return Response({'message': 'Só pode haver uma configuração de recomendação de evidência por índice.'}, status=status.HTTP_400_BAD_REQUEST)
 
         CONF_REC_EVIDENCE.parse_data_type(data)
-        conf_evidence_id = CONF_REC_EVIDENCE.save(dict(
-                nome = data['nome'],
-                nome_cliente_api = api_client_name,
-                tipo_evidencia = data['tipo_evidencia'],
-                nome_indice = data['nome_indice'],
-                quantidade = data['quantidade'],
-                similaridade_minima = data['similaridade_minima'],
-                top_n_recomendacoes = data['top_n_recomendacoes'],
-                ativo = data['ativo'],
-            ), data['tipo_evidencia']
-        )
+        data['nome_cliente_api'] = api_client_name
+
+        conf_evidence_id = CONF_REC_EVIDENCE.save(data, data['tipo_evidencia'])
 
         if conf_evidence_id is None:
             return Response({'message': 'Não foi possível criar a configuração de evidência. Tente novamente!'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

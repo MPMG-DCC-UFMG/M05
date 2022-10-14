@@ -13,6 +13,7 @@ class LogSearchClick(ElasticModel):
             'id_usuario',
             'id_documento',
             'id_consulta',
+            'id_sessao',
             'posicao',
             'data_criacao',
             'tipo_documento',

@@ -328,18 +328,14 @@ class BookmarkView(APIView):
             return Response({'message': 'O favorito já existe!'}, status=status.HTTP_400_BAD_REQUEST)
 
         BOOKMARK.parse_data_type(data)
-        
+
+        data['id_pasta'] = folder_id
+        data['id_usuario'] = user_id
+        data['nome_cliente_api'] = api_client_name
+
         BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
 
-        bookmark_id = BOOKMARK.save(dict(
-            id_pasta=folder_id,
-            id_usuario=user_id,
-            indice_documento=request.POST['indice_documento'],
-            id_documento=request.POST['id_documento'],
-            id_consulta=request.POST['id_consulta'],
-            id_sessao=request.POST['id_sessao'],
-            nome=request.POST['nome'],
-        ), generated_bookmark_id) 
+        bookmark_id = BOOKMARK.save(data, generated_bookmark_id) 
 
         if bookmark_id is None:
             message = 'Não foi possível criar o favorito. Tente novamente!'
