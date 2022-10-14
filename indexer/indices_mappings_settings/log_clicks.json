@@ -22,6 +22,15 @@
                     }
                 }
             },
+            "id_sessao": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
             "id_documento": {
                 "type": "text",
                 "fields": {
@@ -31,7 +40,7 @@
                     }
                 }
             },
-            "indice_documento": {
+            "tipo_documento": {
                 "type": "text",
                 "fields": {
                     "keyword": {

@@ -11,7 +11,8 @@ ELASTIC_TYPE_TO_PYTHON_TYPE = {
     'boolean': str2bool,
     'integer': int,
     'number': float,
-    'float': float 
+    'float': float,
+    'long': int, 
 }
 
 class ElasticModel(dict):

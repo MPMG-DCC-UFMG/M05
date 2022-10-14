@@ -1,7 +1,6 @@
 import hashlib
 import random
 import string
-import time
 from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
@@ -15,7 +14,12 @@ from rest_framework.views import APIView
 
 from ..docstring_schema import AutoDocstringSchema
 from ..elastic import Elastic
+from ..utils.timestamp import get_current_timestamp
+from ..utils import validators
+from ..utils.data_from_request import get_data_from_request
 
+LOG_SEARCH_CLICK = LogSearchClick()
+LOG_SUGGESTION = LogSugestoes()
 
 class LogSearchView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -75,51 +79,57 @@ class LogSearchView(APIView):
 class LogSearchClickView(APIView):
     '''
     post:
-      description: Grava no log o documento do ranking clicado pelo usuário.
-      parameters:
-        - name: api_client_name
-          in: path
-          description: Nome do cliente da API. Passe "procon" ou "gsi".
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                id_usuario: 
-                  description: ID do usuário que clicou no item
-                  type: string
-                id_documento:
-                  description: ID do documento clicado
-                  type: string
-                qid:
-                  description: ID da consulta executada (É sempre retornado pelo método search)
-                  type: string
-                posicao:
-                  description: Posição do documento clicado na lista de documentos retornados
-                  type: integer
-                tipo_documento:
-                  description: Tipo do documento clicado
-                  type: string
-                  enum:
-                  - diarios
-                  - processos
-                  - licitacoes
-                pagina:
-                  description: Número da página onde estava o documento
-                  type: integer
-                  minimum: 1
-              required:
-                - id_usuario
-                - id_documento
-                - qid
-                - posicao
-                - tipo_documento
-                - pagina
-
+        description: Grava no log o documento do ranking clicado pelo usuário.
+        parameters:
+            -   name: api_client_name
+                in: path
+                description: Nome do cliente da API. Passe "procon" ou "gsi".
+                required: true
+                schema:
+                    type: string
+                    enum:
+                        - procon
+                        - gsi
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        properties:
+                            id_usuario: 
+                                description: ID do usuário que clicou no item
+                                type: string
+                            id_documento:
+                                description: ID do documento clicado
+                                type: string
+                            id_consulta:
+                                description: ID da consulta.
+                                type: string
+                            id_sessao:
+                                description: ID da sessao.
+                                type: string
+                            posicao:
+                                description: Posição do documento clicado na lista de documentos retornados
+                                type: integer
+                            tipo_documento:
+                                description: Tipo do documento clicado
+                                type: string
+                                enum:
+                                    - diarios
+                                    - processos
+                                    - licitacoes
+                            pagina:
+                                description: Número da página onde estava o documento
+                                type: integer
+                                minimum: 1
+                        required:
+                            - id_usuario
+                            - id_documento
+                            - id_consulta
+                            - id_sessao
+                            - posicao
+                            - tipo_documento
+                            - pagina
     '''
 
     # permission_classes = (IsAuthenticated,)
@@ -136,21 +146,23 @@ class LogSearchClickView(APIView):
     '''
 
     def post(self, request, api_client_name):
+        data = get_data_from_request(request)
 
-        try:
-            response = LogSearchClick().save(dict(
-                id_usuario=request.POST['id_usuario'],
-                id_documento=request.POST['id_documento'],
-                id_consulta=request.POST['qid'],
-                posicao=request.POST['posicao'],
-                tipo_documento=request.POST['tipo_documento'],
-                pagina=request.POST['pagina'],
-                # FIXME: Usar método padronizado para obter timestamp
-                timestamp=int(time.time() * 1000),
-            ))
-            return Response({"success": len(response[1])})
-        except Exception as err:
-            return Response(status=400)
+        expected_fields = {'id_usuario', 'id_documento', 'id_sessao', 'id_consulta', 'posicao', 'tipo_documento', 'pagina'}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
+
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        LOG_SEARCH_CLICK.parse_data_type(data)
+
+        created_id = LOG_SEARCH_CLICK.save(data)
+
+        if created_id is None:
+            message = 'Não foi possível criar o registro de log de sugestões. Tente novamente!'
+            return Response({'message': message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'id': created_id}, status=status.HTTP_201_CREATED)     
 
 class LogQuerySuggestionView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -193,21 +205,23 @@ class LogQuerySuggestionClickView(APIView):
     schema = AutoDocstringSchema()
 
     def post(self, request, api_client_name):
-        # FIXME: Criar método padronizado para obter timestamp
-        timestamp = int(time.time() * 1000)
+        data = get_data_from_request(request)
 
-        posicao = request.POST.get('posicao', None)
-        sugestao = request.POST.get('sugestao', None)
+        expected_fields = {'posicao', 'sugestao'}
+        all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields)
 
-        response = LogSugestoes().save(dict(
-            nome_cliente_api=api_client_name,
-            sugestao=sugestao,
-            posicao=posicao,
-            timestamp=timestamp
-        ))
+        if not all_fields_available:
+            return Response({'message': unexpected_fields_message}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"success": len(response[1])})
+        LOG_SUGGESTION.parse_data_type(data)
 
+        created_id = LOG_SUGGESTION.save(data)
+
+        if created_id is None:
+            message = 'Não foi possível criar o registro de log de sugestões. Tente novamente!'
+            return Response({'message': message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'id': created_id}, status=status.HTTP_201_CREATED)        
 
 class LogDataGeneratorView():
     '''

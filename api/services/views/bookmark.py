@@ -123,7 +123,7 @@ class BookmarkView(APIView):
                                 description: ID da consulta.
                                 type: string
                             id_sessao:
-                                description: ID da sessao. Se não for informado, será preenchido automaticamente com o ID da sessão atual.
+                                description: ID da sessao.
                                 type: string
                             nome:
                                 description: Nome do favorito.
@@ -133,6 +133,7 @@ class BookmarkView(APIView):
                             - indice_documento
                             - id_documento
                             - id_consulta
+                            - id_sessao
                             - nome
         responses:
             '201':
@@ -297,8 +298,8 @@ class BookmarkView(APIView):
     def post(self, request, api_client_name):
         data = get_data_from_request(request)
 
-        expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'nome'}
-        optional_fields = {'id_sessao', 'id_pasta'}
+        expected_fields = {'id_usuario', 'indice_documento', 'id_documento', 'id_consulta', 'id_sessao', 'nome'}
+        optional_fields = {'id_pasta'}
         all_fields_available, unexpected_fields_message = validators.all_expected_fields_are_available(data, expected_fields, optional_fields)
 
         if not all_fields_available:
@@ -330,15 +331,13 @@ class BookmarkView(APIView):
         
         BOOKMARK_FOLDER.create_default_bookmark_folder_if_necessary(api_client_name, user_id)
 
-        session_id = request.POST.get('id_sessao', request.session.session_key)
-
         bookmark_id = BOOKMARK.save(dict(
             id_pasta=folder_id,
             id_usuario=user_id,
             indice_documento=request.POST['indice_documento'],
             id_documento=request.POST['id_documento'],
             id_consulta=request.POST['id_consulta'],
-            id_sessao=session_id,
+            id_sessao=request.POST['id_sessao'],
             nome=request.POST['nome'],
         ), generated_bookmark_id) 
 
