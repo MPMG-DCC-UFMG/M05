@@ -21,12 +21,12 @@ RUN chown -R django:django $HOME
 WORKDIR $HOME
 
 # Install Requirements
-COPY requirements.txt .
+COPY client/requirements.txt .
 USER django
 RUN pip install -r requirements.txt
 
 USER root
-COPY search_engine .
+COPY client .
 
 COPY ./docker/client/django_run.sh ./django_run.sh
 RUN chmod +x django_run.sh
