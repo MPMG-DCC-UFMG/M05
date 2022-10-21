@@ -4,6 +4,9 @@ from django.shortcuts import render, redirect
 from mpmg.services.models import ConfigLearningToRank
 from mpmg.services.views.config_learning_to_rank import CONF_LTR 
 
+def get_features_repr(features: list) -> list:
+    return [{'nome': name, 'id': fid, 'ativo': True} for fid, name in enumerate(features, 1)]
+
 class ConfigLearningToRankingView(admin.AdminSite):
     def __init__(self) -> None:
         super(ConfigLearningToRankingView, self).__init__()
@@ -11,9 +14,12 @@ class ConfigLearningToRankingView(admin.AdminSite):
     def view_config(self, request):
         if request.method == 'GET':
             _, confs_ltr = ConfigLearningToRank().get_list(page='all')
+            features = ['age','avg_idf', 'avg_tf', 'bm25_all', 'bm25_conteudo', 'bm25_fonte', 'bm25_title', 'clicks', 
+                        'entidade_pessoa','max_idf', 'max_tf', 'min_idf', 'min_tf', 'size', 'type_id', 'unique_terms_count']
 
             context = {
-                'confs_ltr': confs_ltr
+                'confs_ltr': confs_ltr,
+                'features': get_features_repr(features)
             }
             
             return render(request, 'admin/config_ltr.html', context)
