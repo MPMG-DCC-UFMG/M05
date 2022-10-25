@@ -48,13 +48,14 @@ def featureDictToList(ranklibLabeledFeatures):
 
 def log_features(es, judgmentsByQid):
     for qid, judgments in judgmentsByQid.items():
-        query = judgments[0].query
+        query = judgments[0].keywords
         doc_ids = [judgment.docId for judgment in judgments]
         logQuery['query']['bool']['must'][0]['terms']['_id'] = doc_ids
         logQuery['query']['bool']['should'][0]['sltr']['params']['consulta'] = query
         print("POST")
         print(json.dumps(logQuery, indent=2))
-        res = es.search(index='tmdb', body=logQuery)
+        #revisar essa parte
+        res = es.search(index='processos', body=logQuery)
         # Add feature back to each judgment
         featuresPerDoc = {}
         for doc in res['hits']['hits']:
@@ -68,7 +69,7 @@ def log_features(es, judgmentsByQid):
                 features = featuresPerDoc[judgment.docId] # If KeyError, then we have a judgment but no movie in index
                 judgment.features = features
             except KeyError:
-                print("Missing movie %s" % judgment.docId)
+                print("Missing document %s" % judgment.docId)
 
 
 def build_train_file(judgmentsWithFeatures, filename):
@@ -79,9 +80,10 @@ def build_train_file(judgmentsWithFeatures, filename):
 
 
 if __name__ == "__main__":
-    from judgments import judgmentsFromFile, judgmentsByQid
+    from ltr.judgments import judgmentsFromFile, judgmentsByQid
     from elasticsearch import Elasticsearch
     es = Elasticsearch()
-    judgmentsByQid = judgmentsByQid(judgmentsFromFile('sample_judgments.txt'))
+    judgmentsByQid = judgmentsByQid(judgmentsFromFile('./ltr/human_judgments.txt'))
+    print(judgmentsByQid)
     log_features(es, judgmentsByQid)
-    build_train_file(judgmentsByQid, "sample_judgments_wfeatures.txt")
+    build_train_file(judgmentsByQid, "./ltr/human_judgments_wfeatures.txt")

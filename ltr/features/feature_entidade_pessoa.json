@@ -1,7 +1,0 @@
-{
-    "query": {
-        "exists": {
-            "field": "entidade_pessoa"
-        }
-    }
-}
