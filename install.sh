@@ -6,7 +6,7 @@ export LD_RUN_PATH=/usr/local/lib
 ########################################
 
 # Installing Requirements
-pip install --use-deprecated=legacy-resolver -r requirements.txt
+pip install --use-deprecated=legacy-resolver -r ./indexer/requirements.txt
 if ! [[ -z $(pip freeze | grep "torch==1.6.0+cu101") ]]; then
     pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 fi
@@ -54,7 +54,7 @@ fi
 # depois de instalado, tem de reiniciar o ES para funcionar
 ########################################
 
-Indexing Documents
+#Indexing Documents
 echo ""
 echo "Indexing documents..."
 cd ./indexer
@@ -68,7 +68,7 @@ export PYTHONPATH=./
 echo ""
 echo "Setting Up LTR..."
 cd ..
-python ./ltr/set_ltr.py
+python ./misc/ltr/set_ltr.py
 #load trained model
 ########################################
 
