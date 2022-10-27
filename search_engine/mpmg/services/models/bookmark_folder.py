@@ -2,7 +2,6 @@ from django.conf import settings
 
 from elasticsearch.exceptions import NotFoundError
 from mpmg.services.models.elastic_model import ElasticModel
-from mpmg.services.utils import doc_filter 
 
 class BookmarkFolder(ElasticModel):
     index_name = 'bookmark_folder'
@@ -44,8 +43,9 @@ class BookmarkFolder(ElasticModel):
             Retorna uma lista onde cada elemento é um dicionário com a representação de um bookmark salvo na pasta folder_id.
 
         '''
-        
-        return doc_filter(settings.BOOKMARK_INDEX, {'term': {'id_pasta.keyword': folder_id}}) 
+        filters = [{'term': {'id_pasta.keyword': folder_id}}]
+        _, bookmarks = self.get_list(filter=filters, page='all')
+        return bookmarks 
          
     def get(self, api_client_name: str, folder_id: str) -> dict:
         '''Recupera a pasta de ID folder_id.

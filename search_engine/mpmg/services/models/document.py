@@ -1,3 +1,4 @@
+import json
 from mpmg.services.elastic import Elastic
 from mpmg.services.models.api_config import APIConfig
 
@@ -25,55 +26,32 @@ class Document:
         # relaciona o nome do índice com a classe Django que o representa
         self.index_to_class = APIConfig.searchable_index_to_class(api_client_name)
 
-    def search(self, indices, must_queries, should_queries, filter_queries, page_number, results_per_page):
-        agg = A('terms', field='_index')
+    def search(self, indices, match_query, knn_query, aggs):
+        response = self.elastic.es.search(index=indices, query=match_query, knn=knn_query, aggs=aggs, source=self.retrievable_fields)
+        doc_counts_by_index = {index: 0 for index in indices}
 
-        start = results_per_page * (page_number - 1)
-        end = start + results_per_page
+        buckets = response['aggregations']['per_index']['buckets']
+        for bucket in buckets:
+            doc_counts_by_index[bucket['key']] = bucket['doc_count']
 
-        elastic_request = self.elastic.dsl.Search(using=self.elastic.es, index=indices) \
-            .source(self.retrievable_fields) \
-            .query("bool", must=must_queries, should=should_queries, filter=filter_queries)[start:end] \
-            .highlight(self.highlight_field, fragment_size=500, pre_tags='<strong>', post_tags='</strong>', require_field_match=False, type="unified")
-
-        elastic_request.aggs.bucket('per_index', agg)
-
-        response = elastic_request.execute()
-        total_docs = response.hits.total.value
-        # Total retrieved documents per page + 1 page for rest of division
-        total_pages = (total_docs // results_per_page) + 1
         documents = []
 
+        hits = response['hits']['hits']
+        total_docs = len(hits)
 
-        try:
-            buckets = response.aggregations['per_index']['buckets']
-        
-        except:
-            buckets = []
+        for i, item in enumerate(hits):
+                dict_data = item['_source']
+                dict_data['id'] = item['_id']
 
-        doc_counts_by_index = {index: 0 for index in indices}
-        for bucket in buckets:
-            index = bucket['key']
-            doc_count = bucket['doc_count']
-            doc_counts_by_index[index] = doc_count
+                dict_data['descricao'] = dict_data['conteudo'][:500]
 
-        for i, item in enumerate(response):
-            dict_data = item.to_dict()
-            dict_data['id'] = item.meta.id
+                dict_data['posicao_ranking'] = i
 
-            if hasattr(item.meta, 'highlight'):
-                dict_data['descricao'] = item.meta.highlight.conteudo[0]
+                dict_data['tipo'] = item['_index']
 
-            else:
-                dict_data['descricao'] = 'Sem descrição.'
+                result_class = self.index_to_class[item['_index']]
 
-            dict_data['posicao_ranking'] = results_per_page * \
-                (page_number-1) + (i+1)
+                documents.append(result_class(**dict_data))
+ 
 
-            dict_data['tipo'] = item.meta.index
-
-            result_class = self.index_to_class[item.meta.index]
-
-            documents.append(result_class(**dict_data))
-
-        return total_docs, total_pages, documents, response.took, doc_counts_by_index
+        return total_docs, 1, documents, response['took'], doc_counts_by_index

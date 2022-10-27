@@ -145,7 +145,7 @@ STATICFILES_DIRS = [
 # Configure Elasticsearch server
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': 'localhost:9200'
+        'hosts': 'http://localhost:9200'
     },
 }
 
@@ -166,3 +166,10 @@ BOOKMARK_INDEX = 'bookmark'
 
 # custom user
 AUTH_USER_MODEL = 'accounts.User'
+
+# DENSE RETRIEVAL
+
+DENSE_RETRIEVAL_KNN_SCORE = .85
+DENSE_RETRIEVAL_EMBEDDING_FIELD = 'embedding'
+DENSE_RETRIEVAL_NUM_NEAREST_NEIGHBORS = 10
+DENSE_RETRIEVAL_NUM_CANDIDATES = 1000

@@ -1,22 +1,17 @@
 
-from sentence_transformers import SentenceTransformer, models
 from scipy import spatial
+from .semantic_model import SemanticModel
 
 class Reranker():
     def __init__(self):
-        self.model = self.get_sentence_model()
+        self.semantic_model = SemanticModel()
     
-    def get_sentence_model(self, model_path="prajjwal1/bert-tiny"):
-        word_embedding_model = models.Transformer(model_path, max_seq_length=500)
-        pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-
-        return SentenceTransformer(modules=[word_embedding_model, pooling_model])
-
     def get_bert_score(self, embedding, query_embedding, n=5):
         return 1 - spatial.distance.cosine(embedding, query_embedding)
 
     def rerank(self, text_query, documents):
-        query_embedding = self.model.encode(text_query)
+        query_embedding = self.semantic_model.get_dense_vector(text_query)
+        # query_embedding = self.semantic_model.ge .encode(text_query)
         for document in documents:
             document['score'] = self.get_bert_score(document.embedding, query_embedding)        
         

@@ -1,8 +1,11 @@
+from urllib import response
 from mpmg.services.elastic import Elastic
 from mpmg.services.models import Processo, Diario, DiarioSegmentado, Licitacao
 from mpmg.services.models.reclame_aqui import ReclameAqui
 from mpmg.services.models.procon import Procon
 from mpmg.services.models.consumidor_gov import ConsumidorGov
+
+import json
 
 class APIConfig():
     '''
@@ -64,11 +67,14 @@ class APIConfig():
 
     @classmethod
     def get_options(cls, api_client_name):
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_OPTIONS)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        elastic_result = search_obj.execute()
-        item = elastic_result[0]
-        options = dict({'id': item.meta.id}, **item.to_dict())
+        query = {"term": {"nome_cliente_api": api_client_name}} 
+
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_OPTIONS, query=query)
+        hits = response['hits']['hits']
+
+        options = hits[0]['_source']
+        options['id'] = hits[0]['_id']
+
         return options
     
     @classmethod
@@ -126,29 +132,22 @@ class APIConfig():
         Retorna uma lista de campos. Passe searchable ou retrievable para filtrar.
         '''
 
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FIELDS)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        
+        query = {"bool": {"must": [{"term": {"nome_cliente_api": api_client_name}}]}}
+
         if searchable != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "searchable": True }}))
+            query['bool']['must'].append({"term": { "searchable": True }})
         
         if retrievable != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "retrievable": True }}))
+            query['bool']['must'].append({"term": { "retrievable": True }})
+            
+        response = cls.elastic.es.count(index=cls.INDEX_CONFIG_FIELDS, query=query)
+        size = response['count']
 
-        # faz a consulta uma vez pra pegar o total de segmentos
-        elastic_result = search_obj.execute()
-        total_records = elastic_result.hits.total.value
-        # refaz a consulta trazendo todos os segmentos
-        search_obj = search_obj[0:total_records]
+        sort_param = {'_id':{'order':'asc'}}
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_FIELDS, query=query, sort=sort_param, size=size)
+        hits = response['hits']['hits']
 
-        search_obj = search_obj.sort({'_id':{'order':'asc'}})
-        elastic_result = search_obj.execute()
-
-        result_list = []
-        for item in elastic_result:
-            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
-
-        return result_list
+        return [dict({'id': hit['_id']}, **hit['_source']) for hit in hits]
     
 
     @classmethod
@@ -199,42 +198,31 @@ class APIConfig():
         - active: indica se o índice está ativo para ser buscado
         '''
 
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_INDICES)
-
-        if api_client_name:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
+        query = {"bool": {"must": [{"term": {"nome_cliente_api": api_client_name}}]}}
 
         if active != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "active": True }}))
+            query['bool']['must'].append({"term": { "active": True }})
 
         if group != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "group": group }}))
+            query['bool']['must'].append({"term": { "group": group }})
 
-        # faz a consulta uma vez pra pegar o total de segmentos
-        elastic_result = search_obj.execute()
-        total_records = elastic_result.hits.total.value
-        # refaz a consulta trazendo todos os segmentos
-        search_obj = search_obj[0:total_records]
+        response = cls.elastic.es.count(index=cls.INDEX_CONFIG_INDICES, query=query)
+        size = response['count']
 
-        search_obj = search_obj.sort({'_id':{'order':'asc'}})
+        sort_param = {'_id':{'order':'asc'}}
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_INDICES, query=query, sort=sort_param, size=size)
+        hits = response['hits']['hits']
 
-        elastic_result = search_obj.execute()
+        return [dict({'id': hit['_id']}, **hit['_source']) for hit in hits]
 
-        result_list = []
-        for item in elastic_result:
-            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
-        
-        return result_list
-    
     @classmethod
     def get_total(cls, api_client_name: str, index_name: str) -> int:
         '''
         Retorna o total de registros salvos no índice para um cliente específico da API.
         '''
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=index_name)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        total = search_obj.count()
-        return total
+        query = {'term': {'nome_cliente_api': api_client_name}}
+        response = cls.elastic.es.count(index=index_name, query=query)
+        return response['count']
 
     @classmethod
     def get_config_ranking_entity(cls, api_client_name):
@@ -249,17 +237,14 @@ class APIConfig():
          - ativo: Indica se o tipo de entidade em questão deve ser ranqueada ou não
         '''
 
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_RANKING_ENTITY)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_RANKING_ENTITY)
-        search_obj = search_obj[0:total]
-        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
-        elastic_result = search_obj.execute()
+        size = cls.get_total(api_client_name, cls.INDEX_CONFIG_RANKING_ENTITY)
+        query = {"term": { "nome_cliente_api": api_client_name}}
+        sort_param = {'_id': {'order': 'asc'}}
 
-        result_list = []
-        for item in elastic_result:
-            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
-        return result_list
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_RANKING_ENTITY, query=query, sort=sort_param, size=size)
+        hits = response['hits']['hits']
+
+        return [dict({'id': hit['_id']}, **hit['_source']) for hit in hits]
 
     @classmethod
     def update_config_ranking_entity(cls, item_id: str, active: bool, aggregation_type: str, ranking_size: int) -> list:
@@ -287,18 +272,14 @@ class APIConfig():
          - ativo: Indica se o tipo de entidade em questão deve ser usada como filtro ou não
         '''
 
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_FILTER_BY_ENTITY)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_FILTER_BY_ENTITY)
-        search_obj = search_obj[0:total]
-        search_obj = search_obj.sort({'_id': {'order': 'asc'}})
-        elastic_result = search_obj.execute()
+        size = cls.get_total(api_client_name, cls.INDEX_CONFIG_FILTER_BY_ENTITY)
+        query = {"term": { "nome_cliente_api": api_client_name}}
+        sort_param = {'_id': {'order': 'asc'}}
 
-        result_list = []
-        for item in elastic_result:
-            result_list.append(dict({'id': item.meta.id}, **item.to_dict()))
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_FILTER_BY_ENTITY, query=query, sort=sort_param, size=size)
+        hits = response['hits']['hits']
 
-        return result_list
+        return [dict({'id': hit['_id']}, **hit['_source']) for hit in hits]
 
     @classmethod
     def update_config_filter_by_entity(cls, item_id: str, active: bool, aggregation_type: str, num_entities: int):
@@ -333,14 +314,10 @@ class APIConfig():
 
     @classmethod
     def entity_type_to_index_name(cls, api_client_name):
-        search_obj = cls.elastic.dsl.Search(using=cls.elastic.es, index=cls.INDEX_CONFIG_ENTITIES)
-        search_obj = search_obj.query(cls.elastic.dsl.Q({"term": { "nome_cliente_api": api_client_name}}))
-        total = cls.get_total(api_client_name, cls.INDEX_CONFIG_ENTITIES)
-        search_obj = search_obj[0:total]
-        elastic_result = search_obj.execute()
-        
-        type2field = {}
-        for item in elastic_result:
-            type2field[item['entity_type']] = item['field_name']
-        
-        return type2field
+        size = cls.get_total(api_client_name, cls.INDEX_CONFIG_ENTITIES)
+        query = {"term": { "nome_cliente_api": api_client_name}}
+
+        response = cls.elastic.es.search(index=cls.INDEX_CONFIG_ENTITIES, query=query, size=size)
+        hits = response['hits']['hits']
+
+        return {hit['_source']['entity_type']: hit['_source']['field_name']  for hit in hits}

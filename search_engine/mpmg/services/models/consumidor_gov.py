@@ -37,40 +37,32 @@ class ConsumidorGov(ElasticModel):
         '''
 
         # primeiro recupera o registro do segmento pra poder pegar o ID do pai
-        retrieved_doc = cls.elastic.dsl.Document.get(
-            doc_id, using=cls.elastic.es, index=cls.index_name)
+        response = cls.elastic.es.get(index=cls.index_name, id=doc_id)
+        retrieved_doc = response['_source']
+
         id_pai = retrieved_doc['id_pai']
 
-        search_obj = cls.elastic.dsl.Search(
-            using=cls.elastic.es, index=cls.index_name)
-        query_param = {"match": {"id_pai": id_pai}}
+        query = {"match": {"id_pai": id_pai}}
         sort_param = {'ordem_da_interacao': {'order': 'asc'}}
 
-        # faz a consulta uma vez pra pegar o total de segmentos
-        search_obj = search_obj.query(cls.elastic.dsl.Q(query_param))
-        elastic_result = search_obj.execute()
-        total_records = elastic_result.hits.total.value
-
-        # refaz a consulta trazendo todos os segmentos
-        search_obj = search_obj[0:total_records]
-        search_obj = search_obj.sort(sort_param)
-        segments_result = search_obj.execute()
-
-
+        total_records = cls.elastic.es.count(index=cls.index_name, query=query)['count']
+        response = cls.elastic.es.search(index=cls.index_name, query=query, sort=sort_param, size=total_records)
+        hits = response['hits']['hits']
 
         all_segments = []
-        for item in segments_result:
+        for hit in hits:
+            item = hit['_source']
             segment = {
-                'conteudo': item.conteudo if hasattr(item, 'conteudo') else '',
-                'tipo_postagem': item.tipo_postagem if hasattr(item, 'tipo_postagem') else '',
-                'tipo_interacao': item.tipo_interacao if hasattr(item, 'tipo_interacao') else '',
-                'ordem_da_interacao': int(item.ordem_da_interacao) if hasattr(item, 'ordem_da_interacao') else -1,
+                'conteudo': item.get('conteudo', ''),
+                'tipo_postagem': item.get('tipo_postagem', ''),
+                'tipo_interacao': item.get('tipo_interacao', ''),
+                'ordem_da_interacao': int(item.get('ordem_da_interacao', '-1')),
 
             }
             all_segments.append(segment)
 
         document = {
-            'id': retrieved_doc.meta.id,
+            'id': doc_id,
             'titulo': retrieved_doc['titulo'],
             'data': datetime.fromtimestamp(retrieved_doc['data_criacao']).strftime('%d/%m/%Y'),
             'cidade': retrieved_doc['cidade'],

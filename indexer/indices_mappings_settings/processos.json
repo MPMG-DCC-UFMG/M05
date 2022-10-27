@@ -65,7 +65,9 @@
             }, 
             "embedding": {
                 "type": "dense_vector",
-                "dims": 128
+                "dims": 128,
+                "index": true,
+                "similarity": "cosine"        
             },
             "entidade_cep": {
                 "type": "text", 

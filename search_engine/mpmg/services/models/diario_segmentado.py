@@ -1,4 +1,6 @@
+from curses import nocbreak
 from datetime import datetime
+from pydoc import doc
 
 from mpmg.services.models.elastic_model import ElasticModel
 
@@ -39,42 +41,35 @@ class DiarioSegmentado(ElasticModel):
         '''
 
         # primeiro recupera o registro do segmento pra poder pegar o ID do pai
-        retrieved_doc = cls.elastic.dsl.Document.get(
-            doc_id, using=cls.elastic.es, index=cls.index_name)
+        response = cls.elastic.es.get(index=cls.index_name, id=doc_id)
+        retrieved_doc = response['_source']
+
         id_pai = retrieved_doc['id_pai']
 
-        search_obj = cls.elastic.dsl.Search(
-            using=cls.elastic.es, index=cls.index_name)
-        query_param = {"term": {"id_pai": id_pai}}
-        sort_param = {'num_segmento_global.keyword': {'order': 'asc'}}
+        query = {"term": {"id_pai": id_pai}}
 
-        # faz a consulta uma vez pra pegar o total de segmentos
-        search_obj = search_obj.query(cls.elastic.dsl.Q(query_param))
-        elastic_result = search_obj.execute()
-        total_records = elastic_result.hits.total.value
-
-        # refaz a consulta trazendo todos os segmentos
-        search_obj = search_obj[0:total_records]
-        # search_obj = search_obj.sort(sort_param)
-        segments_result = search_obj.execute()
+        total_records = cls.elastic.es.count(index=cls.index_name, query=query)['count']
+        response = cls.elastic.es.search(index=cls.index_name, query=query, size=total_records)
+        hits = response['hits']['hits']
 
         all_segments = []
-        for item in segments_result:
+        for hit in hits:
+            item = hit['_source']
             segment = {
-                'entidade_bloco': item.entidade_bloco if hasattr(item, 'entidade_bloco') else '',
-                'titulo': item.titulo if hasattr(item, 'titulo') else '',
-                'subtitulo': item.subtitulo if hasattr(item, 'subtitulo') else '',
-                'conteudo': item.conteudo if hasattr(item, 'conteudo') else '',
-                'publicador': item.publicador if hasattr(item, 'publicador') else '',
-                'num_bloco': int(item.num_bloco) if hasattr(item, 'num_bloco') else -1,
-                'num_segmento_bloco': int(item.num_segmento_bloco) if hasattr(item, 'num_segmento_bloco') else -1,
-                'num_segmento_global': int(item.num_segmento_global) if hasattr(item, 'num_segmento_global') else -1,
-
+                'entidade_bloco': item.get('entidade_bloco', ''),
+                'titulo': item.get('titulo', ''),
+                'subtitulo': item.get('subtitulo', ''),
+                'conteudo': item.get('conteudo', ''),
+                'publicador': item.get('publicador', ''),
+                'num_bloco': int(item.get('num_bloco', '-1')),
+                'num_segmento_bloco': int(item.get('num_segmento_bloco', '-1')),
+                'num_segmento_global': int(item.get('num_segmento_global', '-1')),
             }
+            
             all_segments.append(segment)
 
         document = {
-            'id': retrieved_doc.meta.id,
+            'id': doc_id,
             'titulo': retrieved_doc['titulo_diario'],
             'data': datetime.fromtimestamp(retrieved_doc['data_criacao']).strftime('%d/%m/%Y'),
             'num_segmento_ativo': int(retrieved_doc['num_segmento_global']),

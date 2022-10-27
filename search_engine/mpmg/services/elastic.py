@@ -6,7 +6,7 @@ import traceback
 import sys
 from elasticsearch import helpers
 from django.conf import settings
-
+import json
 
 class Elastic:
     def __init__(self):
@@ -22,16 +22,15 @@ class Elastic:
         # Não consigo aproveitar a classe APIConfig pra buscar os índices porque dá loop de imports
         # então reescrevi aqui. Isso será revisto em breve.
 
-        searchable_indices = []
-        search_obj = self.dsl.Search(using=self.es, index='config_indices')
-        search_obj = search_obj.query(self.dsl.Q({"term": { "active": True }}))
-        if group != None:
-            search_obj = search_obj.query(self.dsl.Q({"term": { "group": group }}))
-        elastic_result = search_obj.execute()
+        query = {"bool": {"must": [{"term": {"active": True}}]}}
 
-        for item in elastic_result:
-            searchable_indices.append(item['es_index_name'])
-        
+        if group != None:
+            query['bool']['must'].append({"term": { "group": group }})
+
+        response = self.es.search(index='config_indices', query=query) 
+        hits = response['hits']['hits']
+        searchable_indices = [hit['_source']['es_index_name'] for hit in hits]
+     
         return searchable_indices
     
 

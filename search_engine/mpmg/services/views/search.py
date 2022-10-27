@@ -197,9 +197,12 @@ class SearchView(APIView):
 
     # permission_classes = (IsAuthenticated,)
     schema = AutoDocstringSchema()
-    reranker = Reranker()
+    reranker = None
 
     def get(self, request, api_client_name):
+        if self.reranker is None:
+            self.reranker = Reranker()
+            
         start = time.time()  # Medindo wall-clock time da requisição completa
 
         # try:

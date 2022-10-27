@@ -107,45 +107,63 @@ class QueryFilter:
 
         filters_queries = []
         if self.instances not in INVALID_VALS:
-            filters_queries.append(
-                Elastic().dsl.Q({'terms': {'instancia.keyword': self.instances}})
-            )
+            filters_queries.append({
+                'terms': {
+                    'instancia.keyword': self.instances
+                    }
+                })
 
         if self.start_date not in INVALID_VALS:
             start_date = parse_date(self.start_date)
 
-            filters_queries.append(
-                Elastic().dsl.Q({'range': {'data_criacao': {'gte': date_to_timestamp(start_date) }}})
-            )
+            filters_queries.append({
+                        'range': {
+                            'data_criacao': {
+                                'gte': date_to_timestamp(start_date) 
+                            }
+                        }
+                    })
 
         if self.end_date not in INVALID_VALS:
             end_date = parse_date(self.end_date)
 
-            filters_queries.append(
-                Elastic().dsl.Q({'range': {'data_criacao': {'lte': date_to_timestamp(end_date) }}})
-            )
+            filters_queries.append({
+                    'range': {
+                        'data_criacao': {
+                            'lte': date_to_timestamp(end_date) 
+                            }
+                        }
+                    })
 
         for entity_field_name in self.entity_filter.keys():
             for entity_name in self.entity_filter[entity_field_name]:
-                filters_queries.append(
-                    Elastic().dsl.Q({'match_phrase': {entity_field_name: entity_name}})
-                )
+                filters_queries.append({
+                        'match_phrase': {
+                            entity_field_name: entity_name
+                        }
+                    })
 
         if self.location_filter.get('sigla_estado') not in INVALID_VALS:
-            filters_queries.append(
-                Elastic().dsl.Q({'match_phrase': {'estado': self.location_filter['sigla_estado']}})
-            ) 
+            filters_queries.append({
+                        'match_phrase': {
+                            'estado': self.location_filter['sigla_estado']
+                            }
+                        })
 
         if self.location_filter.get('cidade') not in INVALID_VALS:
-            filters_queries.append(
-                Elastic().dsl.Q({'match_phrase': {'cidade': self.location_filter['cidade']}})
-            ) 
+            filters_queries.append({
+                        'match_phrase': {
+                            'cidade': self.location_filter['cidade']
+                        }
+                    }) 
 
         if self.business_categories_filter not in INVALID_VALS:
             for business_category in self.business_categories_filter:
-                filters_queries.append(
-                    Elastic().dsl.Q({'match_phrase': {'categoria_empresa': business_category}})
-                )
+                filters_queries.append({
+                        'match_phrase': {
+                            'categoria_empresa': business_category
+                        }
+                    })
 
         return filters_queries
 

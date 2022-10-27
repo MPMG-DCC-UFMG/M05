@@ -70,36 +70,24 @@ class DocumentNavigationView(APIView):
             # o tipo do documento é o nome do índice
             index_name = request.GET['tipo_documento']
             query = request.GET.get('consulta', None)
-            filtro_entidade_pessoa = request.GET.getlist(
-                'filtro_entidade_pessoa', [])
-            filtro_entidade_municipio = request.GET.getlist(
-                'filtro_entidade_municipio', [])
-            filtro_entidade_organizacao = request.GET.getlist(
-                'filtro_entidade_organizacao', [])
-            local_filter = request.GET.getlist('filtro_local', [])
 
             self.elastic = Elastic()
 
             # primeiro recupera o registro do segmento pra poder pegar o ID do pai
-            retrieved_doc = self.elastic.dsl.Document.get(
-                id_documento, using=self.elastic.es, index=index_name)
+            response = self.elastic.es.get(index=index_name, id=id_documento)
+            retrieved_doc = response['_source']
+
             id_pai = retrieved_doc['id_pai']
 
-            search_obj = self.elastic.dsl.Search(
-                using=self.elastic.es, index=index_name)
-            search_obj.source(['entidade_bloco', 'titulo', 'num_bloco',
-                            'num_segmento_bloco', 'num_segmento_global'])
             query_param = {"term": {"id_pai": id_pai}}
-            sort_param = {'num_segmento_global': {'order': 'asc'}}
+            total_records = self.elastic.es.count(index=index_name, query=query_param)['count']
 
-            # faz a consulta uma vez pra pegar o total de segmentos
-            search_obj = search_obj.query(self.elastic.dsl.Q(query_param))
-            elastic_result = search_obj.execute()
-            total_records = elastic_result.hits.total.value
+            source = ['entidade_bloco', 'titulo', 'num_bloco',
+                            'num_segmento_bloco', 'num_segmento_global']
 
+            # FIXME
             # refaz a consulta trazendo todos os segmentos
             search_obj = search_obj[0:total_records]
-            # search_obj = search_obj.sort(sort_param)
             elastic_result = search_obj.execute()
 
             # faz mais uma vez pra buscar os segmentos que casam com a consulta

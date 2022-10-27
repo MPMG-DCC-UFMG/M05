@@ -1,3 +1,4 @@
+from itertools import count
 from typing import Tuple, Union
 from elasticsearch.exceptions import NotFoundError
 
@@ -170,12 +171,9 @@ class ElasticModel(dict):
         Retorna uma instância da classe correspondente ao índice em questão.
         '''
         try:
-            retrieved_element = cls.elastic.dsl.Document.get(
-                item_id, using=cls.elastic.es, index=cls.index_name)
-
-            element = {'id': retrieved_element.meta.id,
-                       **retrieved_element.to_dict(skip_empty=False)}
-
+            retrieved_element = cls.elastic.es.get(index=cls.index_name, id=item_id)
+            source = retrieved_element['_source']
+            element = {'id': retrieved_element['_id'], **source}
             return cls(**element)
 
         except NotFoundError:
@@ -186,9 +184,8 @@ class ElasticModel(dict):
         '''
         Retorna o total de registros salvos no índice.
         '''
-        total = cls.elastic.dsl.Search(
-            using=cls.elastic.es, index=cls.index_name).count()
-        return total
+        response = cls.elastic.es.count(index=cls.index_name)
+        return response['count']
 
     @classmethod
     def item_already_updated(cls, ref: dict, item: dict) -> bool:
@@ -215,37 +212,40 @@ class ElasticModel(dict):
         LogSearch.getList(query=query_param, page=3, sort=sort_param)
         '''
 
-        search_obj = cls.elastic.dsl.Search(
-            using=cls.elastic.es, index=cls.index_name)
-
+        query_param = {'bool': {'must': []}}
         if query != None:
-            search_obj = search_obj.query(cls.elastic.dsl.Q(query))
+            query_param['bool']['must'].append(query)
         
+        if len(filter) > 0:
+            for f in filter:
+                query_param['bool']['must'].append(f)
+        else:
+            query_param = query 
 
-        for f in filter:
-            search_obj = search_obj.query(cls.elastic.dsl.Q(f))
-
+        if type(query_param) is dict:
+            if len(query_param['bool']['must']) == 0:
+                query_param = None
+        
         if page == 'all':
-            total = cls.get_total()
-            search_obj = search_obj[0:total]
+            start = None
+            end = cls.get_total()
 
         else:
             start = cls.results_per_page * (page - 1)
-            end = start + cls.results_per_page
-            search_obj = search_obj[start:end]
+            end = None 
 
-        if sort != None:
-            search_obj = search_obj.sort(sort)
+        response = cls.elastic.es.search(index=cls.index_name, query=query_param, sort=sort, from_=start, size=end)
 
-        elastic_result = search_obj.execute()
-
-        total_records = elastic_result.hits.total.value
+        total_records = response['hits']['total']['value'] 
+        hits = response['hits']['hits']
 
         result_list = []
 
-        for item in elastic_result:
+        for hit in hits:
+            item_id = hit['_id']
+            item = hit['_source']
             result_list.append(
-                cls(**dict({'id': item.meta.id}, **item.to_dict())))
+                cls(**dict({'id': item_id}, **item)))
 
         return total_records, result_list
 

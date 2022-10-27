@@ -2,6 +2,7 @@ from collections import defaultdict
 from shutil import ExecError
 from typing import Dict, List, Union
 from typing_extensions import Literal
+from urllib import response
 
 import numpy as np
 
@@ -19,6 +20,7 @@ NOTIFICATION = Notification()
 
 class DocumentRecommendation(ElasticModel):
     index_name = 'doc_recommendations'
+    semantic_model = SemanticModel()
 
     def __init__(self, **kwargs):
         index_name = DocumentRecommendation.index_name
@@ -50,26 +52,14 @@ class DocumentRecommendation(ElasticModel):
         iremos buscar os IDs consultando os logs
         '''
 
-        users_ids = list()
+        query = {'bool': {'filter': [{'term': {'nome_cliente_api': api_client_name}}]}}
+        aggs = {'ids_usuarios': {'terms': {'field': 'id_usuario.keyword'}}}
 
-        # busca todos os IDs, varrendo os índices de logs de buscas e bookmarks
-        search_obj = self.elastic.dsl.Search(
-            using=self.elastic.es, index=['log_buscas', 'bookmark'])
+        response = self.elastic.es.search(index=['log_buscas', 'bookmark'], query=query, aggs=aggs, size=0)
+        buckets = response['aggregations']['ids_usuarios']['buckets']
 
-        search_obj = search_obj.filter({'term': {'nome_cliente_api': api_client_name}})
-        
-        # não precisa retornar documentos, apenas a agregação
-        search_obj = search_obj.extra(size=0)
-        search_obj.aggs.bucket('ids_usuarios', 'terms',
-                               field='id_usuario.keyword')
-
-        elastic_result = search_obj.execute()
-
-        for item in elastic_result['aggregations']['ids_usuarios']['buckets']:
-            users_ids.append(item['key'])
-
-        return users_ids
-
+        return [bucket['key'] for bucket in buckets]
+ 
     def _get_last_recommendation_date(self, user_id: str = None) -> int:
         '''
         Retorna um inteiro com a última data de recomendação do usuário user_id. 
@@ -101,34 +91,32 @@ class DocumentRecommendation(ElasticModel):
             index_name = item['nome_indice']
             amount = item['quantidade']
 
-            search_obj = self.elastic.dsl.Search(
-                using=self.elastic.es, index=index_name)
-            
-            search_obj = search_obj.query("bool", filter=[self.elastic.dsl.Q(
-                {'range': {'data_indexacao': {'gte': reference_date}}})])
-            
-            search_obj = search_obj[0:amount]
-            elastic_result = search_obj.execute()
+            query = {'bool': {'filter': [{'range': {'data_indexacao': {'gte': reference_date}}}]}}
 
-            for item in elastic_result:
-                key = f'{index_name}-{item.meta.id}'
+            response = self.elastic.es.search(index=index_name, query=query, size=amount)
+            hits = response['hits']['hits']
+
+            for hit in hits:
+                item_id = hit['_id']
+                item = hit['_source']
+                
+                key = f'{index_name}-{item_id}'
 
                 if key not in candidates_keys:
-                    candidates.append({'id': item.meta.id, 
+                    candidates.append({'id': item_id, 
                                         'index_name': index_name,
                                         'title': item['titulo'], 
                                         'embedding': np.array(item['embedding'])})
 
                     candidates_keys.add(key)
 
-        return candidates
+        return candidates[0]
 
     def _parse_query_evidences(self, evidences: list) -> List[Dict]:
         user_evidences = list()
-        semantic_model = SemanticModel(model_path='prajjwal1/bert-tiny')
         
         for doc in evidences:
-            embbeded_query = semantic_model.get_dense_vector(doc['texto_consulta'])
+            embbeded_query = self.semantic_model.get_dense_vector(doc['texto_consulta'])
 
             user_evidences.append({'query': doc['texto_consulta'], 
                                     'embedding': embbeded_query})
@@ -148,18 +136,18 @@ class DocumentRecommendation(ElasticModel):
 
         # pega os embeddings dos documentos clicados através dos IDs no respectivo índice
         for doc_type, ids in doc_ids_by_type.items():
-            evidence_docs = self.elastic.dsl.Document.mget(
-                ids, using=self.elastic.es, index=doc_type)
+            response = self.elastic.es.mget(index=doc_type, ids=ids)
+            evidence_docs = response['docs']
 
             for doc in evidence_docs:
-                if doc != None:
-                    user_evidences.append({
-                            'id': doc.meta.id,
-                            'index_name': doc_type,
-                            'title': doc['titulo'], 
-                            'embedding': np.array(doc['embedding'])
-                        })
-        
+                doc_id = doc['_id']
+                user_evidences.append({
+                        'id': doc_id,
+                        'index_name': doc_type,
+                        'title': doc['_source']['titulo'], 
+                        'embedding': np.array(doc['_source']['embedding'])
+                    })
+
         return user_evidences
 
     def _parse_bookmark_evidences(self, evidences: list) -> List[Dict]:
@@ -176,17 +164,17 @@ class DocumentRecommendation(ElasticModel):
 
         # pega os embeddings dos documentos favoritados através dos IDs no respectivo índice
         for doc_type, ids in doc_ids_by_type.items():
-            evidence_docs = self.elastic.dsl.Document.mget(ids, 
-                                                        using=self.elastic.es, 
-                                                        index=doc_type)
+            response = self.elastic.es.mget(index=doc_type, ids=ids)
+            evidence_docs = response['docs']
 
             for doc in evidence_docs:
-                if doc != None:
-                    user_evidences.append({'id': doc.meta.id, 
-                                            'index_name': doc_type,
-                                            'title': doc['titulo'],
-                                            'embedding': doc['embedding']
-                                        })
+                doc_id = doc['_id']
+                user_evidences.append({
+                                'id': doc_id,
+                                'index_name': doc_type,
+                                'title': doc['_source']['titulo'], 
+                                'embedding': np.array(doc['_source']['embedding'])
+                            })
 
         return user_evidences
 
@@ -203,14 +191,14 @@ class DocumentRecommendation(ElasticModel):
         '''
 
         # busca as evidências do usuário
-        search_obj = self.elastic.dsl.Search(
-            using=self.elastic.es, index=evidence_index)
-            
-        search_obj = search_obj.filter({'term': {'id_usuario.keyword': user_id}})
-        search_obj = search_obj.sort({'data_criacao': {'order': 'desc'}})
+        
+        query = {'bool': {'filter': [{'term': {'id_usuario.keyword': user_id}}]}}
+        sort_param = {'data_criacao': {'order': 'desc'}}
 
-        search_obj = search_obj[0:amount]
-        evidences_found = search_obj.execute()
+        response = self.elastic.es.search(index=evidence_index, query=query, sort=sort_param, size=amount)
+        hits = response['hits']['hits']
+
+        evidences_found = [hit['_source'] for hit in hits]
 
         # se for consulta, pega o texto da consulta e passa pelo modelo para obter o embedding
         if evidence_type == 'query':
