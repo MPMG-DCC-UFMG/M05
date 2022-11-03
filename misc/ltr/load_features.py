@@ -10,7 +10,7 @@ def save_model(es_host, feature_set="m05"):
         "model": {
             "name": "m05_model",
             "model": {
-                "type": "model/linear"
+                "type": "model/xgboost+json"
             }
         }
     }
@@ -22,39 +22,39 @@ def save_model(es_host, feature_set="m05"):
     resp = requests.post(fullPath)
     if (resp.status_code >= 300):
         print(resp.text)
-
-    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
-    modelContent = {f: 1 for f in features}
-    modelContent =  json.dumps(modelContent)
-    path = "_ltr/_featureset/%s/_createmodel" % feature_set
-    fullPath = urljoin(es_host, path)
-    modelPayload['model']['model']['definition'] = modelContent
-    print("POST %s" % fullPath)
-    resp = requests.post(fullPath, json.dumps(modelPayload), headers={"Content-Type": "application/json"})
-    print(resp.status_code)
-    if (resp.status_code >= 300):
-        print(resp.text)
+    with open('./ltr/xgboost_model.json') as modelFile:
+        modelContent = modelFile.read()
+        path = "_ltr/_featureset/%s/_createmodel" % feature_set
+        fullPath = urljoin(es_host, path)
+        modelPayload['model']['model']['definition'] = modelContent
+        print("POST %s" % fullPath)
+        resp = requests.post(fullPath, json.dumps(modelPayload), headers={"Content-Type": "application/json"})
+        print(resp.status_code)
+        if (resp.status_code >= 300):
+            print(resp.text)
 
 def get_feature(feature_name):
-    with open('./features/%s.json' % feature_name) as f:
+    with open('./ltr/features/%s.json' % feature_name) as f:
         return json.loads(f.read())
 
 def each_feature():
-    features = [f[:-5] for f in listdir("./features") if isfile(join("./features", f))]
-    try:
-        for feature in features:
-            parsedJson = get_feature(feature)
-            template = parsedJson['query']
-            feature_spec = {
-                "name": "%s" % feature,
-                "params": ["consulta"],
-                "template": template
-            }
-            print("Loading feature %s" % feature)
-            print(feature_spec)
-            yield feature_spec
-    except IOError:
-        pass
+    features = [f[:-5] for f in listdir("./ltr/features") if isfile(join("./ltr/features", f))]
+    with open('./ltr/featmap.txt', "w") as f:
+        try:
+            for idx, feature in enumerate(features):
+                parsedJson = get_feature(feature)
+                template = parsedJson['query']
+                feature_spec = {
+                    "name": "%s" % feature,
+                    "params": ["consulta"],
+                    "template": template
+                }
+                print("Loading feature %s" % feature)
+                # feature types: use i for indicator and q for quantity
+                f.write(f"{idx} {feature} q" + "\n")
+                yield feature_spec
+        except IOError:
+            pass
 
 def load_features(es_host, feature_set_name='m05'):
     feature_set = {

@@ -1,0 +1,32 @@
+# qid:1: não gerou documento*1
+# qid:2: documento*1
+# qid:3: processo*1
+
+0	qid:3	 # 90d770145b6eef3274e81ae18727498a5d02a73a	processo
+2	qid:3	 # 0233b59d4625333383eed758b767bde71f34114a	processo
+4	qid:3	 # d8f55c963d088b52f86e4e65311ef33152ff0781	processo
+2	qid:3	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	processo
+0	qid:3	 # 90d770145b6eef3274e81ae18727498a5d02a73a	processo
+2	qid:2	 # 0233b59d4625333383eed758b767bde71f34114a	documento
+4	qid:2	 # d8f55c963d088b52f86e4e65311ef33152ff0781	documento
+2	qid:2	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	documento
+0	qid:2	 # 90d770145b6eef3274e81ae18727498a5d02a73a	documento
+2	qid:2	 # 0233b59d4625333383eed758b767bde71f34114a	documento
+4	qid:2	 # d8f55c963d088b52f86e4e65311ef33152ff0781	documento
+1	qid:1	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	não gerou documento
+0	qid:1	 # 90d770145b6eef3274e81ae18727498a5d02a73a	não gerou documento
+2	qid:1	 # 0233b59d4625333383eed758b767bde71f34114a	não gerou documento
+4	qid:1	 # d8f55c963d088b52f86e4e65311ef33152ff0781	não gerou documento
+1	qid:1	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	não gerou documento
+0	qid:1	 # 90d770145b6eef3274e81ae18727498a5d02a73a	não gerou documento
+2	qid:1	 # 0233b59d4625333383eed758b767bde71f34114a	não gerou documento
+4	qid:1	 # d8f55c963d088b52f86e4e65311ef33152ff0781	não gerou documento
+1	qid:1	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	não gerou documento
+0	qid:1	 # 90d770145b6eef3274e81ae18727498a5d02a73a	não gerou documento
+2	qid:1	 # 0233b59d4625333383eed758b767bde71f34114a	não gerou documento
+4	qid:1	 # d8f55c963d088b52f86e4e65311ef33152ff0781	não gerou documento
+1	qid:1	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	não gerou documento
+0	qid:1	 # 90d770145b6eef3274e81ae18727498a5d02a73a	não gerou documento
+2	qid:1	 # 0233b59d4625333383eed758b767bde71f34114a	não gerou documento
+4	qid:1	 # d8f55c963d088b52f86e4e65311ef33152ff0781	não gerou documento
+1	qid:1	 # 72a65ed97b3d4e104cc86d9ead3bbfbdb44b493f	não gerou documento
