@@ -1,0 +1,39 @@
+{% extends "./_base.html" %}
+{% load static %}
+
+{% block search_page_actions %}
+{% endblock %}
+
+{% block content %}
+    <div class="vertical-center">
+        <div class="container">
+            <h1 class="aduna-title">Áduna</h1>
+            <form action="{% url 'aduna:search' %}" method="GET" class="form">
+                <div class="row justify-content-md-center">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control shadow p-3 mb-5 bg-white rounded" name="consulta" id="query" placeholder="Sua consulta aqui..." autocomplete="off" oninvalid="setCustomValidity('A consulta requer pelo menos 2 caracteres não vazios.')" oninput="setCustomValidity('')" required pattern="\s*(\S\s*){2,}" autofocus>
+                            <span class="input-group-btn">
+                                <button type="submit" class="btn btn-primary shadow mb-5 rounded">Pesquisar</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script_before %}
+    <script>
+        API_CLIENT_NAME = '{{ api_client_name }}';
+        SERVICES_URL = '{{ services_url }}';
+        // AUTH_TOKEN = '{{ auth_token }}';
+        USER_ID = '{{ user_id }}';
+
+    </script>
+{% endblock %}
+
+{% block script_after %}
+    <script src="{% static 'aduna/js/notification/notification.js' %}"></script>
+{% endblock %}

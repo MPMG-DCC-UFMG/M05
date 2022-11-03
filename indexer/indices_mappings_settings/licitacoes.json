@@ -1,9 +1,10 @@
 {
     "mappings": {
         "properties": {
-            "titulo":{
+            "titulo": {
                 "type": "text",
-                "term_vector" : "with_positions_offsets",
+                "analyzer": "standard_asciifolding",
+                "term_vector": "with_positions_offsets",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -11,9 +12,10 @@
                     }
                 }
             },
-            "conteudo":{
+            "conteudo": {
                 "type": "text",
-                "term_vector" : "with_positions_offsets",
+                "analyzer": "standard_asciifolding",
+                "term_vector": "with_positions_offsets",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -21,14 +23,15 @@
                     }
                 }
             },
-            "data_criacao":{
+            "data_criacao": {
                 "type": "date"
             },
             "data_indexacao": {
                 "type": "date"
-            }, 
-            "instancia":{
+            },
+            "instancia": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -36,7 +39,7 @@
                     }
                 }
             },
-            "fonte":{
+            "fonte": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -49,7 +52,67 @@
                 "type": "dense_vector",
                 "dims": 128
             },
-            "entidade_pessoa":{
+            "entidade_pessoa": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_organizacao": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_local": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_tempo": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_legislacao": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_jurisprudencia": {
+                "type": "text",
+                "analyzer": "standard_asciifolding",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entidade_cpf": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -58,7 +121,7 @@
                     }
                 }
             },
-            "entidade_organizacao":{
+            "entidade_cnpj": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -67,7 +130,7 @@
                     }
                 }
             },
-            "entidade_local":{
+            "entidade_cep": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -76,62 +139,9 @@
                     }
                 }
             },
-            "entidade_tempo":{
+            "entidade_municipio": {
                 "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_legislacao":{
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_jurisprudencia":{
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_cpf":{
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_cnpj":{
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_cep":{
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "entidade_municipio":{
-                "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -141,6 +151,7 @@
             },
             "tipo_documento": {
                 "type": "text",
+                "analyzer": "standard_asciifolding",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
@@ -148,7 +159,7 @@
                     }
                 }
             },
-            "entidade_processo_licitacao":{
+            "entidade_processo_licitacao": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -162,7 +173,21 @@
     "settings": {
         "index": {
             "highlight": {
-                "max_analyzed_offset" : "15000000"
+                "max_analyzed_offset": "15000000"
+            }
+        },
+        "analysis": {
+            "analyzer": {
+                "standard_asciifolding": {
+                    "filter": [ "my_ascii_folding", "lowercase" ],
+                    "tokenizer": "standard"
+                }
+            },
+            "filter": {
+                "my_ascii_folding": {
+                  "type": "asciifolding",
+                  "preserve_original": true
+                }
             }
         }
     }

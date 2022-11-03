@@ -3,111 +3,211 @@
         {
             "id": 1,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Processo Licitação",
                 "tipo_entidade": "entidade_processo_licitacao",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 2,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Local",
                 "tipo_entidade": "entidade_local",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 3,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Pessoa",
                 "tipo_entidade": "entidade_pessoa",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 4,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Jurisprudência",
                 "tipo_entidade": "entidade_jurisprudencia",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 5,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Tempo",
                 "tipo_entidade": "entidade_tempo",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 6,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "CPF",
                 "tipo_entidade": "entidade_cpf",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 7,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Organização",
                 "tipo_entidade": "entidade_organizacao",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 8,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "CEP",
                 "tipo_entidade": "entidade_cep",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 9,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Município",
                 "tipo_entidade": "entidade_municipio",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 10,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "Legislação",
                 "tipo_entidade": "entidade_legislacao",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         },
         {
             "id": 11,
             "body": {
-                "ativo": true,
+                "nome_cliente_api": "gsi",
                 "nome": "CNPJ",
                 "tipo_entidade": "entidade_cnpj",
                 "tecnica_agregacao": "votes",
-                "tamanho_ranking": 5
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+
+        {
+            "id": 12,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Local",
+                "tipo_entidade": "entidade_local",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 13,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Pessoa",
+                "tipo_entidade": "entidade_pessoa",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 14,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Tempo",
+                "tipo_entidade": "entidade_tempo",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 15,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "CPF",
+                "tipo_entidade": "entidade_cpf",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 16,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Organização",
+                "tipo_entidade": "entidade_organizacao",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 17,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "CEP",
+                "tipo_entidade": "entidade_cep",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 18,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "Município",
+                "tipo_entidade": "entidade_municipio",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
+            }
+        },
+        {
+            "id": 19,
+            "body": {
+                "nome_cliente_api": "procon",
+                "nome": "CNPJ",
+                "tipo_entidade": "entidade_cnpj",
+                "tecnica_agregacao": "votes",
+                "tamanho_ranking": 5,
+                "ativo": true
             }
         }
     ]

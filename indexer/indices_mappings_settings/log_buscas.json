@@ -1,6 +1,9 @@
 {
     "mappings": {
         "properties": {
+            "nome_cliente_api": {
+                "type": "text"
+            },
             "id_sessao": {
                 "type": "text",
                 "fields": {
