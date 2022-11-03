@@ -41,13 +41,13 @@ if __name__ == "__main__":
     for person, data_list in feedback.items():
         for entry in data_list:
             new_corresponding = ""
-            query_tokens = entry["query"].split()
+            query_tokens = entry["query"].lower().split()
             query_tokens = [token for token in query_tokens if not token in stopwords]
             color_codes = dict(zip(query_tokens, style_list[:len(query_tokens)]))
             for corres in entry["corresponding"]:
                 for token in corres["text"].split():
-                    if token in query_tokens:
-                        new_corresponding += f"<mark {color_codes[token]}>" + token + "</mark> "
+                    if token.lower() in query_tokens:
+                        new_corresponding += f"<mark {color_codes[token.lower()]}>" + token + "</mark> "
                     else:
                         new_corresponding += token + " "
                 corres["formatted_text"] = new_corresponding

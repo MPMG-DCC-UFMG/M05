@@ -4,6 +4,8 @@ import json
 from tqdm import tqdm
 import requests
 
+CLIENT = "gsi"
+
 def format_text(text):
     import re
     text = re.sub('\n+', '\n', text)
@@ -30,7 +32,7 @@ if __name__ == "__main__":
             try:
                 query = q["query"].replace("/", "")
                 params = {'consulta': query,  'page': 1, 'sid': '123'}
-                service_response = requests.get('http://localhost:8000/services/search', params)
+                service_response = requests.get(f'http://localhost:8000/services/{CLIENT}/search', params)
                 results = json.loads(service_response.text)
                 feedback_line = {}
                 feedback_line["text"] = query
