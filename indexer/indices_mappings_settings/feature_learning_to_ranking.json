@@ -1,0 +1,15 @@
+{
+    "mappings": {
+        "properties": {
+            "ativo": {
+                "type": "boolean"
+            },
+            "quantidade": {
+                "type": "integer"
+            },
+            "ui_name": {
+                "type": "text"
+            }
+        }
+    }
+}

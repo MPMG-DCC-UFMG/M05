@@ -15,6 +15,7 @@ from .notification import *
 from .document_recommendation import *
 from .config_recommendation_evidence import *
 from .config_recommendation_source import *
+from .config_learning_to_rank import *
 from .city import *
 from .state import *
 from .procon_category import *

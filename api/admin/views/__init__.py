@@ -8,3 +8,4 @@ from .config_fields import ConfigFieldsView
 from .config_options import ConfigOptionsView
 from .config_ranking_entity import ConfigRankingEntityView
 from .config_filter_by_ranking import ConfigFilterByEntityView
+from .config_learning_to_ranking import ConfigLearningToRankingView
